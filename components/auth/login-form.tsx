@@ -41,23 +41,6 @@ export function LoginForm({ className, ...props }: DivProps) {
 		if (typeof PublicKeyCredential === "undefined") return;
 
 		setPasskeySupported(true);
-
-		if (
-			typeof PublicKeyCredential.isConditionalMediationAvailable === "function"
-		) {
-			PublicKeyCredential.isConditionalMediationAvailable()
-				.then((available) => {
-					if (available) {
-						// Conditional UI é opcional: habilita autofill quando disponível.
-						authClient.signIn.passkey({
-							mediation: "conditional",
-						});
-					}
-				})
-				.catch(() => {
-					// Ignora falhas de detecção e mantém login manual por passkey.
-				});
-		}
 	}, []);
 
 	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -237,7 +220,7 @@ export function LoginForm({ className, ...props }: DivProps) {
 										) : (
 											<RiFingerprintLine className="h-5 w-5" />
 										)}
-										<span>Entrar com Passkey</span>
+										<span>Entrar com passkey</span>
 									</Button>
 								</Field>
 							)}

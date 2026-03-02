@@ -201,9 +201,9 @@ export function DashboardGridEditable({
 			{/* Toolbar */}
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				{!isEditing ? (
-					<div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+					<div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 px-1">
 						<span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-							Ação rápida
+							Ações rápidas
 						</span>
 						<div className="-mb-1 flex items-center gap-2 overflow-x-auto pb-1 sm:mb-0 sm:overflow-visible sm:pb-0">
 							<LancamentoDialog
