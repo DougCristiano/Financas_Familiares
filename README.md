@@ -21,7 +21,7 @@
 ---
 
 <p align="center">
-  <img src="./public/dashboard-preview-light.png" alt="Dashboard Preview" width="800" />
+  <img src="./public/dashboard-preview-light.webp" alt="Dashboard Preview" width="800" />
 </p>
 
 ---
