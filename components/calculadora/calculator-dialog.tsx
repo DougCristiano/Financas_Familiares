@@ -16,8 +16,8 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useDraggableDialog } from "@/hooks/use-draggable-dialog";
 import { cn } from "@/lib/utils/ui";
+import { useDraggableDialog } from "./use-draggable-dialog";
 
 type Variant = React.ComponentProps<typeof Button>["variant"];
 type Size = React.ComponentProps<typeof Button>["size"];

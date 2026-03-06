@@ -92,7 +92,7 @@ export function AnticipateInstallmentsDialog({
 	);
 
 	// Use form state hook for form management
-	const { formState, updateField, setFormState } =
+	const { formState, replaceForm, updateField } =
 		useFormState<AnticipationFormValues>({
 			anticipationPeriod: defaultPeriod,
 			discount: "0",
@@ -122,7 +122,7 @@ export function AnticipateInstallmentsDialog({
 					// Pré-preencher pagador e categoria da primeira parcela
 					if (installments.length > 0) {
 						const first = installments[0];
-						setFormState({
+						replaceForm({
 							anticipationPeriod: defaultPeriod,
 							discount: "0",
 							pagadorId: first.pagadorId ?? "",
@@ -140,7 +140,7 @@ export function AnticipateInstallmentsDialog({
 					setIsLoadingInstallments(false);
 				});
 		}
-	}, [dialogOpen, seriesId, defaultPeriod, setFormState]);
+	}, [defaultPeriod, dialogOpen, replaceForm, seriesId]);
 
 	const totalAmount = useMemo(() => {
 		return eligibleInstallments

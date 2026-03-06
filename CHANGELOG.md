@@ -11,6 +11,9 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ### Alterado
 
+- Períodos e navegação mensal: `useMonthPeriod` passou a usar os helpers centrais de período (`YYYY-MM`), o month-picker foi simplificado e o rótulo visual agora segue o formato `Março 2026`.
+- Hooks e organização: hooks locais de calculadora, month-picker, logo picker e sidebar foram movidos para perto das respectivas features, deixando `/hooks` focado nos hooks realmente compartilhados.
+- Estado de formulários e responsividade: `useFormState` ganhou APIs explícitas de reset/substituição no lugar do setter cru, e `useIsMobile` foi atualizado para assinatura estável com `useSyncExternalStore`, reduzindo a troca estrutural inicial no sidebar entre mobile e desktop.
 - Navegação e estrutura compartilhada: `components/navbar` e `components/sidebar` foram consolidados em `components/navigation/*`, componentes globais migraram para `components/shared/*` e os imports foram padronizados no projeto.
 - Dashboard e relatórios: a análise de parcelas foi movida para `/relatorios/analise-parcelas`, ações rápidas e widgets do dashboard foram refinados, e os cards de relatórios ganharam ajustes para evitar overflow no mobile.
 - Pré-lançamentos e lançamentos: tabs e cards da inbox ficaram mais consistentes no mobile, itens descartados podem voltar para `Pendente` e compras feitas no dia do fechamento do cartão agora entram na próxima fatura.
