@@ -1,6 +1,7 @@
-import type { CalendarDay, CalendarEvent } from "@/components/calendario/types";
+import type { CalendarDay, CalendarEvent } from "@/lib/types/calendario";
+import { toDateOnlyString } from "@/lib/utils/date";
 
-export const formatDateKey = (date: Date) => date.toISOString().slice(0, 10);
+export const formatDateKey = (date: Date) => toDateOnlyString(date) ?? "";
 
 const getWeekdayIndex = (date: Date) => {
 	const day = date.getUTCDay(); // 0 (domingo) - 6 (sábado)

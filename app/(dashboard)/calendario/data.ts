@@ -1,9 +1,5 @@
 import { and, eq, gte, lte, ne, or } from "drizzle-orm";
 import { getRecentEstablishmentsAction } from "@/app/(dashboard)/lancamentos/actions";
-import type {
-	CalendarData,
-	CalendarEvent,
-} from "@/components/calendario/types";
 import { cartoes, lancamentos } from "@/db/schema";
 import { db } from "@/lib/db";
 import {
@@ -13,23 +9,12 @@ import {
 	mapLancamentosData,
 } from "@/lib/lancamentos/page-helpers";
 import { PAGADOR_ROLE_ADMIN } from "@/lib/pagadores/constants";
+import type { CalendarData, CalendarEvent } from "@/lib/types/calendario";
+import { formatDateKey } from "@/lib/utils/calendario";
+import { parsePeriod } from "@/lib/utils/period";
 
 const PAYMENT_METHOD_BOLETO = "Boleto";
 const TRANSACTION_TYPE_TRANSFERENCIA = "Transferência";
-
-const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
-
-const parsePeriod = (period: string) => {
-	const [yearStr, monthStr] = period.split("-");
-	const year = Number.parseInt(yearStr ?? "", 10);
-	const month = Number.parseInt(monthStr ?? "", 10);
-
-	if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
-		throw new Error(`Período inválido: ${period}`);
-	}
-
-	return { year, monthIndex: month - 1 };
-};
 
 const clampDayInMonth = (year: number, monthIndex: number, day: number) => {
 	const lastDay = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
@@ -52,11 +37,12 @@ export const fetchCalendarData = async ({
 	userId,
 	period,
 }: FetchCalendarDataParams): Promise<CalendarData> => {
-	const { year, monthIndex } = parsePeriod(period);
+	const { year, month } = parsePeriod(period);
+	const monthIndex = month - 1;
 	const rangeStart = new Date(Date.UTC(year, monthIndex, 1));
 	const rangeEnd = new Date(Date.UTC(year, monthIndex + 1, 0));
-	const rangeStartKey = toDateKey(rangeStart);
-	const rangeEndKey = toDateKey(rangeEnd);
+	const rangeStartKey = formatDateKey(rangeStart);
+	const rangeEndKey = formatDateKey(rangeEnd);
 
 	const [lancamentoRows, cardRows, filterSources] = await Promise.all([
 		db.query.lancamentos.findMany({
@@ -161,7 +147,7 @@ export const fetchCalendarData = async ({
 		}
 
 		const normalizedDay = clampDayInMonth(year, monthIndex, dueDayNumber);
-		const dueDateKey = toDateKey(
+		const dueDateKey = formatDateKey(
 			new Date(Date.UTC(year, monthIndex, normalizedDay)),
 		);
 

@@ -6,13 +6,13 @@ import {
 	RiTable2,
 } from "@remixicon/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CategoryReportSkeleton } from "@/components/shared/skeletons/category-report-skeleton";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CategoryChartData } from "@/lib/relatorios/fetch-category-chart-data";
-import type { CategoryReportData } from "@/lib/relatorios/types";
+import type { CategoryReportData } from "@/lib/types/relatorios";
 import { CategoryReportCards } from "./category-report-cards";
 import { CategoryReportChart } from "./category-report-chart";
 import { CategoryReportExport } from "./category-report-export";
@@ -38,76 +38,62 @@ export function CategoryReportPage({
 	const [isPending, startTransition] = useTransition();
 
 	const [filters, setFilters] = useState<FilterState>(initialFilters);
-	const [data, setData] = useState<CategoryReportData>(initialData);
 
 	// Get active tab from URL or default to "table"
 	const activeTab = searchParams.get("aba") || "table";
 
 	// Debounce timer
-	const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
-		null,
-	);
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const handleFiltersChange = useCallback(
-		(newFilters: FilterState) => {
-			setFilters(newFilters);
-
-			// Clear existing timer
-			if (debounceTimer) {
-				clearTimeout(debounceTimer);
+	useEffect(() => {
+		return () => {
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current);
 			}
+		};
+	}, []);
 
-			// Set new debounced timer (300ms)
-			const timer = setTimeout(() => {
-				startTransition(() => {
-					// Build new URL with query params
-					const params = new URLSearchParams(searchParams.toString());
+	const handleFiltersChange = (newFilters: FilterState) => {
+		setFilters(newFilters);
 
-					params.set("inicio", newFilters.startPeriod);
-					params.set("fim", newFilters.endPeriod);
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
 
-					if (newFilters.selectedCategories.length > 0) {
-						params.set("categorias", newFilters.selectedCategories.join(","));
-					} else {
-						params.delete("categorias");
-					}
+		debounceTimerRef.current = setTimeout(() => {
+			startTransition(() => {
+				const params = new URLSearchParams(searchParams.toString());
 
-					// Preserve current tab
-					const currentTab = searchParams.get("aba");
-					if (currentTab) {
-						params.set("aba", currentTab);
-					}
+				params.set("inicio", newFilters.startPeriod);
+				params.set("fim", newFilters.endPeriod);
 
-					// Navigate with new params (this will trigger server component re-render)
-					router.push(`?${params.toString()}`, { scroll: false });
-				});
-			}, 300);
+				if (newFilters.selectedCategories.length > 0) {
+					params.set("categorias", newFilters.selectedCategories.join(","));
+				} else {
+					params.delete("categorias");
+				}
 
-			setDebounceTimer(timer);
-		},
-		[debounceTimer, router, searchParams],
-	);
+				const currentTab = searchParams.get("aba");
+				if (currentTab) {
+					params.set("aba", currentTab);
+				}
 
-	// Handle tab change
-	const handleTabChange = useCallback(
-		(value: string) => {
-			const params = new URLSearchParams(searchParams.toString());
-			params.set("aba", value);
-			router.push(`?${params.toString()}`, { scroll: false });
-		},
-		[router, searchParams],
-	);
+				router.push(`?${params.toString()}`, { scroll: false });
+			});
+		}, 300);
+	};
 
-	// Update data when initialData changes (from server)
-	useMemo(() => {
-		setData(initialData);
-	}, [initialData]);
+	const handleTabChange = (value: string) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("aba", value);
+		router.push(`?${params.toString()}`, { scroll: false });
+	};
 
 	// Check if no categories are available
 	const hasNoCategories = categories.length === 0;
 
 	// Check if no data in period
-	const hasNoData = data.categories.length === 0 && !hasNoCategories;
+	const hasNoData = initialData.categories.length === 0 && !hasNoCategories;
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -116,7 +102,9 @@ export function CategoryReportPage({
 				categories={categories}
 				filters={filters}
 				onFiltersChange={handleFiltersChange}
-				exportButton={<CategoryReportExport data={data} filters={filters} />}
+				exportButton={
+					<CategoryReportExport data={initialData} filters={filters} />
+				}
 			/>
 
 			{/* Loading State */}
@@ -180,11 +168,11 @@ export function CategoryReportPage({
 					<TabsContent value="table" className="mt-4">
 						{/* Desktop Table */}
 						<div className="hidden md:block">
-							<CategoryReportTable data={data} />
+							<CategoryReportTable data={initialData} />
 						</div>
 
 						{/* Mobile Cards */}
-						<CategoryReportCards data={data} />
+						<CategoryReportCards data={initialData} />
 					</TabsContent>
 
 					<TabsContent value="chart" className="mt-4">

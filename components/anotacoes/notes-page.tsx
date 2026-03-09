@@ -1,13 +1,13 @@
 "use client";
 
 import { RiAddCircleLine, RiTodoLine } from "@remixicon/react";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
 	arquivarAnotacaoAction,
 	deleteNoteAction,
 } from "@/app/(dashboard)/anotacoes/actions";
-import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
+import { ConfirmActionDialog } from "@/components/shared/confirm-action-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,76 +34,78 @@ export function NotesPage({ notes, archivedNotes }: NotesPageProps) {
 	const [arquivarOpen, setArquivarOpen] = useState(false);
 	const [noteToArquivar, setNoteToArquivar] = useState<Note | null>(null);
 
-	const sortNotes = useCallback(
-		(list: Note[]) =>
-			[...list].sort(
+	const sortedNotes = useMemo(
+		() =>
+			[...notes].sort(
 				(a, b) =>
 					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
 			),
-		[],
+		[notes],
 	);
-
-	const sortedNotes = useMemo(() => sortNotes(notes), [notes, sortNotes]);
 	const sortedArchivedNotes = useMemo(
-		() => sortNotes(archivedNotes),
-		[archivedNotes, sortNotes],
+		() =>
+			[...archivedNotes].sort(
+				(a, b) =>
+					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+			),
+		[archivedNotes],
 	);
 
 	const isArquivadas = activeTab === "arquivadas";
 
-	const handleCreateOpenChange = useCallback((open: boolean) => {
+	const handleCreateOpenChange = (open: boolean) => {
 		setCreateOpen(open);
-	}, []);
+	};
 
-	const handleEditOpenChange = useCallback((open: boolean) => {
+	const handleEditOpenChange = (open: boolean) => {
 		setEditOpen(open);
 		if (!open) {
 			setNoteToEdit(null);
 		}
-	}, []);
+	};
 
-	const handleDetailsOpenChange = useCallback((open: boolean) => {
+	const handleDetailsOpenChange = (open: boolean) => {
 		setDetailsOpen(open);
 		if (!open) {
 			setNoteDetails(null);
 		}
-	}, []);
+	};
 
-	const handleRemoveOpenChange = useCallback((open: boolean) => {
+	const handleRemoveOpenChange = (open: boolean) => {
 		setRemoveOpen(open);
 		if (!open) {
 			setNoteToRemove(null);
 		}
-	}, []);
+	};
 
-	const handleArquivarOpenChange = useCallback((open: boolean) => {
+	const handleArquivarOpenChange = (open: boolean) => {
 		setArquivarOpen(open);
 		if (!open) {
 			setNoteToArquivar(null);
 		}
-	}, []);
+	};
 
-	const handleEditRequest = useCallback((note: Note) => {
+	const handleEditRequest = (note: Note) => {
 		setNoteToEdit(note);
 		setEditOpen(true);
-	}, []);
+	};
 
-	const handleDetailsRequest = useCallback((note: Note) => {
+	const handleDetailsRequest = (note: Note) => {
 		setNoteDetails(note);
 		setDetailsOpen(true);
-	}, []);
+	};
 
-	const handleRemoveRequest = useCallback((note: Note) => {
+	const handleRemoveRequest = (note: Note) => {
 		setNoteToRemove(note);
 		setRemoveOpen(true);
-	}, []);
+	};
 
-	const handleArquivarRequest = useCallback((note: Note) => {
+	const handleArquivarRequest = (note: Note) => {
 		setNoteToArquivar(note);
 		setArquivarOpen(true);
-	}, []);
+	};
 
-	const handleArquivarConfirm = useCallback(async () => {
+	const handleArquivarConfirm = async () => {
 		if (!noteToArquivar) {
 			return;
 		}
@@ -120,9 +122,9 @@ export function NotesPage({ notes, archivedNotes }: NotesPageProps) {
 
 		toast.error(result.error);
 		throw new Error(result.error);
-	}, [noteToArquivar, isArquivadas]);
+	};
 
-	const handleRemoveConfirm = useCallback(async () => {
+	const handleRemoveConfirm = async () => {
 		if (!noteToRemove) {
 			return;
 		}
@@ -136,7 +138,7 @@ export function NotesPage({ notes, archivedNotes }: NotesPageProps) {
 
 		toast.error(result.error);
 		throw new Error(result.error);
-	}, [noteToRemove]);
+	};
 
 	const removeTitle = noteToRemove
 		? noteToRemove.title.trim().length

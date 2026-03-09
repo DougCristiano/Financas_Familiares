@@ -8,7 +8,7 @@ import { formatCurrency } from "@/lib/lancamentos/formatting-helpers";
 import type {
 	CategoryReportData,
 	CategoryReportItem,
-} from "@/lib/relatorios/types";
+} from "@/lib/types/relatorios";
 import { formatPeriodLabel } from "@/lib/relatorios/utils";
 import { formatPeriodForUrl } from "@/lib/utils/period";
 import { CategoryCell } from "./category-cell";
@@ -20,11 +20,18 @@ interface CategoryReportCardsProps {
 interface CategoryCardProps {
 	category: CategoryReportItem;
 	periods: string[];
+	periodCount: number;
 	colorIndex: number;
 }
 
-function CategoryCard({ category, periods, colorIndex }: CategoryCardProps) {
+function CategoryCard({
+	category,
+	periods,
+	periodCount,
+	colorIndex,
+}: CategoryCardProps) {
 	const periodParam = formatPeriodForUrl(periods[periods.length - 1]);
+	const averageMonthlyTotal = category.total / periodCount;
 
 	return (
 		<Card>
@@ -65,6 +72,10 @@ function CategoryCard({ category, periods, colorIndex }: CategoryCardProps) {
 						</div>
 					);
 				})}
+				<div className="flex items-center justify-between font-semibold text-info">
+					<span>Média mensal</span>
+					<span>{formatCurrency(averageMonthlyTotal)}</span>
+				</div>
 				<div className="flex items-center justify-between pt-2 font-semibold">
 					<span>Total</span>
 					<span>{formatCurrency(category.total)}</span>
@@ -78,6 +89,7 @@ interface SectionProps {
 	title: string;
 	categories: CategoryReportItem[];
 	periods: string[];
+	periodCount: number;
 	colorIndexOffset: number;
 	total: number;
 }
@@ -86,6 +98,7 @@ function Section({
 	title,
 	categories,
 	periods,
+	periodCount,
 	colorIndexOffset,
 	total,
 }: SectionProps) {
@@ -93,21 +106,29 @@ function Section({
 		return null;
 	}
 
+	const averageMonthlyTotal = total / periodCount;
+
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center justify-between">
 				<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
 					{title}
 				</span>
-				<span className="text-sm text-muted-foreground">
-					{formatCurrency(total)}
-				</span>
+				<div className="flex flex-col items-end">
+					<span className="text-sm text-muted-foreground">
+						{formatCurrency(total)}
+					</span>
+					<span className="text-xs font-semibold text-info">
+						Média: {formatCurrency(averageMonthlyTotal)}
+					</span>
+				</div>
 			</div>
 			{categories.map((category, index) => (
 				<CategoryCard
 					key={category.categoryId}
 					category={category}
 					periods={periods}
+					periodCount={periodCount}
 					colorIndex={colorIndexOffset + index}
 				/>
 			))}
@@ -117,6 +138,7 @@ function Section({
 
 export function CategoryReportCards({ data }: CategoryReportCardsProps) {
 	const { categories, periods } = data;
+	const periodCount = Math.max(periods.length, 1);
 
 	// Separate categories by type and calculate totals
 	const { receitas, despesas, receitasTotal, despesasTotal } = useMemo(() => {
@@ -145,6 +167,7 @@ export function CategoryReportCards({ data }: CategoryReportCardsProps) {
 				title="Despesas"
 				categories={despesas}
 				periods={periods}
+				periodCount={periodCount}
 				colorIndexOffset={0}
 				total={despesasTotal}
 			/>
@@ -154,6 +177,7 @@ export function CategoryReportCards({ data }: CategoryReportCardsProps) {
 				title="Receitas"
 				categories={receitas}
 				periods={periods}
+				periodCount={periodCount}
 				colorIndexOffset={despesas.length}
 				total={receitasTotal}
 			/>

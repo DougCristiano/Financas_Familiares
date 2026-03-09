@@ -1,7 +1,6 @@
 "use client";
 
 import { RiCheckLine } from "@remixicon/react";
-import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +12,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	buildNoteDisplayTitle,
+	formatNoteCreatedAtLong,
+} from "@/lib/notes/formatters";
 import { Card } from "../ui/card";
 import { type Note, sortTasksByStatus } from "./types";
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("pt-BR", {
-	dateStyle: "long",
-	timeStyle: "short",
-});
 
 interface NoteDetailsDialogProps {
 	note: Note | null;
@@ -32,26 +30,14 @@ export function NoteDetailsDialog({
 	open,
 	onOpenChange,
 }: NoteDetailsDialogProps) {
-	const { formattedDate, displayTitle } = useMemo(() => {
-		if (!note) {
-			return { formattedDate: "", displayTitle: "" };
-		}
-
-		const title = note.title.trim().length ? note.title : "Anotação sem título";
-
-		return {
-			formattedDate: DATE_FORMATTER.format(new Date(note.createdAt)),
-			displayTitle: title,
-		};
-	}, [note]);
-
-	const tasks = note?.tasks || [];
-	const sortedTasks = useMemo(() => sortTasksByStatus(tasks), [tasks]);
-
 	if (!note) {
 		return null;
 	}
 
+	const formattedDate = formatNoteCreatedAtLong(note.createdAt) ?? "";
+	const displayTitle = buildNoteDisplayTitle(note.title);
+	const tasks = note.tasks || [];
+	const sortedTasks = sortTasksByStatus(tasks);
 	const isTask = note.type === "tarefa";
 	const completedCount = tasks.filter((t) => t.completed).length;
 	const totalCount = tasks.length;

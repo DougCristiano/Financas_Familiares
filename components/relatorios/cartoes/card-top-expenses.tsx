@@ -1,11 +1,11 @@
 "use client";
 
 import { RiShoppingBag3Line } from "@remixicon/react";
-import MoneyValues from "@/components/money-values";
+import MoneyValues from "@/components/shared/money-values";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { WidgetEmptyState } from "@/components/widget-empty-state";
+import { WidgetEmptyState } from "@/components/shared/widget-empty-state";
 import type { CardDetailData } from "@/lib/relatorios/cartoes-report";
 
 type CardTopExpensesProps = {

@@ -8,7 +8,7 @@ import type { Categoria } from "@/db/schema";
 import { getUserId } from "@/lib/auth/server";
 import { fetchCategoryChartData } from "@/lib/relatorios/fetch-category-chart-data";
 import { fetchCategoryReport } from "@/lib/relatorios/fetch-category-report";
-import type { CategoryReportFilters } from "@/lib/relatorios/types";
+import type { CategoryReportFilters } from "@/lib/types/relatorios";
 import { validateDateRange } from "@/lib/relatorios/utils";
 import { addMonthsToPeriod, getCurrentPeriod } from "@/lib/utils/period";
 import { fetchUserCategories } from "./data";

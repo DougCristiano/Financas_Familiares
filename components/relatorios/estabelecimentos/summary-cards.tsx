@@ -6,7 +6,7 @@ import {
 	RiRepeatLine,
 	RiStore2Line,
 } from "@remixicon/react";
-import MoneyValues from "@/components/money-values";
+import MoneyValues from "@/components/shared/money-values";
 import { Card, CardContent } from "@/components/ui/card";
 import type { TopEstabelecimentosData } from "@/lib/relatorios/estabelecimentos/fetch-data";
 

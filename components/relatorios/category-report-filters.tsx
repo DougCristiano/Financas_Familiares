@@ -5,8 +5,6 @@ import {
 	RiCheckLine,
 	RiExpandUpDownLine,
 } from "@remixicon/react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +24,13 @@ import {
 } from "@/components/ui/popover";
 import { validateDateRange } from "@/lib/relatorios/utils";
 import { getIconComponent } from "@/lib/utils/icons";
+import {
+	addMonthsToPeriod,
+	dateToPeriod,
+	formatShortPeriodLabel,
+	getCurrentPeriod,
+	periodToDate,
+} from "@/lib/utils/period";
 import type { CategoryReportFiltersProps } from "./types";
 
 /**
@@ -43,25 +48,6 @@ export function CategoryReportFilters({
 	const [searchValue, setSearchValue] = useState("");
 	const [startMonthOpen, setStartMonthOpen] = useState(false);
 	const [endMonthOpen, setEndMonthOpen] = useState(false);
-
-	// Convert period string (YYYY-MM) to Date object
-	const periodToDate = (period: string): Date => {
-		const [year, month] = period.split("-").map(Number);
-		return new Date(year, month - 1, 1);
-	};
-
-	// Convert Date object to period string (YYYY-MM)
-	const dateToPeriod = (date: Date): string => {
-		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		return `${year}-${month}`;
-	};
-
-	// Format date for display
-	const formatMonthYear = (period: string): string => {
-		const date = periodToDate(period);
-		return format(date, "MMM/yyyy", { locale: ptBR });
-	};
 
 	// Filter categories by search
 	const filteredCategories = useMemo(() => {
@@ -126,10 +112,8 @@ export function CategoryReportFilters({
 
 	// Handle reset all filters
 	const handleReset = () => {
-		const currentPeriod = new Date().toISOString().slice(0, 7);
-		const defaultStartPeriod = new Date();
-		defaultStartPeriod.setMonth(defaultStartPeriod.getMonth() - 5);
-		const startPeriod = defaultStartPeriod.toISOString().slice(0, 7);
+		const currentPeriod = getCurrentPeriod();
+		const startPeriod = addMonthsToPeriod(currentPeriod, -5);
 
 		onFiltersChange({
 			selectedCategories: [],
@@ -138,27 +122,19 @@ export function CategoryReportFilters({
 		});
 	};
 
-	// Validate date range
-	const validation = useMemo(() => {
-		if (!filters.startPeriod || !filters.endPeriod) {
-			return { isValid: true };
-		}
-		return validateDateRange(filters.startPeriod, filters.endPeriod);
-	}, [filters.startPeriod, filters.endPeriod]);
+	const validation =
+		!filters.startPeriod || !filters.endPeriod
+			? { isValid: true }
+			: validateDateRange(filters.startPeriod, filters.endPeriod);
 
-	// Display text for selected categories
-	const selectedText = useMemo(() => {
-		if (selectedCategories.length === 0) {
-			return "Categoria";
-		}
-		if (selectedCategories.length === categories.length) {
-			return "Todas";
-		}
-		if (selectedCategories.length === 1) {
-			return selectedCategories[0].name;
-		}
-		return `${selectedCategories.length} selecionadas`;
-	}, [selectedCategories, categories.length]);
+	const selectedText =
+		selectedCategories.length === 0
+			? "Categoria"
+			: selectedCategories.length === categories.length
+				? "Todas"
+				: selectedCategories.length === 1
+					? selectedCategories[0].name
+					: `${selectedCategories.length} selecionadas`;
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -261,7 +237,7 @@ export function CategoryReportFilters({
 								disabled={isLoading}
 							>
 								<RiCalendarLine className="mr-2 h-4 w-4" />
-								{formatMonthYear(filters.startPeriod)}
+								{formatShortPeriodLabel(filters.startPeriod)}
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-auto p-0" align="start">
@@ -281,7 +257,7 @@ export function CategoryReportFilters({
 								disabled={isLoading}
 							>
 								<RiCalendarLine className="mr-2 h-4 w-4" />
-								{formatMonthYear(filters.endPeriod)}
+								{formatShortPeriodLabel(filters.endPeriod)}
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-auto p-0" align="start">

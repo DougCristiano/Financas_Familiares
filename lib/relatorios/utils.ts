@@ -1,6 +1,11 @@
+import type { DateRangeValidation } from "@/lib/types/relatorios";
 import { calculatePercentageChange } from "@/lib/utils/math";
-import { buildPeriodRange, MONTH_NAMES, parsePeriod } from "@/lib/utils/period";
-import type { DateRangeValidation } from "./types";
+import { formatPercentageChange as formatPercentageChangeValue } from "@/lib/utils/percentage";
+import {
+	buildPeriodRange,
+	formatShortPeriodLabel,
+	parsePeriod,
+} from "@/lib/utils/period";
 
 // Re-export for convenience
 export { calculatePercentageChange };
@@ -14,14 +19,8 @@ export { calculatePercentageChange };
  */
 export function formatPeriodLabel(period: string): string {
 	try {
-		const { year, month } = parsePeriod(period);
-		const monthName = MONTH_NAMES[month - 1];
-
-		// Capitalize first letter and take first 3 chars
-		const shortMonth =
-			monthName.charAt(0).toUpperCase() + monthName.slice(1, 3);
-
-		return `${shortMonth}/${year}`;
+		parsePeriod(period);
+		return formatShortPeriodLabel(period);
 	} catch {
 		return period; // Return original if parsing fails
 	}
@@ -102,14 +101,5 @@ export function validateDateRange(
  * @returns Formatted percentage string
  */
 export function formatPercentageChange(change: number | null): string {
-	if (change === null) return "-";
-
-	const absChange = Math.abs(change);
-	const sign = change >= 0 ? "+" : "-";
-
-	// Use one decimal place if less than 10%
-	const formatted =
-		absChange < 10 ? absChange.toFixed(1) : Math.round(absChange).toString();
-
-	return `${sign}${formatted}%`;
+	return formatPercentageChangeValue(change);
 }

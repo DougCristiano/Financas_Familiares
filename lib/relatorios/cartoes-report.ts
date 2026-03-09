@@ -20,8 +20,13 @@ import {
 } from "@/db/schema";
 import { db } from "@/lib/db";
 import { PAGADOR_ROLE_ADMIN } from "@/lib/pagadores/constants";
+import { formatDateOnly } from "@/lib/utils/date";
 import { safeToNumber } from "@/lib/utils/number";
-import { getPreviousPeriod } from "@/lib/utils/period";
+import {
+	buildPeriodWindow,
+	formatCompactPeriodLabel,
+	getPreviousPeriod,
+} from "@/lib/utils/period";
 
 const DESPESA = "Despesa";
 
@@ -75,6 +80,49 @@ export type CartoesReportData = {
 	selectedCard: CardDetailData | null;
 };
 
+type CardRow = {
+	id: string;
+	name: string;
+	brand: string | null;
+	logo: string | null;
+	limit: unknown;
+	status: string;
+};
+
+type CardUsageRow = {
+	cartaoId: string | null;
+	totalAmount: unknown;
+};
+
+type MonthlyUsageRow = {
+	period: string;
+	totalAmount: unknown;
+};
+
+type CategoryAmountRow = {
+	categoriaId: string | null;
+	totalAmount: unknown;
+};
+
+type CategoryInfoRow = {
+	id: string;
+	name: string;
+	icon: string | null;
+};
+
+type TopExpenseRow = {
+	id: string;
+	name: string;
+	amount: unknown;
+	purchaseDate: Date | string | null;
+	categoriaId: string | null;
+};
+
+type InvoiceStatusRow = {
+	period: string;
+	status: string | null;
+};
+
 export async function fetchCartoesReportData(
 	userId: string,
 	currentPeriod: string,
@@ -83,7 +131,7 @@ export async function fetchCartoesReportData(
 	const previousPeriod = getPreviousPeriod(currentPeriod);
 
 	// Fetch all active cards (not inactive)
-	const allCards = await db
+	const allCards = (await db
 		.select({
 			id: cartoes.id,
 			name: cartoes.name,
@@ -95,7 +143,7 @@ export async function fetchCartoesReportData(
 		.from(cartoes)
 		.where(
 			and(eq(cartoes.userId, userId), not(ilike(cartoes.status, "inativo"))),
-		);
+		)) as CardRow[];
 
 	if (allCards.length === 0) {
 		return {
@@ -110,7 +158,7 @@ export async function fetchCartoesReportData(
 	const cardIds = allCards.map((c) => c.id);
 
 	// Fetch current period usage by card (recorrente só conta quando a data da ocorrência já passou)
-	const currentUsageData = await db
+	const currentUsageData = (await db
 		.select({
 			cartaoId: lancamentos.cartaoId,
 			totalAmount: sum(lancamentos.amount).as("total"),
@@ -130,10 +178,10 @@ export async function fetchCartoesReportData(
 				),
 			),
 		)
-		.groupBy(lancamentos.cartaoId);
+		.groupBy(lancamentos.cartaoId)) as CardUsageRow[];
 
 	// Fetch previous period usage by card
-	const previousUsageData = await db
+	const previousUsageData = (await db
 		.select({
 			cartaoId: lancamentos.cartaoId,
 			totalAmount: sum(lancamentos.amount).as("total"),
@@ -149,7 +197,7 @@ export async function fetchCartoesReportData(
 				inArray(lancamentos.cartaoId, cardIds),
 			),
 		)
-		.groupBy(lancamentos.cartaoId);
+		.groupBy(lancamentos.cartaoId)) as CardUsageRow[];
 
 	const currentUsageMap = new Map<string, number>();
 	for (const row of currentUsageData) {
@@ -246,32 +294,12 @@ async function fetchCardDetail(
 	currentPeriod: string,
 ): Promise<CardDetailData> {
 	// Build period range for last 12 months
-	const periods: string[] = [];
-	let p = currentPeriod;
-	for (let i = 0; i < 12; i++) {
-		periods.unshift(p);
-		p = getPreviousPeriod(p);
-	}
+	const periods = buildPeriodWindow(currentPeriod, 12);
 
 	const startPeriod = periods[0];
 
-	const monthLabels = [
-		"Jan",
-		"Fev",
-		"Mar",
-		"Abr",
-		"Mai",
-		"Jun",
-		"Jul",
-		"Ago",
-		"Set",
-		"Out",
-		"Nov",
-		"Dez",
-	];
-
 	// Fetch monthly usage
-	const monthlyData = await db
+	const monthlyData = (await db
 		.select({
 			period: lancamentos.period,
 			totalAmount: sum(lancamentos.amount).as("total"),
@@ -289,20 +317,19 @@ async function fetchCardDetail(
 			),
 		)
 		.groupBy(lancamentos.period)
-		.orderBy(lancamentos.period);
+		.orderBy(lancamentos.period)) as MonthlyUsageRow[];
 
 	const monthlyUsage = periods.map((period) => {
 		const data = monthlyData.find((d) => d.period === period);
-		const [year, month] = period.split("-");
 		return {
 			period,
-			periodLabel: `${monthLabels[parseInt(month, 10) - 1]}/${year.slice(2)}`,
+			periodLabel: formatCompactPeriodLabel(period),
 			amount: Math.abs(safeToNumber(data?.totalAmount)),
 		};
 	});
 
 	// Fetch category breakdown for current period
-	const categoryData = await db
+	const categoryData = (await db
 		.select({
 			categoriaId: lancamentos.categoriaId,
 			totalAmount: sum(lancamentos.amount).as("total"),
@@ -318,7 +345,7 @@ async function fetchCardDetail(
 				eq(lancamentos.transactionType, DESPESA),
 			),
 		)
-		.groupBy(lancamentos.categoriaId);
+		.groupBy(lancamentos.categoriaId)) as CategoryAmountRow[];
 
 	// Fetch category names
 	const categoryIds = categoryData
@@ -327,15 +354,15 @@ async function fetchCardDetail(
 
 	const categoryNames =
 		categoryIds.length > 0
-			? await db
+			? ((await db
 					.select({
 						id: categorias.id,
 						name: categorias.name,
 						icon: categorias.icon,
 					})
 					.from(categorias)
-					.where(inArray(categorias.id, categoryIds))
-			: [];
+					.where(inArray(categorias.id, categoryIds))) as CategoryInfoRow[])
+			: ([] as CategoryInfoRow[]);
 
 	const categoryNameMap = new Map(categoryNames.map((c) => [c.id, c]));
 
@@ -363,7 +390,7 @@ async function fetchCardDetail(
 		.slice(0, 10);
 
 	// Fetch top expenses for current period
-	const topExpensesData = await db
+	const topExpensesData = (await db
 		.select({
 			id: lancamentos.id,
 			name: lancamentos.name,
@@ -383,7 +410,7 @@ async function fetchCardDetail(
 			),
 		)
 		.orderBy(lancamentos.amount)
-		.limit(10);
+		.limit(10)) as TopExpenseRow[];
 
 	const topExpenses = topExpensesData.map((expense) => {
 		const catInfo = expense.categoriaId
@@ -393,15 +420,18 @@ async function fetchCardDetail(
 			id: expense.id,
 			name: expense.name,
 			amount: Math.abs(safeToNumber(expense.amount)),
-			date: expense.purchaseDate
-				? new Date(expense.purchaseDate).toLocaleDateString("pt-BR")
-				: "",
+			date:
+				formatDateOnly(expense.purchaseDate, {
+					day: "2-digit",
+					month: "2-digit",
+					year: "numeric",
+				}) ?? "",
 			category: catInfo?.name || null,
 		};
 	});
 
 	// Fetch invoice status for last 6 months
-	const invoiceData = await db
+	const invoiceData = (await db
 		.select({
 			period: faturas.period,
 			status: faturas.paymentStatus,
@@ -415,7 +445,7 @@ async function fetchCardDetail(
 				lte(faturas.period, currentPeriod),
 			),
 		)
-		.orderBy(faturas.period);
+		.orderBy(faturas.period)) as InvoiceStatusRow[];
 
 	const invoiceStatus = periods.map((period) => {
 		const invoice = invoiceData.find((i) => i.period === period);

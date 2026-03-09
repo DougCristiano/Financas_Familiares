@@ -8,14 +8,10 @@ import {
 	RiInboxUnarchiveLine,
 	RiPencilLine,
 } from "@remixicon/react";
-import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { buildNoteDisplayTitle } from "@/lib/notes/formatters";
 import { type Note, sortTasksByStatus } from "./types";
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("pt-BR", {
-	dateStyle: "medium",
-});
 
 interface NoteCardProps {
 	note: Note;
@@ -34,20 +30,10 @@ export function NoteCard({
 	onArquivar,
 	isArquivadas = false,
 }: NoteCardProps) {
-	const { displayTitle } = useMemo(() => {
-		const resolvedTitle = note.title.trim().length
-			? note.title
-			: "Anotação sem título";
-
-		return {
-			displayTitle: resolvedTitle,
-			formattedDate: DATE_FORMATTER.format(new Date(note.createdAt)),
-		};
-	}, [note.createdAt, note.title]);
-
+	const displayTitle = buildNoteDisplayTitle(note.title);
 	const isTask = note.type === "tarefa";
 	const tasks = note.tasks || [];
-	const sortedTasks = useMemo(() => sortTasksByStatus(tasks), [tasks]);
+	const sortedTasks = sortTasksByStatus(tasks);
 	const completedCount = tasks.filter((t) => t.completed).length;
 	const totalCount = tasks.length;
 

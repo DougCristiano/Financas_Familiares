@@ -10,36 +10,14 @@ import {
 } from "@/components/ui/tooltip";
 import type { CardDetailData } from "@/lib/relatorios/cartoes-report";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/currency";
+import { formatPeriodMonthShort } from "@/lib/utils/period";
 
 type CardInvoiceStatusProps = {
 	data: CardDetailData["invoiceStatus"];
 };
 
-const monthLabels = [
-	"Jan",
-	"Fev",
-	"Mar",
-	"Abr",
-	"Mai",
-	"Jun",
-	"Jul",
-	"Ago",
-	"Set",
-	"Out",
-	"Nov",
-	"Dez",
-];
-
 export function CardInvoiceStatus({ data }: CardInvoiceStatusProps) {
-	const formatCurrency = (value: number) => {
-		return new Intl.NumberFormat("pt-BR", {
-			style: "currency",
-			currency: "BRL",
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}).format(value);
-	};
-
 	const getStatusColor = (status: string | null) => {
 		switch (status) {
 			case "pago":
@@ -66,11 +44,6 @@ export function CardInvoiceStatus({ data }: CardInvoiceStatusProps) {
 		}
 	};
 
-	const formatPeriodShort = (period: string) => {
-		const [, month] = period.split("-");
-		return monthLabels[parseInt(month, 10) - 1];
-	};
-
 	return (
 		<Card>
 			<CardHeader className="pb-2">
@@ -93,13 +66,16 @@ export function CardInvoiceStatus({ data }: CardInvoiceStatusProps) {
 											)}
 										/>
 										<span className="text-xs text-muted-foreground">
-											{formatPeriodShort(invoice.period)}
+											{formatPeriodMonthShort(invoice.period)}
 										</span>
 									</div>
 								</TooltipTrigger>
 								<TooltipContent side="top">
 									<p className="font-medium">
-										{formatCurrency(invoice.amount)}
+										{formatCurrency(invoice.amount, {
+											maximumFractionDigits: 0,
+											minimumFractionDigits: 0,
+										})}
 									</p>
 									<p className="text-xs ">{getStatusLabel(invoice.status)}</p>
 								</TooltipContent>

@@ -2,10 +2,10 @@
 
 import { RiPieChartLine } from "@remixicon/react";
 import { CategoryIconBadge } from "@/components/categorias/category-icon-badge";
-import MoneyValues from "@/components/money-values";
+import MoneyValues from "@/components/shared/money-values";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { WidgetEmptyState } from "@/components/widget-empty-state";
+import { WidgetEmptyState } from "@/components/shared/widget-empty-state";
 import type { CardDetailData } from "@/lib/relatorios/cartoes-report";
 
 type CardCategoryBreakdownProps = {

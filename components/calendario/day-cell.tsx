@@ -2,7 +2,7 @@
 
 import { RiAddLine } from "@remixicon/react";
 import type { KeyboardEvent, MouseEvent } from "react";
-import type { CalendarDay, CalendarEvent } from "@/components/calendario/types";
+import type { CalendarDay, CalendarEvent } from "@/lib/types/calendario";
 import { currencyFormatter } from "@/lib/lancamentos/formatting-helpers";
 import { cn } from "@/lib/utils/ui";
 

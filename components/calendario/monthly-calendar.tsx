@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarGrid } from "@/components/calendario/calendar-grid";
 import { CalendarLegend } from "@/components/calendario/calendar-legend";
 import { EventModal } from "@/components/calendario/event-modal";
+import { LancamentoDialog } from "@/components/lancamentos/dialogs/lancamento-dialog/lancamento-dialog";
 import type {
 	CalendarDay,
 	CalendarEvent,
 	CalendarFormOptions,
 	CalendarPeriod,
-} from "@/components/calendario/types";
-import { buildCalendarDays } from "@/components/calendario/utils";
-import { LancamentoDialog } from "@/components/lancamentos/dialogs/lancamento-dialog/lancamento-dialog";
+} from "@/lib/types/calendario";
+import { buildCalendarDays } from "@/lib/utils/calendario";
+import { parsePeriod } from "@/lib/utils/period";
 
 type MonthlyCalendarProps = {
 	period: CalendarPeriod;
@@ -19,23 +20,13 @@ type MonthlyCalendarProps = {
 	formOptions: CalendarFormOptions;
 };
 
-const parsePeriod = (period: string) => {
-	const [yearStr, monthStr] = period.split("-");
-	const year = Number.parseInt(yearStr ?? "", 10);
-	const month = Number.parseInt(monthStr ?? "", 10);
-
-	return { year, monthIndex: month - 1 };
-};
-
 export function MonthlyCalendar({
 	period,
 	events,
 	formOptions,
 }: MonthlyCalendarProps) {
-	const { year, monthIndex } = useMemo(
-		() => parsePeriod(period.period),
-		[period.period],
-	);
+	const { year, month } = parsePeriod(period.period);
+	const monthIndex = month - 1;
 
 	const eventsByDay = useMemo(() => {
 		const map = new Map<string, CalendarEvent[]>();
@@ -57,35 +48,32 @@ export function MonthlyCalendar({
 	const [createOpen, setCreateOpen] = useState(false);
 	const [createDate, setCreateDate] = useState<string | null>(null);
 
-	const handleOpenCreate = useCallback((date: string) => {
+	const handleOpenCreate = (date: string) => {
 		setCreateDate(date);
 		setModalOpen(false);
 		setCreateOpen(true);
-	}, []);
+	};
 
-	const handleDaySelect = useCallback((day: CalendarDay) => {
+	const handleDaySelect = (day: CalendarDay) => {
 		setSelectedDay(day);
 		setModalOpen(true);
-	}, []);
+	};
 
-	const handleCreateFromCell = useCallback(
-		(day: CalendarDay) => {
-			handleOpenCreate(day.date);
-		},
-		[handleOpenCreate],
-	);
+	const handleCreateFromCell = (day: CalendarDay) => {
+		handleOpenCreate(day.date);
+	};
 
-	const handleModalClose = useCallback(() => {
+	const handleModalClose = () => {
 		setModalOpen(false);
 		setSelectedDay(null);
-	}, []);
+	};
 
-	const handleCreateDialogChange = useCallback((open: boolean) => {
+	const handleCreateDialogChange = (open: boolean) => {
 		setCreateOpen(open);
 		if (!open) {
 			setCreateDate(null);
 		}
-	}, []);
+	};
 
 	return (
 		<>

@@ -4,58 +4,23 @@ import { RiBankCard2Line } from "@remixicon/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import MoneyValues from "@/components/money-values";
+import MoneyValues from "@/components/shared/money-values";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { resolveCardBrandAsset } from "@/lib/cartoes/brand-assets";
+import { resolveLogoSrc } from "@/lib/logo";
 import type { CartoesReportData } from "@/lib/relatorios/cartoes-report";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/currency";
+import { formatPercentage } from "@/lib/utils/percentage";
 
 type CardsOverviewProps = {
 	data: CartoesReportData;
 };
 
-const BRAND_ASSETS: Record<string, string> = {
-	visa: "/bandeiras/visa.svg",
-	mastercard: "/bandeiras/mastercard.svg",
-	amex: "/bandeiras/amex.svg",
-	american: "/bandeiras/amex.svg",
-	elo: "/bandeiras/elo.svg",
-	hipercard: "/bandeiras/hipercard.svg",
-	hiper: "/bandeiras/hipercard.svg",
-};
-
-const resolveBrandAsset = (brand: string | null) => {
-	if (!brand) return null;
-	const normalized = brand.trim().toLowerCase();
-	const match = (
-		Object.keys(BRAND_ASSETS) as Array<keyof typeof BRAND_ASSETS>
-	).find((entry) => normalized.includes(entry));
-	return match ? BRAND_ASSETS[match] : null;
-};
-
-const resolveLogoPath = (logo: string | null) => {
-	if (!logo) return null;
-	if (
-		logo.startsWith("http://") ||
-		logo.startsWith("https://") ||
-		logo.startsWith("data:")
-	) {
-		return logo;
-	}
-	return logo.startsWith("/") ? logo : `/logos/${logo}`;
-};
-
 export function CardsOverview({ data }: CardsOverviewProps) {
 	const searchParams = useSearchParams();
 	const periodoParam = searchParams.get("periodo");
-
-	const formatCurrency = (value: number) =>
-		new Intl.NumberFormat("pt-BR", {
-			style: "currency",
-			currency: "BRL",
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}).format(value);
 
 	const getUsageColor = (percent: number) => {
 		if (percent < 50) return "bg-success";
@@ -107,7 +72,10 @@ export function CardsOverview({ data }: CardsOverviewProps) {
 								/>
 							) : (
 								<p className="text-2xl font-semibold">
-									{card.value.toFixed(0)}%
+									{formatPercentage(card.value, {
+										maximumFractionDigits: 0,
+										minimumFractionDigits: 0,
+									})}
 								</p>
 							)}
 						</CardContent>
@@ -120,8 +88,8 @@ export function CardsOverview({ data }: CardsOverviewProps) {
 			{/* Cards list */}
 			<div className="grid gap-2 grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
 				{data.cards.map((card) => {
-					const logoPath = resolveLogoPath(card.logo);
-					const brandAsset = resolveBrandAsset(card.brand);
+					const logoPath = resolveLogoSrc(card.logo);
+					const brandAsset = resolveCardBrandAsset(card.brand);
 					const isSelected = data.selectedCard?.card.id === card.id;
 
 					return (
@@ -174,7 +142,10 @@ export function CardsOverview({ data }: CardsOverviewProps) {
 											)}
 										/>
 										<span className="text-xs font-medium tabular-nums">
-											{card.usagePercent.toFixed(0)}%
+											{formatPercentage(card.usagePercent, {
+												maximumFractionDigits: 0,
+												minimumFractionDigits: 0,
+											})}
 										</span>
 									</div>
 								</div>

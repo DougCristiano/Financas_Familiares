@@ -2,8 +2,8 @@
 
 import { DayCell } from "@/components/calendario/day-cell";
 
-import type { CalendarDay } from "@/components/calendario/types";
-import { WEEK_DAYS_SHORT } from "@/components/calendario/utils";
+import type { CalendarDay } from "@/lib/types/calendario";
+import { WEEK_DAYS_SHORT } from "@/lib/utils/calendario";
 import { cn } from "@/lib/utils/ui";
 
 type CalendarGridProps = {
@@ -18,10 +18,10 @@ export function CalendarGrid({
 	onCreateDay,
 }: CalendarGridProps) {
 	return (
-		<div className="overflow-hidden rounded-lg bg-card drop-shadow-xs px-2">
+		<div className="overflow-hidden rounded-lg bg-card drop-shadow-xs border-none">
 			<div className="grid grid-cols-7 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
 				{WEEK_DAYS_SHORT.map((dayName) => (
-					<span key={dayName} className="px-3 py-2 text-center">
+					<span key={dayName} className="px-3 py-2 text-center text-primary">
 						{dayName}
 					</span>
 				))}

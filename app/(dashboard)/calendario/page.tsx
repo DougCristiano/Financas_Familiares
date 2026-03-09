@@ -1,11 +1,11 @@
 import { MonthlyCalendar } from "@/components/calendario/monthly-calendar";
-import type { CalendarPeriod } from "@/components/calendario/types";
 import MonthNavigation from "@/components/month-picker/month-navigation";
 import { getUserId } from "@/lib/auth/server";
 import {
 	getSingleParam,
 	type ResolvedSearchParams,
 } from "@/lib/lancamentos/page-helpers";
+import type { CalendarPeriod } from "@/lib/types/calendario";
 import { parsePeriodParam } from "@/lib/utils/period";
 import { fetchCalendarData } from "./data";
 

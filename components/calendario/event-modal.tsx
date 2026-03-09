@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { EVENT_TYPE_STYLES } from "@/components/calendario/day-cell";
-import type { CalendarDay, CalendarEvent } from "@/components/calendario/types";
+import MoneyValues from "@/components/shared/money-values";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -12,9 +12,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import type { CalendarDay, CalendarEvent } from "@/lib/types/calendario";
 import { friendlyDate, parseLocalDateString } from "@/lib/utils/date";
+import { formatFinancialDateLabel } from "@/lib/utils/financial-dates";
 import { cn } from "@/lib/utils/ui";
-import MoneyValues from "../money-values";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
 
@@ -93,9 +94,11 @@ const renderLancamento = (
 const renderBoleto = (event: Extract<CalendarEvent, { type: "boleto" }>) => {
 	const isPaid = Boolean(event.lancamento.isSettled);
 	const dueDate = event.lancamento.dueDate;
-	const formattedDueDate = dueDate
-		? new Intl.DateTimeFormat("pt-BR").format(new Date(dueDate))
-		: null;
+	const dueDateLabel = formatFinancialDateLabel(dueDate, "Vence em", {
+		day: "2-digit",
+		month: "2-digit",
+		year: "numeric",
+	});
 
 	return (
 		<EventCard type="boleto">
@@ -106,9 +109,9 @@ const renderBoleto = (event: Extract<CalendarEvent, { type: "boleto" }>) => {
 							{event.lancamento.name}
 						</span>
 
-						{formattedDueDate && (
+						{dueDateLabel && (
 							<span className="text-xs text-muted-foreground leading-tight">
-								Vence em {formattedDueDate}
+								{dueDateLabel}
 							</span>
 						)}
 					</div>

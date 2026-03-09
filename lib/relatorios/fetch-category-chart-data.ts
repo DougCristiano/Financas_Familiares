@@ -1,11 +1,10 @@
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { categorias, lancamentos } from "@/db/schema";
 import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/lib/contas/constants";
-import { toNumber } from "@/lib/dashboard/common";
 import { db } from "@/lib/db";
 import { getAdminPagadorId } from "@/lib/pagadores/get-admin-id";
+import { safeToNumber as toNumber } from "@/lib/utils/number";
+import { formatPeriodMonthShort } from "@/lib/utils/period";
 import { generatePeriodRange } from "./utils";
 
 export type CategoryChartData = {
@@ -127,13 +126,7 @@ export async function fetchCategoryChartData(
 	}
 
 	const chartData = periods.map((period) => {
-		const [year, month] = period.split("-");
-		const date = new Date(
-			Number.parseInt(year, 10),
-			Number.parseInt(month, 10) - 1,
-			1,
-		);
-		const monthLabel = format(date, "MMM", { locale: ptBR }).toUpperCase();
+		const monthLabel = formatPeriodMonthShort(period).toUpperCase();
 
 		const dataPoint: { month: string; [key: string]: number | string } = {
 			month: monthLabel,
@@ -146,15 +139,9 @@ export async function fetchCategoryChartData(
 		return dataPoint;
 	});
 
-	const months = periods.map((period) => {
-		const [year, month] = period.split("-");
-		const date = new Date(
-			Number.parseInt(year, 10),
-			Number.parseInt(month, 10) - 1,
-			1,
-		);
-		return format(date, "MMM", { locale: ptBR }).toUpperCase();
-	});
+	const months = periods.map((period) =>
+		formatPeriodMonthShort(period).toUpperCase(),
+	);
 
 	const categories = Array.from(categoryMap.values()).map((cat) => ({
 		id: cat.id,

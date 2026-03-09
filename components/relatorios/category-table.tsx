@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { CategoryIconBadge } from "@/components/categorias/category-icon-badge";
+import StatusDot from "@/components/shared/status-dot";
 import {
 	Table,
 	TableBody,
@@ -13,10 +14,9 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/lancamentos/formatting-helpers";
-import type { CategoryReportItem } from "@/lib/relatorios/types";
 import { formatPeriodLabel } from "@/lib/relatorios/utils";
+import type { CategoryReportItem } from "@/lib/types/relatorios";
 import { formatPeriodForUrl } from "@/lib/utils/period";
-import DotIcon from "../dot-icon";
 import { Card } from "../ui/card";
 import { CategoryCell } from "./category-cell";
 
@@ -37,6 +37,7 @@ export function CategoryTable({
 	const sectionTotals = useMemo(() => {
 		const totalsMap = new Map<string, number>();
 		let grandTotal = 0;
+		const periodCount = Math.max(periods.length, 1);
 
 		for (const category of categories) {
 			grandTotal += category.total;
@@ -47,7 +48,11 @@ export function CategoryTable({
 			}
 		}
 
-		return { totalsMap, grandTotal };
+		return {
+			totalsMap,
+			grandTotal,
+			averageMonthlyTotal: grandTotal / periodCount,
+		};
 	}, [categories, periods]);
 
 	if (categories.length === 0) {
@@ -59,7 +64,7 @@ export function CategoryTable({
 			<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead className="w-[280px] min-w-[280px] font-bold">
+						<TableHead className="w-[240px] min-w-[240px] font-bold">
 							Categoria
 						</TableHead>
 						{periods.map((period) => (
@@ -70,6 +75,9 @@ export function CategoryTable({
 								{formatPeriodLabel(period)}
 							</TableHead>
 						))}
+						<TableHead className="text-right min-w-[140px] font-bold">
+							Média
+						</TableHead>
 						<TableHead className="text-right min-w-[120px] font-bold">
 							Total
 						</TableHead>
@@ -85,7 +93,7 @@ export function CategoryTable({
 							<TableRow key={category.categoryId}>
 								<TableCell>
 									<div className="flex items-center gap-2">
-										<DotIcon
+										<StatusDot
 											color={
 												category.type === "receita"
 													? "bg-success"
@@ -121,6 +129,9 @@ export function CategoryTable({
 										</TableCell>
 									);
 								})}
+								<TableCell className="text-right font-semibold text-info">
+									{formatCurrency(category.total / Math.max(periods.length, 1))}
+								</TableCell>
 								<TableCell className="text-right font-semibold">
 									{formatCurrency(category.total)}
 								</TableCell>
@@ -140,6 +151,9 @@ export function CategoryTable({
 								</TableCell>
 							);
 						})}
+						<TableCell className="text-right font-semibold text-info">
+							{formatCurrency(sectionTotals.averageMonthlyTotal)}
+						</TableCell>
 						<TableCell className="text-right font-semibold">
 							{formatCurrency(sectionTotals.grandTotal)}
 						</TableCell>

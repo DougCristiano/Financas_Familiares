@@ -16,7 +16,10 @@ import {
 	ChartContainer,
 	ChartTooltip,
 } from "@/components/ui/chart";
+import { resolveLogoSrc } from "@/lib/logo";
 import type { CardDetailData } from "@/lib/relatorios/cartoes-report";
+import { formatCurrency, formatCurrencyCompact } from "@/lib/utils/currency";
+import { formatPercentage } from "@/lib/utils/percentage";
 
 type CardUsageChartProps = {
 	data: CardDetailData["monthlyUsage"];
@@ -34,48 +37,14 @@ const chartConfig = {
 	},
 } satisfies ChartConfig;
 
-const resolveLogoPath = (logo: string | null) => {
-	if (!logo) return null;
-	if (
-		logo.startsWith("http://") ||
-		logo.startsWith("https://") ||
-		logo.startsWith("data:")
-	) {
-		return logo;
-	}
-	return logo.startsWith("/") ? logo : `/logos/${logo}`;
-};
-
 export function CardUsageChart({ data, limit, card }: CardUsageChartProps) {
-	const formatCurrency = (value: number) => {
-		return new Intl.NumberFormat("pt-BR", {
-			style: "currency",
-			currency: "BRL",
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}).format(value);
-	};
-
-	const formatCurrencyCompact = (value: number) => {
-		if (Math.abs(value) >= 1000) {
-			return new Intl.NumberFormat("pt-BR", {
-				style: "currency",
-				currency: "BRL",
-				minimumFractionDigits: 0,
-				maximumFractionDigits: 0,
-				notation: "compact",
-			}).format(value);
-		}
-		return formatCurrency(value);
-	};
-
 	// Always show last 12 months
 	const chartData = data.slice(-12).map((item) => ({
 		month: item.periodLabel,
 		amount: item.amount,
 	}));
 
-	const logoPath = resolveLogoPath(card.logo);
+	const logoPath = resolveLogoSrc(card.logo);
 
 	return (
 		<Card>
@@ -124,7 +93,17 @@ export function CardUsageChart({ data, limit, card }: CardUsageChartProps) {
 							axisLine={false}
 							tickMargin={8}
 							className="text-xs"
-							tickFormatter={formatCurrencyCompact}
+							tickFormatter={(value) =>
+								Math.abs(Number(value)) >= 1000
+									? formatCurrencyCompact(Number(value), {
+											maximumFractionDigits: 0,
+											minimumFractionDigits: 0,
+										})
+									: formatCurrency(Number(value), {
+											maximumFractionDigits: 0,
+											minimumFractionDigits: 0,
+										})
+							}
 						/>
 						{limit > 0 && (
 							<ReferenceLine
@@ -159,7 +138,10 @@ export function CardUsageChart({ data, limit, card }: CardUsageChartProps) {
 													Uso
 												</span>
 												<span className="text-xs font-medium tabular-nums">
-													{formatCurrency(value)}
+													{formatCurrency(value, {
+														maximumFractionDigits: 0,
+														minimumFractionDigits: 0,
+													})}
 												</span>
 											</div>
 											{limit > 0 && (
@@ -168,7 +150,10 @@ export function CardUsageChart({ data, limit, card }: CardUsageChartProps) {
 														% do Limite
 													</span>
 													<span className="text-xs font-medium tabular-nums">
-														{usagePercent.toFixed(0)}%
+														{formatPercentage(usagePercent, {
+															maximumFractionDigits: 0,
+															minimumFractionDigits: 0,
+														})}
 													</span>
 												</div>
 											)}

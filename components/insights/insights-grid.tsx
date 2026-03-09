@@ -6,14 +6,13 @@ import {
 	RiLightbulbLine,
 	RiRocketLine,
 } from "@remixicon/react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
 	InsightCategoryId,
 	InsightsResponse,
 } from "@/lib/schemas/insights";
 import { INSIGHT_CATEGORIES } from "@/lib/schemas/insights";
+import { displayPeriod } from "@/lib/utils/period";
 import { cn } from "@/lib/utils/ui";
 
 interface InsightsGridProps {
@@ -50,12 +49,7 @@ const CATEGORY_COLORS: Record<
 };
 
 export function InsightsGrid({ insights }: InsightsGridProps) {
-	// Formatar o período para exibição
-	const [year, month] = insights.month.split("-");
-	const periodDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1);
-	const formattedPeriod = format(periodDate, "MMMM 'de' yyyy", {
-		locale: ptBR,
-	});
+	const formattedPeriod = displayPeriod(insights.month);
 
 	return (
 		<div className="space-y-6">

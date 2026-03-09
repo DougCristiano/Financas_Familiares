@@ -19,11 +19,12 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatCurrency } from "@/lib/lancamentos/formatting-helpers";
-import type { CategoryReportData } from "@/lib/relatorios/types";
 import {
 	formatPercentageChange,
 	formatPeriodLabel,
 } from "@/lib/relatorios/utils";
+import type { CategoryReportData } from "@/lib/types/relatorios";
+import { formatDateTime } from "@/lib/utils/date";
 import {
 	getPrimaryPdfColor,
 	loadExportLogoDataUrl,
@@ -201,8 +202,8 @@ export function CategoryReportExport({
 			const doc = new jsPDF({ orientation: "landscape" });
 			const primaryColor = getPrimaryPdfColor();
 			const [smallLogoDataUrl, textLogoDataUrl] = await Promise.all([
-				loadExportLogoDataUrl("/logo_small.png"),
-				loadExportLogoDataUrl("/logo_text.png"),
+				loadExportLogoDataUrl("/imagens/logo_small.png"),
+				loadExportLogoDataUrl("/imagens/logo_text.png"),
 			]);
 			let brandingEndX = 14;
 
@@ -232,7 +233,13 @@ export function CategoryReportExport({
 				22,
 			);
 			doc.text(
-				`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`,
+				`Gerado em: ${
+					formatDateTime(new Date(), {
+						day: "2-digit",
+						month: "2-digit",
+						year: "numeric",
+					}) ?? "—"
+				}`,
 				titleX,
 				27,
 			);

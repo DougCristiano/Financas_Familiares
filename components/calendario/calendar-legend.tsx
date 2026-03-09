@@ -1,8 +1,9 @@
 "use client";
 
 import { EVENT_TYPE_STYLES } from "@/components/calendario/day-cell";
-import type { CalendarEvent } from "@/components/calendario/types";
-import { cn } from "@/lib/utils/ui";
+import type { CalendarEvent } from "@/lib/types/calendario";
+import StatusDot from "../shared/status-dot";
+import { Card } from "../ui/card";
 
 const LEGEND_ITEMS: Array<{
 	type?: CalendarEvent["type"];
@@ -17,17 +18,17 @@ const LEGEND_ITEMS: Array<{
 
 export function CalendarLegend() {
 	return (
-		<div className="flex flex-wrap gap-3 rounded-sm border border-border/60 bg-muted/20 p-2 text-xs font-medium text-muted-foreground">
+		<Card className="flex flex-row gap-2 p-2 text-sm">
 			{LEGEND_ITEMS.map((item, index) => {
 				const dotColor =
 					item.dotColor || (item.type ? EVENT_TYPE_STYLES[item.type].dot : "");
 				return (
 					<span key={item.type || index} className="flex items-center gap-2">
-						<span className={cn("size-3 rounded-full", dotColor)} />
+						<StatusDot color={dotColor} />
 						{item.label}
 					</span>
 				);
 			})}
-		</div>
+		</Card>
 	);
 }

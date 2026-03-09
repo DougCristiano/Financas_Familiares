@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type {
 	CategoryReportData,
 	CategoryReportItem,
-} from "@/lib/relatorios/types";
+} from "@/lib/types/relatorios";
 import { CategoryTable } from "./category-table";
 
 interface CategoryReportTableProps {
