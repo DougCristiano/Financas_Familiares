@@ -19,7 +19,6 @@ function MoneyValues({ amount, className, showPositiveSign = false }: Props) {
 
 	return (
 		<span
-			style={{ fontFamily: "var(--font-money)" }}
 			className={cn(
 				"inline-flex items-baseline transition-all duration-200 tracking-tighter",
 				privacyMode &&

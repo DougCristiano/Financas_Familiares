@@ -18,31 +18,20 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { RiDragMove2Line } from "@remixicon/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { updatePreferencesAction } from "@/features/settings/actions";
 import {
 	DEFAULT_LANCAMENTOS_COLUMN_ORDER,
 	LANCAMENTOS_COLUMN_LABELS,
 } from "@/features/transactions/column-order";
-import { FONT_OPTIONS } from "@/public/fonts/font_index";
-import { useFont } from "@/shared/components/providers/font-provider";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/shared/components/ui/select";
 import { Switch } from "@/shared/components/ui/switch";
 
 interface PreferencesFormProps {
 	extratoNoteAsColumn: boolean;
 	lancamentosColumnOrder: string[] | null;
-	systemFont: string;
-	moneyFont: string;
 }
 
 function SortableColumnItem({ id }: { id: string }) {
@@ -85,8 +74,6 @@ function SortableColumnItem({ id }: { id: string }) {
 export function PreferencesForm({
 	extratoNoteAsColumn: initialExtratoNoteAsColumn,
 	lancamentosColumnOrder: initialColumnOrder,
-	systemFont: initialSystemFont,
-	moneyFont: initialMoneyFont,
 }: PreferencesFormProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
@@ -98,9 +85,6 @@ export function PreferencesForm({
 			? initialColumnOrder
 			: DEFAULT_LANCAMENTOS_COLUMN_ORDER,
 	);
-	const [selectedSystemFont, setSelectedSystemFont] =
-		useState(initialSystemFont);
-	const [selectedMoneyFont, setSelectedMoneyFont] = useState(initialMoneyFont);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -118,17 +102,6 @@ export function PreferencesForm({
 		}
 	};
 
-	const fontCtx = useFont();
-
-	// Live preview: update CSS vars when font selection changes
-	useEffect(() => {
-		fontCtx.setSystemFont(selectedSystemFont);
-	}, [selectedSystemFont, fontCtx.setSystemFont]);
-
-	useEffect(() => {
-		fontCtx.setMoneyFont(selectedMoneyFont);
-	}, [selectedMoneyFont, fontCtx.setMoneyFont]);
-
 	const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
@@ -136,8 +109,6 @@ export function PreferencesForm({
 			const result = await updatePreferencesAction({
 				extratoNoteAsColumn,
 				lancamentosColumnOrder: columnOrder,
-				systemFont: selectedSystemFont,
-				moneyFont: selectedMoneyFont,
 			});
 
 			if (result.success) {
@@ -151,70 +122,6 @@ export function PreferencesForm({
 
 	return (
 		<form onSubmit={handleSubmit} className="flex flex-col gap-8">
-			{/* Seção 1: Tipografia */}
-			<section className="space-y-5">
-				<div>
-					<h3 className="text-base font-semibold">Tipografia</h3>
-					<p className="text-sm text-muted-foreground">
-						Personalize as fontes usadas na interface e nos valores monetários.
-					</p>
-				</div>
-
-				{/* Fonte do sistema */}
-				<div className="space-y-2 max-w-md">
-					<Label htmlFor="system-font">Fonte do sistema</Label>
-					<Select
-						value={selectedSystemFont}
-						onValueChange={setSelectedSystemFont}
-					>
-						<SelectTrigger id="system-font">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{FONT_OPTIONS.map((opt) => (
-								<SelectItem key={opt.key} value={opt.key}>
-									<span
-										style={{
-											fontFamily: opt.variable,
-										}}
-									>
-										{opt.label}
-									</span>
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				{/* Fonte de valores */}
-				<div className="space-y-2 max-w-md">
-					<Label htmlFor="money-font">Fonte de valores</Label>
-					<Select
-						value={selectedMoneyFont}
-						onValueChange={setSelectedMoneyFont}
-					>
-						<SelectTrigger id="money-font">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{FONT_OPTIONS.map((opt) => (
-								<SelectItem key={opt.key} value={opt.key}>
-									<span
-										style={{
-											fontFamily: opt.variable,
-										}}
-									>
-										{opt.label}
-									</span>
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-			</section>
-
-			<div className="border-b" />
-
 			{/* Seção: Extrato / Lançamentos */}
 			<section className="space-y-4">
 				<div>

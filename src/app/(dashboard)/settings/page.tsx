@@ -10,7 +10,6 @@ import { UpdateEmailForm } from "@/features/settings/components/update-email-for
 import { UpdateNameForm } from "@/features/settings/components/update-name-form";
 import { UpdatePasswordForm } from "@/features/settings/components/update-password-form";
 import { fetchAjustesPageData } from "@/features/settings/queries";
-import { DEFAULT_FONT_KEY } from "@/public/fonts/font_index";
 import { Card } from "@/shared/components/ui/card";
 import {
 	Tabs,
@@ -78,8 +77,6 @@ export default async function Page() {
 								lancamentosColumnOrder={
 									userPreferences?.lancamentosColumnOrder ?? null
 								}
-								systemFont={userPreferences?.systemFont ?? DEFAULT_FONT_KEY}
-								moneyFont={userPreferences?.moneyFont ?? DEFAULT_FONT_KEY}
 							/>
 						</div>
 					</Card>

@@ -7,7 +7,6 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { account, pagadores, tokensApi } from "@/db/schema";
-import { DEFAULT_FONT_KEY, FONT_KEYS } from "@/public/fonts/font_index";
 import { auth } from "@/shared/lib/auth/config";
 import { db, schema } from "@/shared/lib/db";
 import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
@@ -56,8 +55,6 @@ const deleteAccountSchema = z.object({
 const updatePreferencesSchema = z.object({
 	extratoNoteAsColumn: z.boolean(),
 	lancamentosColumnOrder: z.array(z.string()).nullable(),
-	systemFont: z.enum(FONT_KEYS).default(DEFAULT_FONT_KEY),
-	moneyFont: z.enum(FONT_KEYS).default(DEFAULT_FONT_KEY),
 });
 
 // Actions
@@ -404,8 +401,6 @@ export async function updatePreferencesAction(
 				.set({
 					extratoNoteAsColumn: validated.extratoNoteAsColumn,
 					lancamentosColumnOrder: validated.lancamentosColumnOrder,
-					systemFont: validated.systemFont,
-					moneyFont: validated.moneyFont,
 					updatedAt: new Date(),
 				})
 				.where(eq(schema.preferenciasUsuario.userId, session.user.id));
@@ -415,8 +410,6 @@ export async function updatePreferencesAction(
 				userId: session.user.id,
 				extratoNoteAsColumn: validated.extratoNoteAsColumn,
 				lancamentosColumnOrder: validated.lancamentosColumnOrder,
-				systemFont: validated.systemFont,
-				moneyFont: validated.moneyFont,
 			});
 		}
 

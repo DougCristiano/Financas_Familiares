@@ -78,7 +78,7 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 📲 **OpenMonetis Companion** — App Android que captura notificações bancárias (Nubank, Itaú, Bradesco, Inter, C6 e outros) e envia como pré-lançamentos para revisão. [Repositório](https://github.com/felipegcoutinho/openmonetis-companion).
 
-⚙️ **Personalização** — Tema dark/light, modo privacidade, fontes customizáveis, preferências por usuário.
+⚙️ **Personalização** — Tema dark/light, modo privacidade e preferências por usuário.
 
 ### Stack técnica
 

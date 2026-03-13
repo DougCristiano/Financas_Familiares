@@ -1,10 +1,10 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { allFontVariables } from "@/public/fonts/font_index";
 import { ThemeProvider } from "@/shared/components/providers/theme-provider";
 import { Toaster } from "@/shared/components/ui/sonner";
 import "./globals.css";
+import { america } from "@/public/fonts/font_index";
 
 export const metadata: Metadata = {
 	title: {
@@ -21,7 +21,11 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="pt-BR" className={allFontVariables} suppressHydrationWarning>
+		<html
+			lang="pt-BR"
+			className={`${america.variable} ${america.className}`}
+			suppressHydrationWarning
+		>
 			<head>
 				<meta name="apple-mobile-web-app-title" content="OpenMonetis" />
 			</head>

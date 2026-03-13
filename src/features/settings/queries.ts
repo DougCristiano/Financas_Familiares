@@ -1,13 +1,10 @@
 import { desc, eq } from "drizzle-orm";
 import { tokensApi } from "@/db/schema";
-import { type FontKey, normalizeFontKey } from "@/public/fonts/font_index";
 import { db, schema } from "@/shared/lib/db";
 
 export interface UserPreferences {
 	extratoNoteAsColumn: boolean;
 	lancamentosColumnOrder: string[] | null;
-	systemFont: FontKey;
-	moneyFont: FontKey;
 }
 
 export interface ApiToken {
@@ -35,8 +32,6 @@ export async function fetchUserPreferences(
 		.select({
 			extratoNoteAsColumn: schema.preferenciasUsuario.extratoNoteAsColumn,
 			lancamentosColumnOrder: schema.preferenciasUsuario.lancamentosColumnOrder,
-			systemFont: schema.preferenciasUsuario.systemFont,
-			moneyFont: schema.preferenciasUsuario.moneyFont,
 		})
 		.from(schema.preferenciasUsuario)
 		.where(eq(schema.preferenciasUsuario.userId, userId))
@@ -44,11 +39,7 @@ export async function fetchUserPreferences(
 
 	if (!result[0]) return null;
 
-	return {
-		...result[0],
-		systemFont: normalizeFontKey(result[0].systemFont),
-		moneyFont: normalizeFontKey(result[0].moneyFont),
-	};
+	return result[0];
 }
 
 export async function fetchApiTokens(userId: string): Promise<ApiToken[]> {
