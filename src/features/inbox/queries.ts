@@ -1,5 +1,5 @@
 import { and, desc, eq } from "drizzle-orm";
-import { cartoes, categorias, contas, preLancamentos } from "@/db/schema";
+import { cards, categories, financialAccounts, inboxItems } from "@/db/schema";
 import type {
 	InboxItem,
 	SelectOption,
@@ -9,8 +9,8 @@ import {
 	buildSluggedFilters,
 } from "@/features/transactions/page-helpers";
 import {
-	fetchLancamentoFilterSources,
 	fetchRecentEstablishments,
+	fetchTransactionFilterSources,
 } from "@/features/transactions/queries";
 import { db } from "@/shared/lib/db";
 
@@ -20,11 +20,9 @@ export async function fetchInboxItems(
 ): Promise<InboxItem[]> {
 	const items = await db
 		.select()
-		.from(preLancamentos)
-		.where(
-			and(eq(preLancamentos.userId, userId), eq(preLancamentos.status, status)),
-		)
-		.orderBy(desc(preLancamentos.createdAt));
+		.from(inboxItems)
+		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)))
+		.orderBy(desc(inboxItems.createdAt));
 
 	return items;
 }
@@ -35,54 +33,57 @@ export async function fetchInboxItemById(
 ): Promise<InboxItem | null> {
 	const [item] = await db
 		.select()
-		.from(preLancamentos)
-		.where(
-			and(eq(preLancamentos.id, itemId), eq(preLancamentos.userId, userId)),
-		)
+		.from(inboxItems)
+		.where(and(eq(inboxItems.id, itemId), eq(inboxItems.userId, userId)))
 		.limit(1);
 
 	return item ?? null;
 }
 
-export async function fetchCategoriasForSelect(
+export async function fetchCategoriesForSelect(
 	userId: string,
 	type?: string,
 ): Promise<SelectOption[]> {
-	const query = db
-		.select({ id: categorias.id, name: categorias.name })
-		.from(categorias)
+	const rows = await db
+		.select({ id: categories.id, name: categories.name })
+		.from(categories)
 		.where(
 			type
-				? and(eq(categorias.userId, userId), eq(categorias.type, type))
-				: eq(categorias.userId, userId),
+				? and(eq(categories.userId, userId), eq(categories.type, type))
+				: eq(categories.userId, userId),
 		)
-		.orderBy(categorias.name);
+		.orderBy(categories.name);
 
-	return query;
+	return rows.map((row) => ({ value: row.id, label: row.name }));
 }
 
-export async function fetchContasForSelect(
+export async function fetchAccountsForSelect(
 	userId: string,
 ): Promise<SelectOption[]> {
-	const items = await db
-		.select({ id: contas.id, name: contas.name })
-		.from(contas)
-		.where(and(eq(contas.userId, userId), eq(contas.status, "ativo")))
-		.orderBy(contas.name);
+	const rows = await db
+		.select({ id: financialAccounts.id, name: financialAccounts.name })
+		.from(financialAccounts)
+		.where(
+			and(
+				eq(financialAccounts.userId, userId),
+				eq(financialAccounts.status, "ativo"),
+			),
+		)
+		.orderBy(financialAccounts.name);
 
-	return items;
+	return rows.map((row) => ({ value: row.id, label: row.name }));
 }
 
-export async function fetchCartoesForSelect(
+export async function fetchCardsForSelect(
 	userId: string,
 ): Promise<(SelectOption & { lastDigits?: string })[]> {
-	const items = await db
-		.select({ id: cartoes.id, name: cartoes.name })
-		.from(cartoes)
-		.where(and(eq(cartoes.userId, userId), eq(cartoes.status, "ativo")))
-		.orderBy(cartoes.name);
+	const rows = await db
+		.select({ id: cards.id, name: cards.name })
+		.from(cards)
+		.where(and(eq(cards.userId, userId), eq(cards.status, "ativo")))
+		.orderBy(cards.name);
 
-	return items;
+	return rows.map((row) => ({ value: row.id, label: row.name }));
 }
 
 export async function fetchAppLogoMap(
@@ -90,13 +91,13 @@ export async function fetchAppLogoMap(
 ): Promise<Record<string, string>> {
 	const [userCartoes, userContas] = await Promise.all([
 		db
-			.select({ name: cartoes.name, logo: cartoes.logo })
-			.from(cartoes)
-			.where(eq(cartoes.userId, userId)),
+			.select({ name: cards.name, logo: cards.logo })
+			.from(cards)
+			.where(eq(cards.userId, userId)),
 		db
-			.select({ name: contas.name, logo: contas.logo })
-			.from(contas)
-			.where(eq(contas.userId, userId)),
+			.select({ name: financialAccounts.name, logo: financialAccounts.logo })
+			.from(financialAccounts)
+			.where(eq(financialAccounts.userId, userId)),
 	]);
 
 	const logoMap: Record<string, string> = {};
@@ -112,54 +113,51 @@ export async function fetchAppLogoMap(
 
 export async function fetchPendingInboxCount(userId: string): Promise<number> {
 	const items = await db
-		.select({ id: preLancamentos.id })
-		.from(preLancamentos)
+		.select({ id: inboxItems.id })
+		.from(inboxItems)
 		.where(
-			and(
-				eq(preLancamentos.userId, userId),
-				eq(preLancamentos.status, "pending"),
-			),
+			and(eq(inboxItems.userId, userId), eq(inboxItems.status, "pending")),
 		);
 
 	return items.length;
 }
 
 /**
- * Fetch all data needed for the LancamentoDialog in inbox context
+ * Fetch all data needed for the TransactionDialog in inbox context
  */
 export async function fetchInboxDialogData(userId: string): Promise<{
-	pagadorOptions: SelectOption[];
-	splitPagadorOptions: SelectOption[];
-	defaultPagadorId: string | null;
-	contaOptions: SelectOption[];
-	cartaoOptions: SelectOption[];
-	categoriaOptions: SelectOption[];
+	payerOptions: SelectOption[];
+	splitPayerOptions: SelectOption[];
+	defaultPayerId: string | null;
+	accountOptions: SelectOption[];
+	cardOptions: SelectOption[];
+	categoryOptions: SelectOption[];
 	estabelecimentos: string[];
 }> {
-	const filterSources = await fetchLancamentoFilterSources(userId);
+	const filterSources = await fetchTransactionFilterSources(userId);
 	const sluggedFilters = buildSluggedFilters(filterSources);
 
 	const {
-		pagadorOptions,
-		splitPagadorOptions,
-		defaultPagadorId,
-		contaOptions,
-		cartaoOptions,
-		categoriaOptions,
+		payerOptions,
+		splitPayerOptions,
+		defaultPayerId,
+		accountOptions,
+		cardOptions,
+		categoryOptions,
 	} = buildOptionSets({
 		...sluggedFilters,
-		pagadorRows: filterSources.pagadorRows,
+		payerRows: filterSources.payerRows,
 	});
 
 	const estabelecimentos = await fetchRecentEstablishments(userId);
 
 	return {
-		pagadorOptions,
-		splitPagadorOptions,
-		defaultPagadorId,
-		contaOptions,
-		cartaoOptions,
-		categoriaOptions,
+		payerOptions,
+		splitPayerOptions,
+		defaultPayerId,
+		accountOptions,
+		cardOptions,
+		categoryOptions,
 		estabelecimentos,
 	};
 }

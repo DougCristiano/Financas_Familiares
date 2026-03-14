@@ -215,7 +215,7 @@ export function NoteDialog({
 				setDialogOpen(false);
 				return;
 			}
-			setErrorMessage(result.error);
+			setErrorMessage(result.error ?? null);
 			toast.error(result.error);
 			titleRef.current?.focus();
 		});

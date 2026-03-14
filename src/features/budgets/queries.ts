@@ -1,14 +1,14 @@
 import { and, asc, eq, inArray, isNull, or, sql, sum } from "drizzle-orm";
 import {
-	categorias,
-	lancamentos,
-	type Orcamento,
-	orcamentos,
-	pagadores,
+	type Budget,
+	budgets,
+	categories,
+	payers,
+	transactions,
 } from "@/db/schema";
 import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
 import { db } from "@/shared/lib/db";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 
 const toNumber = (value: string | number | null | undefined) => {
 	if (typeof value === "number") return value;
@@ -46,28 +46,28 @@ export async function fetchBudgetsForUser(
 	categoriesOptions: CategoryOption[];
 }> {
 	const [budgetRows, categoryRows] = await Promise.all([
-		db.query.orcamentos.findMany({
+		db.query.budgets.findMany({
 			where: and(
-				eq(orcamentos.userId, userId),
-				eq(orcamentos.period, selectedPeriod),
+				eq(budgets.userId, userId),
+				eq(budgets.period, selectedPeriod),
 			),
 			with: {
-				categoria: true,
+				category: true,
 			},
 		}),
-		db.query.categorias.findMany({
+		db.query.categories.findMany({
 			columns: {
 				id: true,
 				name: true,
 				icon: true,
 			},
-			where: and(eq(categorias.userId, userId), eq(categorias.type, "despesa")),
-			orderBy: asc(categorias.name),
+			where: and(eq(categories.userId, userId), eq(categories.type, "despesa")),
+			orderBy: asc(categories.name),
 		}),
 	]);
 
 	const categoryIds = budgetRows
-		.map((budget: Orcamento) => budget.categoriaId)
+		.map((budget) => budget.categoryId)
 		.filter((id: string | null): id is string => Boolean(id));
 
 	let totalsByCategory = new Map<string, number>();
@@ -75,50 +75,48 @@ export async function fetchBudgetsForUser(
 	if (categoryIds.length > 0) {
 		const totals = await db
 			.select({
-				categoriaId: lancamentos.categoriaId,
-				totalAmount: sum(lancamentos.amount).as("totalAmount"),
+				categoryId: transactions.categoryId,
+				totalAmount: sum(transactions.amount).as("totalAmount"),
 			})
-			.from(lancamentos)
-			.innerJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
+			.from(transactions)
+			.innerJoin(payers, eq(transactions.payerId, payers.id))
 			.where(
 				and(
-					eq(lancamentos.userId, userId),
-					eq(lancamentos.period, selectedPeriod),
-					eq(lancamentos.transactionType, "Despesa"),
-					eq(pagadores.role, PAGADOR_ROLE_ADMIN),
-					inArray(lancamentos.categoriaId, categoryIds),
+					eq(transactions.userId, userId),
+					eq(transactions.period, selectedPeriod),
+					eq(transactions.transactionType, "Despesa"),
+					eq(payers.role, PAYER_ROLE_ADMIN),
+					inArray(transactions.categoryId, categoryIds),
 					or(
-						isNull(lancamentos.note),
-						sql`${lancamentos.note} NOT LIKE ${`${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}%`}`,
+						isNull(transactions.note),
+						sql`${transactions.note} NOT LIKE ${`${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}%`}`,
 					),
 				),
 			)
-			.groupBy(lancamentos.categoriaId);
+			.groupBy(transactions.categoryId);
 
 		totalsByCategory = new Map(
 			totals.map(
-				(row: { categoriaId: string | null; totalAmount: string | null }) => [
-					row.categoriaId ?? "",
+				(row: { categoryId: string | null; totalAmount: string | null }) => [
+					row.categoryId ?? "",
 					Math.abs(toNumber(row.totalAmount)),
 				],
 			),
 		);
 	}
 
-	const budgets = budgetRows
-		.map((budget: Orcamento) => ({
+	const budgetList = budgetRows
+		.map((budget) => ({
 			id: budget.id,
 			amount: toNumber(budget.amount),
-			spent: totalsByCategory.get(budget.categoriaId ?? "") ?? 0,
+			spent: totalsByCategory.get(budget.categoryId ?? "") ?? 0,
 			period: budget.period,
 			createdAt: budget.createdAt.toISOString(),
-			category: budget.categoria
-				? {
-						id: budget.categoria.id,
-						name: budget.categoria.name,
-						icon: budget.categoria.icon,
-					}
-				: null,
+			category: (() => {
+				type Cat = { id: string; name: string; icon: string | null };
+				const cat = budget.category as Cat | null | undefined;
+				return cat ? { id: cat.id, name: cat.name, icon: cat.icon } : null;
+			})(),
 		}))
 		.sort((a, b) =>
 			(a.category?.name ?? "").localeCompare(b.category?.name ?? "", "pt-BR", {
@@ -132,5 +130,5 @@ export async function fetchBudgetsForUser(
 		icon: category.icon,
 	}));
 
-	return { budgets, categoriesOptions };
+	return { budgets: budgetList, categoriesOptions };
 }

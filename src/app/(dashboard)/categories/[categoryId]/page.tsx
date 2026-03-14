@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import { CategoryDetailHeader } from "@/features/categories/components/category-detail-header";
 import { fetchCategoryDetails } from "@/features/dashboard/categories/category-details-queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
-import { LancamentosPage } from "@/features/transactions/components/page/transactions-page";
+import { TransactionsPage } from "@/features/transactions/components/page/transactions-page";
 import {
 	buildOptionSets,
 	buildSluggedFilters,
 } from "@/features/transactions/page-helpers";
 import {
-	fetchLancamentoFilterSources,
 	fetchRecentEstablishments,
+	fetchTransactionFilterSources,
 } from "@/features/transactions/queries";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { getUserId } from "@/shared/lib/auth/server";
@@ -42,7 +42,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 	const [detail, filterSources, estabelecimentos, userPreferences] =
 		await Promise.all([
 			fetchCategoryDetails(userId, categoryId, selectedPeriod),
-			fetchLancamentoFilterSources(userId),
+			fetchTransactionFilterSources(userId),
 			fetchRecentEstablishments(userId),
 			fetchUserPreferences(userId),
 		]);
@@ -53,18 +53,18 @@ export default async function Page({ params, searchParams }: PageProps) {
 
 	const sluggedFilters = buildSluggedFilters(filterSources);
 	const {
-		pagadorOptions,
-		splitPagadorOptions,
-		defaultPagadorId,
-		contaOptions,
-		cartaoOptions,
-		categoriaOptions,
-		pagadorFilterOptions,
-		categoriaFilterOptions,
-		contaCartaoFilterOptions,
+		payerOptions,
+		splitPayerOptions,
+		defaultPayerId,
+		accountOptions,
+		cardOptions,
+		categoryOptions,
+		payerFilterOptions,
+		categoryFilterOptions,
+		accountCardFilterOptions,
 	} = buildOptionSets({
 		...sluggedFilters,
-		pagadorRows: filterSources.pagadorRows,
+		payerRows: filterSources.payerRows,
 	});
 
 	const currentPeriodLabel = displayPeriod(detail.period);
@@ -82,23 +82,23 @@ export default async function Page({ params, searchParams }: PageProps) {
 				percentageChange={detail.percentageChange}
 				transactionCount={detail.transactions.length}
 			/>
-			<LancamentosPage
+			<TransactionsPage
 				currentUserId={userId}
-				lancamentos={detail.transactions}
-				pagadorOptions={pagadorOptions}
-				splitPagadorOptions={splitPagadorOptions}
-				defaultPagadorId={defaultPagadorId}
-				contaOptions={contaOptions}
-				cartaoOptions={cartaoOptions}
-				categoriaOptions={categoriaOptions}
-				pagadorFilterOptions={pagadorFilterOptions}
-				categoriaFilterOptions={categoriaFilterOptions}
-				contaCartaoFilterOptions={contaCartaoFilterOptions}
+				transactions={detail.transactions}
+				payerOptions={payerOptions}
+				splitPayerOptions={splitPayerOptions}
+				defaultPayerId={defaultPayerId}
+				accountOptions={accountOptions}
+				cardOptions={cardOptions}
+				categoryOptions={categoryOptions}
+				payerFilterOptions={payerFilterOptions}
+				categoryFilterOptions={categoryFilterOptions}
+				accountCardFilterOptions={accountCardFilterOptions}
 				selectedPeriod={detail.period}
 				estabelecimentos={estabelecimentos}
 				allowCreate={true}
-				noteAsColumn={userPreferences?.extratoNoteAsColumn ?? false}
-				columnOrder={userPreferences?.lancamentosColumnOrder ?? null}
+				noteAsColumn={userPreferences?.statementNoteAsColumn ?? false}
+				columnOrder={userPreferences?.transactionsColumnOrder ?? null}
 			/>
 		</main>
 	);

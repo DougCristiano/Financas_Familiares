@@ -24,7 +24,7 @@ export default function OrcamentosLoading() {
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{Array.from({ length: 6 }).map((_, i) => (
 						<div key={i} className="rounded-2xl border p-6 space-y-4">
-							{/* Categoria com ícone */}
+							{/* Category com ícone */}
 							<div className="flex items-center gap-3">
 								<Skeleton className="size-10 rounded-2xl bg-foreground/10" />
 								<div className="flex-1 space-y-2">

@@ -160,10 +160,10 @@ export function CardFormFields({
 			</div>
 
 			<div className="flex flex-col gap-2 sm:col-span-2">
-				<Label htmlFor="card-account">Conta vinculada</Label>
+				<Label htmlFor="card-account">FinancialAccount vinculada</Label>
 				<Select
-					value={values.contaId}
-					onValueChange={(value) => onChange("contaId", value)}
+					value={values.accountId}
+					onValueChange={(value) => onChange("accountId", value)}
 					disabled={accountOptions.length === 0}
 				>
 					<SelectTrigger id="card-account" className="w-full">
@@ -174,10 +174,10 @@ export function CardFormFields({
 									: "Selecione a conta"
 							}
 						>
-							{values.contaId &&
+							{values.accountId &&
 								(() => {
 									const selectedAccount = accountOptions.find(
-										(acc) => acc.id === values.contaId,
+										(acc) => acc.id === values.accountId,
 									);
 									return selectedAccount ? (
 										<AccountSelectContent

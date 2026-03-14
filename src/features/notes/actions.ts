@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { anotacoes } from "@/db/schema";
+import { notes } from "@/db/schema";
 import {
 	handleActionError,
 	revalidateForEntity,
@@ -64,8 +64,8 @@ const deleteNoteSchema = z.object({
 	id: uuidSchema("Anotação"),
 });
 
-type NoteCreateInput = z.infer<typeof createNoteSchema>;
-type NoteUpdateInput = z.infer<typeof updateNoteSchema>;
+type NoteCreateInput = z.input<typeof createNoteSchema>;
+type NoteUpdateInput = z.input<typeof updateNoteSchema>;
 type NoteDeleteInput = z.infer<typeof deleteNoteSchema>;
 
 export async function createNoteAction(
@@ -75,7 +75,7 @@ export async function createNoteAction(
 		const user = await getUser();
 		const data = createNoteSchema.parse(input);
 
-		await db.insert(anotacoes).values({
+		await db.insert(notes).values({
 			title: data.title,
 			description: data.description,
 			type: data.type,
@@ -84,7 +84,7 @@ export async function createNoteAction(
 			userId: user.id,
 		});
 
-		revalidateForEntity("anotacoes");
+		revalidateForEntity("notes");
 
 		return { success: true, message: "Anotação criada com sucesso." };
 	} catch (error) {
@@ -100,7 +100,7 @@ export async function updateNoteAction(
 		const data = updateNoteSchema.parse(input);
 
 		const [updated] = await db
-			.update(anotacoes)
+			.update(notes)
 			.set({
 				title: data.title,
 				description: data.description,
@@ -110,8 +110,8 @@ export async function updateNoteAction(
 						? JSON.stringify(data.tasks)
 						: null,
 			})
-			.where(and(eq(anotacoes.id, data.id), eq(anotacoes.userId, user.id)))
-			.returning({ id: anotacoes.id });
+			.where(and(eq(notes.id, data.id), eq(notes.userId, user.id)))
+			.returning({ id: notes.id });
 
 		if (!updated) {
 			return {
@@ -120,7 +120,7 @@ export async function updateNoteAction(
 			};
 		}
 
-		revalidateForEntity("anotacoes");
+		revalidateForEntity("notes");
 
 		return { success: true, message: "Anotação atualizada com sucesso." };
 	} catch (error) {
@@ -136,9 +136,9 @@ export async function deleteNoteAction(
 		const data = deleteNoteSchema.parse(input);
 
 		const [deleted] = await db
-			.delete(anotacoes)
-			.where(and(eq(anotacoes.id, data.id), eq(anotacoes.userId, user.id)))
-			.returning({ id: anotacoes.id });
+			.delete(notes)
+			.where(and(eq(notes.id, data.id), eq(notes.userId, user.id)))
+			.returning({ id: notes.id });
 
 		if (!deleted) {
 			return {
@@ -147,7 +147,7 @@ export async function deleteNoteAction(
 			};
 		}
 
-		revalidateForEntity("anotacoes");
+		revalidateForEntity("notes");
 
 		return { success: true, message: "Anotação removida com sucesso." };
 	} catch (error) {
@@ -157,12 +157,12 @@ export async function deleteNoteAction(
 
 const arquivarNoteSchema = z.object({
 	id: uuidSchema("Anotação"),
-	arquivada: z.boolean(),
+	archived: z.boolean(),
 });
 
 type NoteArquivarInput = z.infer<typeof arquivarNoteSchema>;
 
-export async function arquivarAnotacaoAction(
+export async function archiveNoteAction(
 	input: NoteArquivarInput,
 ): Promise<ActionResult> {
 	try {
@@ -170,12 +170,12 @@ export async function arquivarAnotacaoAction(
 		const data = arquivarNoteSchema.parse(input);
 
 		const [updated] = await db
-			.update(anotacoes)
+			.update(notes)
 			.set({
-				arquivada: data.arquivada,
+				archived: data.archived,
 			})
-			.where(and(eq(anotacoes.id, data.id), eq(anotacoes.userId, user.id)))
-			.returning({ id: anotacoes.id });
+			.where(and(eq(notes.id, data.id), eq(notes.userId, user.id)))
+			.returning({ id: notes.id });
 
 		if (!updated) {
 			return {
@@ -184,12 +184,12 @@ export async function arquivarAnotacaoAction(
 			};
 		}
 
-		revalidateForEntity("anotacoes");
+		revalidateForEntity("notes");
 
 		return {
 			success: true,
-			message: data.arquivada
-				? "Anotação arquivada com sucesso."
+			message: data.archived
+				? "Anotação archived com sucesso."
 				: "Anotação desarquivada com sucesso.",
 		};
 	} catch (error) {

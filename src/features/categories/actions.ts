@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { categorias } from "@/db/schema";
+import { categories } from "@/db/schema";
 import {
 	type ActionResult,
 	handleActionError,
@@ -32,10 +32,10 @@ const categoryBaseSchema = z.object({
 
 const createCategorySchema = categoryBaseSchema;
 const updateCategorySchema = categoryBaseSchema.extend({
-	id: uuidSchema("Categoria"),
+	id: uuidSchema("Category"),
 });
 const deleteCategorySchema = z.object({
-	id: uuidSchema("Categoria"),
+	id: uuidSchema("Category"),
 });
 
 type CategoryCreateInput = z.infer<typeof createCategorySchema>;
@@ -49,16 +49,16 @@ export async function createCategoryAction(
 		const user = await getUser();
 		const data = createCategorySchema.parse(input);
 
-		await db.insert(categorias).values({
+		await db.insert(categories).values({
 			name: data.name,
 			type: data.type,
 			icon: data.icon,
 			userId: user.id,
 		});
 
-		revalidateForEntity("categorias");
+		revalidateForEntity("categories");
 
-		return { success: true, message: "Categoria criada com sucesso." };
+		return { success: true, message: "Category criada com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
 	}
@@ -72,19 +72,19 @@ export async function updateCategoryAction(
 		const data = updateCategorySchema.parse(input);
 
 		// Buscar categoria antes de atualizar para verificar restrições
-		const categoria = await db.query.categorias.findFirst({
+		const categoria = await db.query.categories.findFirst({
 			columns: { id: true, name: true },
-			where: and(eq(categorias.id, data.id), eq(categorias.userId, user.id)),
+			where: and(eq(categories.id, data.id), eq(categories.userId, user.id)),
 		});
 
 		if (!categoria) {
 			return {
 				success: false,
-				error: "Categoria não encontrada.",
+				error: "Category não encontrada.",
 			};
 		}
 
-		// Bloquear edição das categorias protegidas
+		// Bloquear edição das categories protegidas
 		const categoriasProtegidas = [
 			"Transferência interna",
 			"Saldo inicial",
@@ -98,25 +98,25 @@ export async function updateCategoryAction(
 		}
 
 		const [updated] = await db
-			.update(categorias)
+			.update(categories)
 			.set({
 				name: data.name,
 				type: data.type,
 				icon: data.icon,
 			})
-			.where(and(eq(categorias.id, data.id), eq(categorias.userId, user.id)))
+			.where(and(eq(categories.id, data.id), eq(categories.userId, user.id)))
 			.returning();
 
 		if (!updated) {
 			return {
 				success: false,
-				error: "Categoria não encontrada.",
+				error: "Category não encontrada.",
 			};
 		}
 
-		revalidateForEntity("categorias");
+		revalidateForEntity("categories");
 
-		return { success: true, message: "Categoria atualizada com sucesso." };
+		return { success: true, message: "Category atualizada com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
 	}
@@ -130,19 +130,19 @@ export async function deleteCategoryAction(
 		const data = deleteCategorySchema.parse(input);
 
 		// Buscar categoria antes de deletar para verificar restrições
-		const categoria = await db.query.categorias.findFirst({
+		const categoria = await db.query.categories.findFirst({
 			columns: { id: true, name: true },
-			where: and(eq(categorias.id, data.id), eq(categorias.userId, user.id)),
+			where: and(eq(categories.id, data.id), eq(categories.userId, user.id)),
 		});
 
 		if (!categoria) {
 			return {
 				success: false,
-				error: "Categoria não encontrada.",
+				error: "Category não encontrada.",
 			};
 		}
 
-		// Bloquear remoção das categorias protegidas
+		// Bloquear remoção das categories protegidas
 		const categoriasProtegidas = [
 			"Transferência interna",
 			"Saldo inicial",
@@ -156,20 +156,20 @@ export async function deleteCategoryAction(
 		}
 
 		const [deleted] = await db
-			.delete(categorias)
-			.where(and(eq(categorias.id, data.id), eq(categorias.userId, user.id)))
-			.returning({ id: categorias.id });
+			.delete(categories)
+			.where(and(eq(categories.id, data.id), eq(categories.userId, user.id)))
+			.returning({ id: categories.id });
 
 		if (!deleted) {
 			return {
 				success: false,
-				error: "Categoria não encontrada.",
+				error: "Category não encontrada.",
 			};
 		}
 
-		revalidateForEntity("categorias");
+		revalidateForEntity("categories");
 
-		return { success: true, message: "Categoria removida com sucesso." };
+		return { success: true, message: "Category removida com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
 	}

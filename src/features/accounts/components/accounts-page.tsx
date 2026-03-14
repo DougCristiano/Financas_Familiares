@@ -115,9 +115,7 @@ export function AccountsPage({
 					<EmptyState
 						media={<RiBankLine className="size-6 text-primary" />}
 						title={
-							isArchived
-								? "Nenhuma conta arquivada"
-								: "Nenhuma conta cadastrada"
+							isArchived ? "Nenhuma conta archived" : "Nenhuma conta cadastrada"
 						}
 						description={
 							isArchived

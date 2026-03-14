@@ -14,7 +14,7 @@ export type Budget = {
 };
 
 export type BudgetFormValues = {
-	categoriaId: string;
+	categoryId: string;
 	period: string;
 	amount: string;
 };

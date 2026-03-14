@@ -2,7 +2,7 @@
 
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
-import { categorias, orcamentos } from "@/db/schema";
+import { budgets, categories } from "@/db/schema";
 import {
 	handleActionError,
 	revalidateForEntity,
@@ -18,7 +18,7 @@ import {
 import { getPreviousPeriod } from "@/shared/utils/period";
 
 const budgetBaseSchema = z.object({
-	categoriaId: uuidSchema("Categoria"),
+	categoryId: uuidSchema("Category"),
 	period: periodSchema,
 	amount: z
 		.string({ message: "Informe o valor limite." })
@@ -48,21 +48,21 @@ type BudgetCreateInput = z.input<typeof createBudgetSchema>;
 type BudgetUpdateInput = z.input<typeof updateBudgetSchema>;
 type BudgetDeleteInput = z.input<typeof deleteBudgetSchema>;
 type BudgetCopyRow = {
-	categoriaId: string | null;
+	categoryId: string | null;
 	amount: unknown;
 };
 
-const ensureCategory = async (userId: string, categoriaId: string) => {
-	const category = await db.query.categorias.findFirst({
+const ensureCategory = async (userId: string, categoryId: string) => {
+	const category = await db.query.categories.findFirst({
 		columns: {
 			id: true,
 			type: true,
 		},
-		where: and(eq(categorias.id, categoriaId), eq(categorias.userId, userId)),
+		where: and(eq(categories.id, categoryId), eq(categories.userId, userId)),
 	});
 
 	if (!category) {
-		throw new Error("Categoria não encontrada.");
+		throw new Error("Category não encontrada.");
 	}
 
 	if (category.type !== "despesa") {
@@ -77,15 +77,15 @@ export async function createBudgetAction(
 		const user = await getUser();
 		const data = createBudgetSchema.parse(input);
 
-		await ensureCategory(user.id, data.categoriaId);
+		await ensureCategory(user.id, data.categoryId);
 
 		const duplicateConditions = [
-			eq(orcamentos.userId, user.id),
-			eq(orcamentos.period, data.period),
-			eq(orcamentos.categoriaId, data.categoriaId),
+			eq(budgets.userId, user.id),
+			eq(budgets.period, data.period),
+			eq(budgets.categoryId, data.categoryId),
 		] as const;
 
-		const duplicate = await db.query.orcamentos.findFirst({
+		const duplicate = await db.query.budgets.findFirst({
 			columns: { id: true },
 			where: and(...duplicateConditions),
 		});
@@ -98,14 +98,14 @@ export async function createBudgetAction(
 			};
 		}
 
-		await db.insert(orcamentos).values({
+		await db.insert(budgets).values({
 			amount: formatDecimalForDbRequired(data.amount),
 			period: data.period,
 			userId: user.id,
-			categoriaId: data.categoriaId,
+			categoryId: data.categoryId,
 		});
 
-		revalidateForEntity("orcamentos");
+		revalidateForEntity("budgets");
 
 		return { success: true, message: "Orçamento criado com sucesso." };
 	} catch (error) {
@@ -120,16 +120,16 @@ export async function updateBudgetAction(
 		const user = await getUser();
 		const data = updateBudgetSchema.parse(input);
 
-		await ensureCategory(user.id, data.categoriaId);
+		await ensureCategory(user.id, data.categoryId);
 
 		const duplicateConditions = [
-			eq(orcamentos.userId, user.id),
-			eq(orcamentos.period, data.period),
-			eq(orcamentos.categoriaId, data.categoriaId),
-			ne(orcamentos.id, data.id),
+			eq(budgets.userId, user.id),
+			eq(budgets.period, data.period),
+			eq(budgets.categoryId, data.categoryId),
+			ne(budgets.id, data.id),
 		] as const;
 
-		const duplicate = await db.query.orcamentos.findFirst({
+		const duplicate = await db.query.budgets.findFirst({
 			columns: { id: true },
 			where: and(...duplicateConditions),
 		});
@@ -143,14 +143,14 @@ export async function updateBudgetAction(
 		}
 
 		const [updated] = await db
-			.update(orcamentos)
+			.update(budgets)
 			.set({
 				amount: formatDecimalForDbRequired(data.amount),
 				period: data.period,
-				categoriaId: data.categoriaId,
+				categoryId: data.categoryId,
 			})
-			.where(and(eq(orcamentos.id, data.id), eq(orcamentos.userId, user.id)))
-			.returning({ id: orcamentos.id });
+			.where(and(eq(budgets.id, data.id), eq(budgets.userId, user.id)))
+			.returning({ id: budgets.id });
 
 		if (!updated) {
 			return {
@@ -159,7 +159,7 @@ export async function updateBudgetAction(
 			};
 		}
 
-		revalidateForEntity("orcamentos");
+		revalidateForEntity("budgets");
 
 		return { success: true, message: "Orçamento atualizado com sucesso." };
 	} catch (error) {
@@ -175,9 +175,9 @@ export async function deleteBudgetAction(
 		const data = deleteBudgetSchema.parse(input);
 
 		const [deleted] = await db
-			.delete(orcamentos)
-			.where(and(eq(orcamentos.id, data.id), eq(orcamentos.userId, user.id)))
-			.returning({ id: orcamentos.id });
+			.delete(budgets)
+			.where(and(eq(budgets.id, data.id), eq(budgets.userId, user.id)))
+			.returning({ id: budgets.id });
 
 		if (!deleted) {
 			return {
@@ -186,7 +186,7 @@ export async function deleteBudgetAction(
 			};
 		}
 
-		revalidateForEntity("orcamentos");
+		revalidateForEntity("budgets");
 
 		return { success: true, message: "Orçamento removido com sucesso." };
 	} catch (error) {
@@ -211,10 +211,10 @@ export async function duplicatePreviousMonthBudgetsAction(
 		const previousPeriod = getPreviousPeriod(data.period);
 
 		// Buscar orçamentos do mês anterior
-		const previousBudgets = (await db.query.orcamentos.findMany({
+		const previousBudgets = (await db.query.budgets.findMany({
 			where: and(
-				eq(orcamentos.userId, user.id),
-				eq(orcamentos.period, previousPeriod),
+				eq(budgets.userId, user.id),
+				eq(budgets.period, previousPeriod),
 			),
 		})) as BudgetCopyRow[];
 
@@ -226,41 +226,38 @@ export async function duplicatePreviousMonthBudgetsAction(
 		}
 
 		// Buscar orçamentos existentes do mês atual
-		const currentBudgets = (await db.query.orcamentos.findMany({
-			where: and(
-				eq(orcamentos.userId, user.id),
-				eq(orcamentos.period, data.period),
-			),
+		const currentBudgets = (await db.query.budgets.findMany({
+			where: and(eq(budgets.userId, user.id), eq(budgets.period, data.period)),
 		})) as BudgetCopyRow[];
 
 		// Filtrar para evitar duplicatas
 		const existingCategoryIds = new Set(
-			currentBudgets.map((b) => b.categoriaId),
+			currentBudgets.map((b) => b.categoryId),
 		);
 
 		const budgetsToCopy = previousBudgets.filter(
-			(b) => b.categoriaId && !existingCategoryIds.has(b.categoriaId),
+			(b) => b.categoryId && !existingCategoryIds.has(b.categoryId),
 		);
 
 		if (budgetsToCopy.length === 0) {
 			return {
 				success: false,
 				error:
-					"Todas as categorias do mês anterior já possuem orçamento neste mês.",
+					"Todas as categories do mês anterior já possuem orçamento neste mês.",
 			};
 		}
 
 		// Inserir novos orçamentos
-		await db.insert(orcamentos).values(
+		await db.insert(budgets).values(
 			budgetsToCopy.map((b) => ({
-				amount: b.amount,
+				amount: b.amount as string,
 				period: data.period,
 				userId: user.id,
-				categoriaId: b.categoriaId as string,
+				categoryId: b.categoryId as string,
 			})),
 		);
 
-		revalidateForEntity("orcamentos");
+		revalidateForEntity("budgets");
 
 		return {
 			success: true,

@@ -2,13 +2,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import {
-	cartoes,
-	categorias,
-	faturas,
-	lancamentos,
-	pagadores,
-} from "@/db/schema";
+import { cards, categories, invoices, payers, transactions } from "@/db/schema";
 import { buildInvoicePaymentNote } from "@/shared/lib/accounts/constants";
 import { revalidateForEntity } from "@/shared/lib/actions/helpers";
 import { getUser } from "@/shared/lib/auth/server";
@@ -19,7 +13,7 @@ import {
 	type InvoicePaymentStatus,
 	PERIOD_FORMAT_REGEX,
 } from "@/shared/lib/invoices";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 import {
 	getBusinessTodayDate,
 	parseLocalDateString,
@@ -29,7 +23,7 @@ const isValidPaymentDate = (value: string) =>
 	!Number.isNaN(parseLocalDateString(value).getTime());
 
 const updateInvoicePaymentStatusSchema = z.object({
-	cartaoId: z.string({ message: "Cartão inválido." }).uuid("Cartão inválido."),
+	cardId: z.string({ message: "Cartão inválido." }).uuid("Cartão inválido."),
 	period: z
 		.string({ message: "Período inválido." })
 		.regex(PERIOD_FORMAT_REGEX, "Período inválido."),
@@ -53,7 +47,7 @@ type ActionResult =
 	| { success: false; error: string };
 
 const successMessageByStatus: Record<InvoicePaymentStatus, string> = {
-	[INVOICE_PAYMENT_STATUS.PAID]: "Fatura marcada como paga.",
+	[INVOICE_PAYMENT_STATUS.PAID]: "Invoice marcada como paga.",
 	[INVOICE_PAYMENT_STATUS.PENDING]: "Pagamento da fatura foi revertido.",
 };
 
@@ -68,36 +62,36 @@ export async function updateInvoicePaymentStatusAction(
 		const data = updateInvoicePaymentStatusSchema.parse(input);
 
 		await db.transaction(async (tx: typeof db) => {
-			const card = await tx.query.cartoes.findFirst({
-				columns: { id: true, contaId: true, name: true },
-				where: and(eq(cartoes.id, data.cartaoId), eq(cartoes.userId, user.id)),
+			const card = await tx.query.cards.findFirst({
+				columns: { id: true, accountId: true, name: true },
+				where: and(eq(cards.id, data.cardId), eq(cards.userId, user.id)),
 			});
 
 			if (!card) {
 				throw new Error("Cartão não encontrado.");
 			}
 
-			const existingInvoice = await tx.query.faturas.findFirst({
+			const existingInvoice = await tx.query.invoices.findFirst({
 				columns: {
 					id: true,
 				},
 				where: and(
-					eq(faturas.cartaoId, data.cartaoId),
-					eq(faturas.userId, user.id),
-					eq(faturas.period, data.period),
+					eq(invoices.cardId, data.cardId),
+					eq(invoices.userId, user.id),
+					eq(invoices.period, data.period),
 				),
 			});
 
 			if (existingInvoice) {
 				await tx
-					.update(faturas)
+					.update(invoices)
 					.set({
 						paymentStatus: data.status,
 					})
-					.where(eq(faturas.id, existingInvoice.id));
+					.where(eq(invoices.id, existingInvoice.id));
 			} else {
-				await tx.insert(faturas).values({
-					cartaoId: data.cartaoId,
+				await tx.insert(invoices).values({
+					cardId: data.cardId,
 					period: data.period,
 					paymentStatus: data.status,
 					userId: user.id,
@@ -107,13 +101,13 @@ export async function updateInvoicePaymentStatusAction(
 			const shouldMarkAsPaid = data.status === INVOICE_PAYMENT_STATUS.PAID;
 
 			await tx
-				.update(lancamentos)
+				.update(transactions)
 				.set({ isSettled: shouldMarkAsPaid })
 				.where(
 					and(
-						eq(lancamentos.userId, user.id),
-						eq(lancamentos.cartaoId, card.id),
-						eq(lancamentos.period, data.period),
+						eq(transactions.userId, user.id),
+						eq(transactions.cardId, card.id),
+						eq(transactions.period, data.period),
 					),
 				);
 
@@ -124,39 +118,39 @@ export async function updateInvoicePaymentStatusAction(
 					.select({
 						total: sql<number>`
               coalesce(
-                sum(${lancamentos.amount}),
+                sum(${transactions.amount}),
                 0
               )
             `,
 					})
-					.from(lancamentos)
-					.leftJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
+					.from(transactions)
+					.leftJoin(payers, eq(transactions.payerId, payers.id))
 					.where(
 						and(
-							eq(lancamentos.userId, user.id),
-							eq(lancamentos.cartaoId, card.id),
-							eq(lancamentos.period, data.period),
-							eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+							eq(transactions.userId, user.id),
+							eq(transactions.cardId, card.id),
+							eq(transactions.period, data.period),
+							eq(payers.role, PAYER_ROLE_ADMIN),
 						),
 					);
 
 				const adminShare = Number(adminShareRow?.total ?? 0);
 				const adminPayableAmount = Math.abs(Math.min(adminShare, 0));
 
-				if (adminPayableAmount > 0 && card.contaId) {
-					const adminPagador = await tx.query.pagadores.findFirst({
+				if (adminPayableAmount > 0 && card.accountId) {
+					const adminPagador = await tx.query.payers.findFirst({
 						columns: { id: true },
 						where: and(
-							eq(pagadores.userId, user.id),
-							eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+							eq(payers.userId, user.id),
+							eq(payers.role, PAYER_ROLE_ADMIN),
 						),
 					});
 
-					const paymentCategory = await tx.query.categorias.findFirst({
+					const paymentCategory = await tx.query.categories.findFirst({
 						columns: { id: true },
 						where: and(
-							eq(categorias.userId, user.id),
-							eq(categorias.name, "Pagamentos"),
+							eq(categories.userId, user.id),
+							eq(categories.name, "Pagamentos"),
 						),
 					});
 
@@ -178,42 +172,42 @@ export async function updateInvoicePaymentStatusAction(
 							period: data.period,
 							isSettled: true,
 							userId: user.id,
-							contaId: card.contaId,
-							categoriaId: paymentCategory?.id ?? null,
-							pagadorId: adminPagador.id,
+							accountId: card.accountId,
+							categoryId: paymentCategory?.id ?? null,
+							payerId: adminPagador.id,
 						};
 
-						const existingPayment = await tx.query.lancamentos.findFirst({
+						const existingPayment = await tx.query.transactions.findFirst({
 							columns: { id: true },
 							where: and(
-								eq(lancamentos.userId, user.id),
-								eq(lancamentos.note, invoiceNote),
+								eq(transactions.userId, user.id),
+								eq(transactions.note, invoiceNote),
 							),
 						});
 
 						if (existingPayment) {
 							await tx
-								.update(lancamentos)
+								.update(transactions)
 								.set(payload)
-								.where(eq(lancamentos.id, existingPayment.id));
+								.where(eq(transactions.id, existingPayment.id));
 						} else {
-							await tx.insert(lancamentos).values(payload);
+							await tx.insert(transactions).values(payload);
 						}
 					}
 				}
 			} else {
 				await tx
-					.delete(lancamentos)
+					.delete(transactions)
 					.where(
 						and(
-							eq(lancamentos.userId, user.id),
-							eq(lancamentos.note, invoiceNote),
+							eq(transactions.userId, user.id),
+							eq(transactions.note, invoiceNote),
 						),
 					);
 			}
 		});
 
-		revalidateForEntity("cartoes");
+		revalidateForEntity("cards");
 
 		return { success: true, message: successMessageByStatus[data.status] };
 	} catch (error) {
@@ -232,7 +226,7 @@ export async function updateInvoicePaymentStatusAction(
 }
 
 const updatePaymentDateSchema = z.object({
-	cartaoId: z.string({ message: "Cartão inválido." }).uuid("Cartão inválido."),
+	cardId: z.string({ message: "Cartão inválido." }).uuid("Cartão inválido."),
 	period: z
 		.string({ message: "Período inválido." })
 		.regex(PERIOD_FORMAT_REGEX, "Período inválido."),
@@ -253,9 +247,9 @@ export async function updatePaymentDateAction(
 		const data = updatePaymentDateSchema.parse(input);
 
 		await db.transaction(async (tx: typeof db) => {
-			const card = await tx.query.cartoes.findFirst({
+			const card = await tx.query.cards.findFirst({
 				columns: { id: true },
-				where: and(eq(cartoes.id, data.cartaoId), eq(cartoes.userId, user.id)),
+				where: and(eq(cards.id, data.cardId), eq(cards.userId, user.id)),
 			});
 
 			if (!card) {
@@ -264,11 +258,11 @@ export async function updatePaymentDateAction(
 
 			const invoiceNote = buildInvoicePaymentNote(card.id, data.period);
 
-			const existingPayment = await tx.query.lancamentos.findFirst({
+			const existingPayment = await tx.query.transactions.findFirst({
 				columns: { id: true },
 				where: and(
-					eq(lancamentos.userId, user.id),
-					eq(lancamentos.note, invoiceNote),
+					eq(transactions.userId, user.id),
+					eq(transactions.note, invoiceNote),
 				),
 			});
 
@@ -277,14 +271,14 @@ export async function updatePaymentDateAction(
 			}
 
 			await tx
-				.update(lancamentos)
+				.update(transactions)
 				.set({
 					purchaseDate: parseLocalDateString(data.paymentDate),
 				})
-				.where(eq(lancamentos.id, existingPayment.id));
+				.where(eq(transactions.id, existingPayment.id));
 		});
 
-		revalidateForEntity("cartoes");
+		revalidateForEntity("cards");
 
 		return { success: true, message: "Data de pagamento atualizada." };
 	} catch (error) {

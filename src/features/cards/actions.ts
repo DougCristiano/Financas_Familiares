@@ -2,7 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { cartoes, contas } from "@/db/schema";
+import { cards, financialAccounts } from "@/db/schema";
 import {
 	type ActionResult,
 	handleActionError,
@@ -40,7 +40,7 @@ const cardBaseSchema = z.object({
 		.string({ message: "Selecione um logo." })
 		.trim()
 		.min(1, "Selecione um logo."),
-	contaId: uuidSchema("Conta"),
+	accountId: uuidSchema("FinancialAccount"),
 });
 
 const createCardSchema = cardBaseSchema;
@@ -55,14 +55,17 @@ type CardCreateInput = z.infer<typeof createCardSchema>;
 type CardUpdateInput = z.infer<typeof updateCardSchema>;
 type CardDeleteInput = z.infer<typeof deleteCardSchema>;
 
-async function assertAccountOwnership(userId: string, contaId: string) {
-	const account = await db.query.contas.findFirst({
+async function assertAccountOwnership(userId: string, accountId: string) {
+	const account = await db.query.financialAccounts.findFirst({
 		columns: { id: true },
-		where: and(eq(contas.id, contaId), eq(contas.userId, userId)),
+		where: and(
+			eq(financialAccounts.id, accountId),
+			eq(financialAccounts.userId, userId),
+		),
 	});
 
 	if (!account) {
-		throw new Error("Conta vinculada não encontrada.");
+		throw new Error("FinancialAccount vinculada não encontrada.");
 	}
 }
 
@@ -73,11 +76,11 @@ export async function createCardAction(
 		const user = await getUser();
 		const data = createCardSchema.parse(input);
 
-		await assertAccountOwnership(user.id, data.contaId);
+		await assertAccountOwnership(user.id, data.accountId);
 
 		const logoFile = normalizeFilePath(data.logo);
 
-		await db.insert(cartoes).values({
+		await db.insert(cards).values({
 			name: data.name,
 			brand: data.brand,
 			status: data.status,
@@ -86,11 +89,11 @@ export async function createCardAction(
 			note: data.note ?? null,
 			limit: formatDecimalForDb(data.limit),
 			logo: logoFile,
-			contaId: data.contaId,
+			accountId: data.accountId,
 			userId: user.id,
 		});
 
-		revalidateForEntity("cartoes");
+		revalidateForEntity("cards");
 
 		return { success: true, message: "Cartão criado com sucesso." };
 	} catch (error) {
@@ -105,12 +108,12 @@ export async function updateCardAction(
 		const user = await getUser();
 		const data = updateCardSchema.parse(input);
 
-		await assertAccountOwnership(user.id, data.contaId);
+		await assertAccountOwnership(user.id, data.accountId);
 
 		const logoFile = normalizeFilePath(data.logo);
 
 		const [updated] = await db
-			.update(cartoes)
+			.update(cards)
 			.set({
 				name: data.name,
 				brand: data.brand,
@@ -120,9 +123,9 @@ export async function updateCardAction(
 				note: data.note ?? null,
 				limit: formatDecimalForDb(data.limit),
 				logo: logoFile,
-				contaId: data.contaId,
+				accountId: data.accountId,
 			})
-			.where(and(eq(cartoes.id, data.id), eq(cartoes.userId, user.id)))
+			.where(and(eq(cards.id, data.id), eq(cards.userId, user.id)))
 			.returning();
 
 		if (!updated) {
@@ -132,7 +135,7 @@ export async function updateCardAction(
 			};
 		}
 
-		revalidateForEntity("cartoes");
+		revalidateForEntity("cards");
 
 		return { success: true, message: "Cartão atualizado com sucesso." };
 	} catch (error) {
@@ -148,9 +151,9 @@ export async function deleteCardAction(
 		const data = deleteCardSchema.parse(input);
 
 		const [deleted] = await db
-			.delete(cartoes)
-			.where(and(eq(cartoes.id, data.id), eq(cartoes.userId, user.id)))
-			.returning({ id: cartoes.id });
+			.delete(cards)
+			.where(and(eq(cards.id, data.id), eq(cards.userId, user.id)))
+			.returning({ id: cards.id });
 
 		if (!deleted) {
 			return {
@@ -159,7 +162,7 @@ export async function deleteCardAction(
 			};
 		}
 
-		revalidateForEntity("cartoes");
+		revalidateForEntity("cards");
 
 		return { success: true, message: "Cartão removido com sucesso." };
 	} catch (error) {

@@ -3,10 +3,7 @@
 import { RiAddCircleLine, RiTodoLine } from "@remixicon/react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-	arquivarAnotacaoAction,
-	deleteNoteAction,
-} from "@/features/notes/actions";
+import { archiveNoteAction, deleteNoteAction } from "@/features/notes/actions";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
 import { EmptyState } from "@/shared/components/empty-state";
 import { Button } from "@/shared/components/ui/button";
@@ -115,9 +112,9 @@ export function NotesPage({ notes, archivedNotes }: NotesPageProps) {
 			return;
 		}
 
-		const result = await arquivarAnotacaoAction({
+		const result = await archiveNoteAction({
 			id: noteToArquivar.id,
-			arquivada: !isArquivadas,
+			archived: !isArquivadas,
 		});
 
 		if (result.success) {
@@ -171,7 +168,7 @@ export function NotesPage({ notes, archivedNotes }: NotesPageProps) {
 						media={<RiTodoLine className="size-6 text-primary" />}
 						title={
 							isArchived
-								? "Nenhuma anotação arquivada"
+								? "Nenhuma anotação archived"
 								: "Nenhuma anotação registrada"
 						}
 						description={

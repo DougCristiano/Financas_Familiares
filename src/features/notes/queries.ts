@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { type Anotacao, anotacoes } from "@/db/schema";
+import { type Note, notes } from "@/db/schema";
 import { db } from "@/shared/lib/db";
 
 export type Task = {
@@ -14,20 +14,17 @@ export type NoteData = {
 	description: string;
 	type: "nota" | "tarefa";
 	tasks?: Task[];
-	arquivada: boolean;
+	archived: boolean;
 	createdAt: string;
 };
 
 export async function fetchNotesForUser(userId: string): Promise<NoteData[]> {
-	const noteRows = await db.query.anotacoes.findMany({
-		where: and(eq(anotacoes.userId, userId), eq(anotacoes.arquivada, false)),
-		orderBy: (
-			note: typeof anotacoes.$inferSelect,
-			{ desc }: { desc: (field: unknown) => unknown },
-		) => [desc(note.createdAt)],
+	const noteRows = await db.query.notes.findMany({
+		where: and(eq(notes.userId, userId), eq(notes.archived, false)),
+		orderBy: (table, { desc }) => [desc(table.createdAt)],
 	});
 
-	return noteRows.map((note: Anotacao) => {
+	return noteRows.map((note: Note) => {
 		let tasks: Task[] | undefined;
 
 		// Parse tasks if they exist
@@ -46,7 +43,7 @@ export async function fetchNotesForUser(userId: string): Promise<NoteData[]> {
 			description: (note.description ?? "").trim(),
 			type: (note.type ?? "nota") as "nota" | "tarefa",
 			tasks,
-			arquivada: note.arquivada,
+			archived: note.archived,
 			createdAt: note.createdAt.toISOString(),
 		};
 	});
@@ -57,24 +54,21 @@ export async function fetchAllNotesForUser(
 ): Promise<{ activeNotes: NoteData[]; archivedNotes: NoteData[] }> {
 	const [activeNotes, archivedNotes] = await Promise.all([
 		fetchNotesForUser(userId),
-		fetchArquivadasForUser(userId),
+		fetchArchivedForUser(userId),
 	]);
 
 	return { activeNotes, archivedNotes };
 }
 
-export async function fetchArquivadasForUser(
+export async function fetchArchivedForUser(
 	userId: string,
 ): Promise<NoteData[]> {
-	const noteRows = await db.query.anotacoes.findMany({
-		where: and(eq(anotacoes.userId, userId), eq(anotacoes.arquivada, true)),
-		orderBy: (
-			note: typeof anotacoes.$inferSelect,
-			{ desc }: { desc: (field: unknown) => unknown },
-		) => [desc(note.createdAt)],
+	const noteRows = await db.query.notes.findMany({
+		where: and(eq(notes.userId, userId), eq(notes.archived, true)),
+		orderBy: (table, { desc }) => [desc(table.createdAt)],
 	});
 
-	return noteRows.map((note: Anotacao) => {
+	return noteRows.map((note: Note) => {
 		let tasks: Task[] | undefined;
 
 		// Parse tasks if they exist
@@ -93,7 +87,7 @@ export async function fetchArquivadasForUser(
 			description: (note.description ?? "").trim(),
 			type: (note.type ?? "nota") as "nota" | "tarefa",
 			tasks,
-			arquivada: note.arquivada,
+			archived: note.archived,
 			createdAt: note.createdAt.toISOString(),
 		};
 	});

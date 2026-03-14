@@ -79,8 +79,8 @@ export function PasskeysForm() {
 				setPasskeys(
 					(data ?? []).map((p) => ({
 						id: p.id,
-						name: p.name,
-						deviceType: p.deviceType,
+						name: p.name ?? null,
+						deviceType: p.deviceType as string,
 						createdAt: p.createdAt ? new Date(p.createdAt) : null,
 					})),
 				);

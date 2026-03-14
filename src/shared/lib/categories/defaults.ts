@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { categorias } from "@/db/schema";
+import { categories } from "@/db/schema";
 import type { CategoryType } from "@/shared/lib/categories/constants";
 import { db } from "@/shared/lib/db";
 
@@ -42,7 +42,7 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
 	{ name: "Outras receitas", type: "receita", icon: "RiMore2Line" },
 	{ name: "Saldo inicial", type: "receita", icon: "RiWallet2Line" },
 
-	// Categoria especial para transferências entre contas
+	// Category especial para transferências entre financialAccounts
 	{
 		name: "Transferência interna",
 		type: "receita",
@@ -59,9 +59,9 @@ export async function seedDefaultCategoriesForUser(userId: string | undefined) {
 		return;
 	}
 
-	const existing = await db.query.categorias.findFirst({
+	const existing = await db.query.categories.findFirst({
 		columns: { id: true },
-		where: eq(categorias.userId, userId),
+		where: eq(categories.userId, userId),
 	});
 
 	if (existing) {
@@ -72,7 +72,7 @@ export async function seedDefaultCategoriesForUser(userId: string | undefined) {
 		return;
 	}
 
-	await db.insert(categorias).values(
+	await db.insert(categories).values(
 		DEFAULT_CATEGORIES.map((category) => ({
 			name: category.name,
 			type: category.type,

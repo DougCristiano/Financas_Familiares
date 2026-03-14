@@ -50,7 +50,7 @@ const buildInitialValues = ({
 	budget?: Budget;
 	defaultPeriod: string;
 }): BudgetFormValues => ({
-	categoriaId: budget?.category?.id ?? "",
+	categoryId: budget?.category?.id ?? "",
 	period: budget?.period ?? defaultPeriod,
 	amount: budget ? (Math.round(budget.amount * 100) / 100).toFixed(2) : "",
 });
@@ -113,7 +113,7 @@ export function BudgetDialog({
 			return;
 		}
 
-		if (formState.categoriaId.length === 0) {
+		if (formState.categoryId.length === 0) {
 			const message = "Selecione uma categoria.";
 			setErrorMessage(message);
 			toast.error(message);
@@ -135,7 +135,7 @@ export function BudgetDialog({
 		}
 
 		const payload = {
-			categoriaId: formState.categoriaId,
+			categoryId: formState.categoryId,
 			period: formState.period,
 			amount: formState.amount,
 		};
@@ -207,10 +207,10 @@ export function BudgetDialog({
 				) : (
 					<form className="space-y-4" onSubmit={handleSubmit}>
 						<div className="space-y-2">
-							<Label htmlFor="budget-category">Categoria</Label>
+							<Label htmlFor="budget-category">Category</Label>
 							<Select
-								value={formState.categoriaId}
-								onValueChange={(value) => updateField("categoriaId", value)}
+								value={formState.categoryId}
+								onValueChange={(value) => updateField("categoryId", value)}
 							>
 								<SelectTrigger id="budget-category" className="w-full">
 									<SelectValue placeholder="Selecione uma categoria" />

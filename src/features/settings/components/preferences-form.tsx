@@ -30,8 +30,8 @@ import { Label } from "@/shared/components/ui/label";
 import { Switch } from "@/shared/components/ui/switch";
 
 interface PreferencesFormProps {
-	extratoNoteAsColumn: boolean;
-	lancamentosColumnOrder: string[] | null;
+	statementNoteAsColumn: boolean;
+	transactionsColumnOrder: string[] | null;
 }
 
 function SortableColumnItem({ id }: { id: string }) {
@@ -72,12 +72,12 @@ function SortableColumnItem({ id }: { id: string }) {
 }
 
 export function PreferencesForm({
-	extratoNoteAsColumn: initialExtratoNoteAsColumn,
-	lancamentosColumnOrder: initialColumnOrder,
+	statementNoteAsColumn: initialExtratoNoteAsColumn,
+	transactionsColumnOrder: initialColumnOrder,
 }: PreferencesFormProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
-	const [extratoNoteAsColumn, setExtratoNoteAsColumn] = useState(
+	const [statementNoteAsColumn, setExtratoNoteAsColumn] = useState(
 		initialExtratoNoteAsColumn,
 	);
 	const [columnOrder, setColumnOrder] = useState<string[]>(
@@ -107,8 +107,8 @@ export function PreferencesForm({
 
 		startTransition(async () => {
 			const result = await updatePreferencesAction({
-				extratoNoteAsColumn,
-				lancamentosColumnOrder: columnOrder,
+				statementNoteAsColumn,
+				transactionsColumnOrder: columnOrder,
 			});
 
 			if (result.success) {
@@ -145,7 +145,7 @@ export function PreferencesForm({
 					</div>
 					<Switch
 						id="extrato-note-column"
-						checked={extratoNoteAsColumn}
+						checked={statementNoteAsColumn}
 						onCheckedChange={setExtratoNoteAsColumn}
 						disabled={isPending}
 					/>

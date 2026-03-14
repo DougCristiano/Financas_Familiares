@@ -142,7 +142,7 @@ export function CardsPage({
 						limit={card.limit}
 						limitInUse={card.limitInUse ?? null}
 						limitAvailable={card.limitAvailable ?? card.limit ?? null}
-						contaName={card.contaName}
+						accountName={card.accountName}
 						logo={card.logo}
 						note={card.note}
 						onEdit={() => handleEdit(card)}

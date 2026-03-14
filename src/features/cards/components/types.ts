@@ -8,10 +8,10 @@ export type Card = {
 	note: string | null;
 	logo: string | null;
 	limit: number | null;
-	contaId: string;
-	contaName: string;
-	limitInUse?: number | null;
-	limitAvailable?: number | null;
+	accountId: string;
+	accountName: string;
+	limitInUse: number;
+	limitAvailable: number | null;
 };
 
 export type CardFormValues = {
@@ -23,5 +23,5 @@ export type CardFormValues = {
 	limit: string;
 	note: string;
 	logo: string;
-	contaId: string;
+	accountId: string;
 };

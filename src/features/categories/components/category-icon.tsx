@@ -19,7 +19,7 @@ export function CategoryIcon({ name, className }: CategoryIconProps) {
 	if (!IconComponent) {
 		return (
 			<span className={cn("text-xs text-muted-foreground", className)}>
-				{name ?? "Categoria"}
+				{name ?? "Category"}
 			</span>
 		);
 	}

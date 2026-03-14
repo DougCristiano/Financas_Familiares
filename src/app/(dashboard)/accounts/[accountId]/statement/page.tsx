@@ -9,20 +9,20 @@ import {
 	fetchAccountSummary,
 } from "@/features/accounts/statement-queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
-import { LancamentosPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
+import { TransactionsPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
 import {
-	buildLancamentoWhere,
+	buildTransactionWhere,
 	buildOptionSets,
 	buildSluggedFilters,
 	buildSlugMaps,
-	extractLancamentoSearchFilters,
+	extractTransactionSearchFilters,
 	getSingleParam,
-	mapLancamentosData,
+	mapTransactionsData,
 	type ResolvedSearchParams,
 } from "@/features/transactions/page-helpers";
 import {
-	fetchLancamentoFilterSources,
 	fetchRecentEstablishments,
+	fetchTransactionFilterSources,
 } from "@/features/transactions/queries";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { Button } from "@/shared/components/ui/button";
@@ -41,7 +41,7 @@ const capitalize = (value: string) =>
 	value.length > 0 ? value[0]?.toUpperCase().concat(value.slice(1)) : value;
 
 export default async function Page({ params, searchParams }: PageProps) {
-	const { accountId: contaId } = await params;
+	const { accountId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 
@@ -52,9 +52,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 		year,
 	} = parsePeriodParam(periodoParamRaw);
 
-	const searchFilters = extractLancamentoSearchFilters(resolvedSearchParams);
+	const searchFilters = extractTransactionSearchFilters(resolvedSearchParams);
 
-	const account = await fetchAccountData(userId, contaId);
+	const account = await fetchAccountData(userId, accountId);
 
 	if (!account) {
 		notFound();
@@ -67,16 +67,16 @@ export default async function Page({ params, searchParams }: PageProps) {
 		estabelecimentos,
 		userPreferences,
 	] = await Promise.all([
-		fetchLancamentoFilterSources(userId),
+		fetchTransactionFilterSources(userId),
 		loadLogoOptions(),
-		fetchAccountSummary(userId, contaId, selectedPeriod),
+		fetchAccountSummary(userId, accountId, selectedPeriod),
 		fetchRecentEstablishments(userId),
 		fetchUserPreferences(userId),
 	]);
 	const sluggedFilters = buildSluggedFilters(filterSources);
 	const slugMaps = buildSlugMaps(sluggedFilters);
 
-	const filters = buildLancamentoWhere({
+	const filters = buildTransactionWhere({
 		userId,
 		period: selectedPeriod,
 		filters: searchFilters,
@@ -84,9 +84,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 		accountId: account.id,
 	});
 
-	const lancamentoRows = await fetchAccountLancamentos(filters);
+	const transactionRows = await fetchAccountLancamentos(filters);
 
-	const lancamentosData = mapLancamentosData(lancamentoRows);
+	const transactionData = mapTransactionsData(transactionRows);
 
 	const { openingBalance, currentBalance, totalIncomes, totalExpenses } =
 		accountSummary;
@@ -105,18 +105,18 @@ export default async function Page({ params, searchParams }: PageProps) {
 	};
 
 	const {
-		pagadorOptions,
-		splitPagadorOptions,
-		defaultPagadorId,
-		contaOptions,
-		cartaoOptions,
-		categoriaOptions,
-		pagadorFilterOptions,
-		categoriaFilterOptions,
-		contaCartaoFilterOptions,
+		payerOptions,
+		splitPayerOptions,
+		defaultPayerId,
+		accountOptions,
+		cardOptions,
+		categoryOptions,
+		payerFilterOptions,
+		categoryFilterOptions,
+		accountCardFilterOptions,
 	} = buildOptionSets({
 		...sluggedFilters,
-		pagadorRows: filterSources.pagadorRows,
+		payerRows: filterSources.payerRows,
 		limitContaId: account.id,
 	});
 
@@ -157,21 +157,21 @@ export default async function Page({ params, searchParams }: PageProps) {
 			<section className="flex flex-col gap-4">
 				<LancamentosSection
 					currentUserId={userId}
-					lancamentos={lancamentosData}
-					pagadorOptions={pagadorOptions}
-					splitPagadorOptions={splitPagadorOptions}
-					defaultPagadorId={defaultPagadorId}
-					contaOptions={contaOptions}
-					cartaoOptions={cartaoOptions}
-					categoriaOptions={categoriaOptions}
-					pagadorFilterOptions={pagadorFilterOptions}
-					categoriaFilterOptions={categoriaFilterOptions}
-					contaCartaoFilterOptions={contaCartaoFilterOptions}
+					transactions={transactionData}
+					payerOptions={payerOptions}
+					splitPayerOptions={splitPayerOptions}
+					defaultPayerId={defaultPayerId}
+					accountOptions={accountOptions}
+					cardOptions={cardOptions}
+					categoryOptions={categoryOptions}
+					payerFilterOptions={payerFilterOptions}
+					categoryFilterOptions={categoryFilterOptions}
+					accountCardFilterOptions={accountCardFilterOptions}
 					selectedPeriod={selectedPeriod}
 					estabelecimentos={estabelecimentos}
 					allowCreate={false}
-					noteAsColumn={userPreferences?.extratoNoteAsColumn ?? false}
-					columnOrder={userPreferences?.lancamentosColumnOrder ?? null}
+					noteAsColumn={userPreferences?.statementNoteAsColumn ?? false}
+					columnOrder={userPreferences?.transactionsColumnOrder ?? null}
 				/>
 			</section>
 		</main>

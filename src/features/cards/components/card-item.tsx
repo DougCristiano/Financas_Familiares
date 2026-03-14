@@ -33,7 +33,7 @@ interface CardItemProps {
 	limit: number | null;
 	limitInUse?: number | null;
 	limitAvailable?: number | null;
-	contaName: string;
+	accountName: string;
 	logo?: string | null;
 	note?: string | null;
 	onEdit?: () => void;
@@ -52,14 +52,14 @@ export function CardItem({
 	limit,
 	limitInUse,
 	limitAvailable,
-	contaName: _contaName,
+	accountName: _accountName,
 	logo,
 	note,
 	onEdit,
 	onInvoice,
 	onRemove,
 }: CardItemProps) {
-	void _contaName;
+	void _accountName;
 
 	const limitTotal = limit ?? null;
 	const used =

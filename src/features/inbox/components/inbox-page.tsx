@@ -10,7 +10,7 @@ import {
 	markInboxAsProcessedAction,
 	restoreDiscardedInboxItemAction,
 } from "@/features/inbox/actions";
-import { LancamentoDialog } from "@/features/transactions/components/dialogs/transaction-dialog/transaction-dialog";
+import { TransactionDialog } from "@/features/transactions/components/dialogs/transaction-dialog/transaction-dialog";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
 import { EmptyState } from "@/shared/components/empty-state";
 import { Button } from "@/shared/components/ui/button";
@@ -29,12 +29,12 @@ interface InboxPageProps {
 	pendingItems: InboxItem[];
 	processedItems: InboxItem[];
 	discardedItems: InboxItem[];
-	pagadorOptions: SelectOption[];
-	splitPagadorOptions: SelectOption[];
-	defaultPagadorId: string | null;
-	contaOptions: SelectOption[];
-	cartaoOptions: SelectOption[];
-	categoriaOptions: SelectOption[];
+	payerOptions: SelectOption[];
+	splitPayerOptions: SelectOption[];
+	defaultPayerId: string | null;
+	accountOptions: SelectOption[];
+	cardOptions: SelectOption[];
+	categoryOptions: SelectOption[];
 	estabelecimentos: string[];
 	appLogoMap: Record<string, string>;
 }
@@ -43,12 +43,12 @@ export function InboxPage({
 	pendingItems,
 	processedItems,
 	discardedItems,
-	pagadorOptions,
-	splitPagadorOptions,
-	defaultPagadorId,
-	contaOptions,
-	cartaoOptions,
-	categoriaOptions,
+	payerOptions,
+	splitPayerOptions,
+	defaultPayerId,
+	accountOptions,
+	cardOptions,
+	categoryOptions,
 	estabelecimentos,
 	appLogoMap,
 }: InboxPageProps) {
@@ -272,14 +272,14 @@ export function InboxPage({
 		const appName = itemToProcess?.sourceAppName?.toLowerCase();
 		if (!appName) return null;
 
-		for (const option of cartaoOptions) {
+		for (const option of cardOptions) {
 			const label = option.label.toLowerCase();
 			if (label.includes(appName) || appName.includes(label)) {
 				return option.value;
 			}
 		}
 		return null;
-	}, [itemToProcess?.sourceAppName, cartaoOptions]);
+	}, [itemToProcess?.sourceAppName, cardOptions]);
 
 	const renderEmptyState = (message: string) => (
 		<Card className="flex min-h-[50vh] w-full items-center justify-center py-12">
@@ -378,21 +378,21 @@ export function InboxPage({
 				</TabsContent>
 			</Tabs>
 
-			<LancamentoDialog
+			<TransactionDialog
 				mode="create"
 				open={processOpen}
 				onOpenChange={handleProcessOpenChange}
-				pagadorOptions={pagadorOptions}
-				splitPagadorOptions={splitPagadorOptions}
-				defaultPagadorId={defaultPagadorId}
-				contaOptions={contaOptions}
-				cartaoOptions={cartaoOptions}
-				categoriaOptions={categoriaOptions}
+				payerOptions={payerOptions}
+				splitPayerOptions={splitPayerOptions}
+				defaultPayerId={defaultPayerId}
+				accountOptions={accountOptions}
+				cardOptions={cardOptions}
+				categoryOptions={categoryOptions}
 				estabelecimentos={estabelecimentos}
 				defaultPurchaseDate={defaultPurchaseDate}
 				defaultName={defaultName}
 				defaultAmount={defaultAmount}
-				defaultCartaoId={matchedCartaoId}
+				defaultCardId={matchedCartaoId}
 				defaultPaymentMethod={matchedCartaoId ? "Cartão de crédito" : null}
 				forceShowTransactionType
 				onSuccess={handleLancamentoSuccess}

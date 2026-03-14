@@ -110,10 +110,7 @@ export function AccountFormFields({
 				<div className="flex items-center gap-2">
 					<Checkbox
 						id="exclude-from-balance"
-						checked={
-							values.excludeFromBalance === true ||
-							values.excludeFromBalance === "true"
-						}
+						checked={Boolean(values.excludeFromBalance)}
 						onCheckedChange={(checked) =>
 							onChange("excludeFromBalance", checked ? "true" : "false")
 						}
@@ -130,10 +127,7 @@ export function AccountFormFields({
 				<div className="flex items-center gap-2">
 					<Checkbox
 						id="exclude-initial-balance-from-income"
-						checked={
-							values.excludeInitialBalanceFromIncome === true ||
-							values.excludeInitialBalanceFromIncome === "true"
-						}
+						checked={Boolean(values.excludeInitialBalanceFromIncome)}
 						onCheckedChange={(checked) =>
 							onChange(
 								"excludeInitialBalanceFromIncome",

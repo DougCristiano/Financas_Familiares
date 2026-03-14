@@ -1,29 +1,29 @@
 import { RiPencilLine } from "@remixicon/react";
 import { notFound } from "next/navigation";
-import type { Conta } from "@/db/schema";
+import type { FinancialAccount } from "@/db/schema";
 import { CardDialog } from "@/features/cards/components/card-dialog";
 import type { Card } from "@/features/cards/components/types";
 import { InvoiceSummaryCard } from "@/features/invoices/components/invoice-summary-card";
 import {
 	fetchCardData,
-	fetchCardLancamentos,
+	fetchCardTransactions,
 	fetchInvoiceData,
 } from "@/features/invoices/queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
-import { LancamentosPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
+import { TransactionsPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
 import {
-	buildLancamentoWhere,
 	buildOptionSets,
 	buildSluggedFilters,
 	buildSlugMaps,
-	extractLancamentoSearchFilters,
+	buildTransactionWhere,
+	extractTransactionSearchFilters,
 	getSingleParam,
-	mapLancamentosData,
+	mapTransactionsData,
 	type ResolvedSearchParams,
 } from "@/features/transactions/page-helpers";
 import {
-	fetchLancamentoFilterSources,
 	fetchRecentEstablishments,
+	fetchTransactionFilterSources,
 } from "@/features/transactions/queries";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { Button } from "@/shared/components/ui/button";
@@ -39,7 +39,7 @@ type PageProps = {
 };
 
 export default async function Page({ params, searchParams }: PageProps) {
-	const { cardId: cartaoId } = await params;
+	const { cardId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 
@@ -50,9 +50,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 		year,
 	} = parsePeriodParam(periodoParamRaw);
 
-	const searchFilters = extractLancamentoSearchFilters(resolvedSearchParams);
+	const searchFilters = extractTransactionSearchFilters(resolvedSearchParams);
 
-	const card = await fetchCardData(userId, cartaoId);
+	const card = await fetchCardData(userId, cardId);
 
 	if (!card) {
 		notFound();
@@ -65,16 +65,16 @@ export default async function Page({ params, searchParams }: PageProps) {
 		estabelecimentos,
 		userPreferences,
 	] = await Promise.all([
-		fetchLancamentoFilterSources(userId),
+		fetchTransactionFilterSources(userId),
 		loadLogoOptions(),
-		fetchInvoiceData(userId, cartaoId, selectedPeriod),
+		fetchInvoiceData(userId, cardId, selectedPeriod),
 		fetchRecentEstablishments(userId),
 		fetchUserPreferences(userId),
 	]);
 	const sluggedFilters = buildSluggedFilters(filterSources);
 	const slugMaps = buildSlugMaps(sluggedFilters);
 
-	const filters = buildLancamentoWhere({
+	const filters = buildTransactionWhere({
 		userId,
 		period: selectedPeriod,
 		filters: searchFilters,
@@ -82,35 +82,39 @@ export default async function Page({ params, searchParams }: PageProps) {
 		cardId: card.id,
 	});
 
-	const lancamentoRows = await fetchCardLancamentos(filters);
+	const transactionRows = await fetchCardTransactions(filters);
 
-	const lancamentosData = mapLancamentosData(lancamentoRows);
+	const transactionData = mapTransactionsData(transactionRows);
 
 	const {
-		pagadorOptions,
-		splitPagadorOptions,
-		defaultPagadorId,
-		contaOptions,
-		cartaoOptions,
-		categoriaOptions,
-		pagadorFilterOptions,
-		categoriaFilterOptions,
-		contaCartaoFilterOptions,
+		payerOptions,
+		splitPayerOptions,
+		defaultPayerId,
+		accountOptions,
+		cardOptions,
+		categoryOptions,
+		payerFilterOptions,
+		categoryFilterOptions,
+		accountCardFilterOptions,
 	} = buildOptionSets({
 		...sluggedFilters,
-		pagadorRows: filterSources.pagadorRows,
+		payerRows: filterSources.payerRows,
 		limitCartaoId: card.id,
 	});
 
-	const accountOptions = filterSources.contaRows.map((conta: Conta) => ({
-		id: conta.id,
-		name: conta.name ?? "Conta",
-		logo: conta.logo ?? null,
-	}));
+	const cardDialogAccounts = filterSources.accountRows.map(
+		(financialAccount: FinancialAccount) => ({
+			id: financialAccount.id,
+			name: financialAccount.name ?? "FinancialAccount",
+			logo: financialAccount.logo ?? null,
+		}),
+	);
 
-	const contaName =
-		filterSources.contaRows.find((conta: Conta) => conta.id === card.contaId)
-			?.name ?? "Conta";
+	const accountName =
+		filterSources.accountRows.find(
+			(financialAccount: FinancialAccount) =>
+				financialAccount.id === card.accountId,
+		)?.name ?? "FinancialAccount";
 
 	const cardDialogData: Card = {
 		id: card.id,
@@ -125,9 +129,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 			card.limit !== null && card.limit !== undefined
 				? Number(card.limit)
 				: null,
-		contaId: card.contaId,
-		contaName,
-		limitInUse: null,
+		accountId: card.accountId,
+		accountName,
+		limitInUse: 0,
 		limitAvailable: null,
 	};
 
@@ -145,7 +149,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 
 			<section className="flex flex-col gap-4">
 				<InvoiceSummaryCard
-					cartaoId={card.id}
+					cardId={card.id}
 					period={selectedPeriod}
 					cardName={card.name}
 					cardBrand={card.brand ?? null}
@@ -163,7 +167,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 							mode="update"
 							card={cardDialogData}
 							logoOptions={logoOptions}
-							accounts={accountOptions}
+							accounts={cardDialogAccounts}
 							trigger={
 								<Button
 									type="button"
@@ -183,24 +187,24 @@ export default async function Page({ params, searchParams }: PageProps) {
 			<section className="flex flex-col gap-4">
 				<LancamentosSection
 					currentUserId={userId}
-					lancamentos={lancamentosData}
-					pagadorOptions={pagadorOptions}
-					splitPagadorOptions={splitPagadorOptions}
-					defaultPagadorId={defaultPagadorId}
-					contaOptions={contaOptions}
-					cartaoOptions={cartaoOptions}
-					categoriaOptions={categoriaOptions}
-					pagadorFilterOptions={pagadorFilterOptions}
-					categoriaFilterOptions={categoriaFilterOptions}
-					contaCartaoFilterOptions={contaCartaoFilterOptions}
+					transactions={transactionData}
+					payerOptions={payerOptions}
+					splitPayerOptions={splitPayerOptions}
+					defaultPayerId={defaultPayerId}
+					accountOptions={accountOptions}
+					cardOptions={cardOptions}
+					categoryOptions={categoryOptions}
+					payerFilterOptions={payerFilterOptions}
+					categoryFilterOptions={categoryFilterOptions}
+					accountCardFilterOptions={accountCardFilterOptions}
 					selectedPeriod={selectedPeriod}
 					estabelecimentos={estabelecimentos}
 					allowCreate
-					noteAsColumn={userPreferences?.extratoNoteAsColumn ?? false}
-					columnOrder={userPreferences?.lancamentosColumnOrder ?? null}
-					defaultCartaoId={card.id}
+					noteAsColumn={userPreferences?.statementNoteAsColumn ?? false}
+					columnOrder={userPreferences?.transactionsColumnOrder ?? null}
+					defaultCardId={card.id}
 					defaultPaymentMethod="Cartão de crédito"
-					lockCartaoSelection
+					lockCardSelection
 					lockPaymentMethod
 				/>
 			</section>

@@ -142,7 +142,7 @@ export function AccountStatementCard({
 					/>
 				</div>
 
-				{/* Informações da Conta */}
+				{/* Informações da FinancialAccount */}
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-2 border-t border-border/60 border-dashed">
 					<DetailItem
 						label="Tipo da conta"

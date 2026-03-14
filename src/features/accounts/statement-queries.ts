@@ -1,8 +1,8 @@
 import { and, desc, eq, lt, type SQL, sql } from "drizzle-orm";
-import { contas, lancamentos, pagadores } from "@/db/schema";
+import { financialAccounts, payers, transactions } from "@/db/schema";
 import { INITIAL_BALANCE_NOTE } from "@/shared/lib/accounts/constants";
 import { db } from "@/shared/lib/db";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 
 export type AccountSummaryData = {
 	openingBalance: number;
@@ -11,8 +11,8 @@ export type AccountSummaryData = {
 	totalExpenses: number;
 };
 
-export async function fetchAccountData(userId: string, contaId: string) {
-	const account = await db.query.contas.findFirst({
+export async function fetchAccountData(userId: string, accountId: string) {
+	const account = await db.query.financialAccounts.findFirst({
 		columns: {
 			id: true,
 			name: true,
@@ -22,7 +22,10 @@ export async function fetchAccountData(userId: string, contaId: string) {
 			logo: true,
 			note: true,
 		},
-		where: and(eq(contas.id, contaId), eq(contas.userId, userId)),
+		where: and(
+			eq(financialAccounts.id, accountId),
+			eq(financialAccounts.userId, userId),
+		),
 	});
 
 	return account;
@@ -30,7 +33,7 @@ export async function fetchAccountData(userId: string, contaId: string) {
 
 export async function fetchAccountSummary(
 	userId: string,
-	contaId: string,
+	accountId: string,
 	selectedPeriod: string,
 ): Promise<AccountSummaryData> {
 	const [periodSummary] = await db
@@ -39,8 +42,8 @@ export async function fetchAccountSummary(
         coalesce(
           sum(
             case
-              when ${lancamentos.note} = ${INITIAL_BALANCE_NOTE} then 0
-              else ${lancamentos.amount}
+              when ${transactions.note} = ${INITIAL_BALANCE_NOTE} then 0
+              else ${transactions.amount}
             end
           ),
           0
@@ -50,8 +53,8 @@ export async function fetchAccountSummary(
         coalesce(
           sum(
             case
-              when ${lancamentos.note} = ${INITIAL_BALANCE_NOTE} then 0
-              when ${lancamentos.transactionType} = 'Receita' then ${lancamentos.amount}
+              when ${transactions.note} = ${INITIAL_BALANCE_NOTE} then 0
+              when ${transactions.transactionType} = 'Receita' then ${transactions.amount}
               else 0
             end
           ),
@@ -62,8 +65,8 @@ export async function fetchAccountSummary(
         coalesce(
           sum(
             case
-              when ${lancamentos.note} = ${INITIAL_BALANCE_NOTE} then 0
-              when ${lancamentos.transactionType} = 'Despesa' then ${lancamentos.amount}
+              when ${transactions.note} = ${INITIAL_BALANCE_NOTE} then 0
+              when ${transactions.transactionType} = 'Despesa' then ${transactions.amount}
               else 0
             end
           ),
@@ -71,15 +74,15 @@ export async function fetchAccountSummary(
         )
       `,
 		})
-		.from(lancamentos)
-		.innerJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
+		.from(transactions)
+		.innerJoin(payers, eq(transactions.payerId, payers.id))
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.contaId, contaId),
-				eq(lancamentos.period, selectedPeriod),
-				eq(lancamentos.isSettled, true),
-				eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+				eq(transactions.userId, userId),
+				eq(transactions.accountId, accountId),
+				eq(transactions.period, selectedPeriod),
+				eq(transactions.isSettled, true),
+				eq(payers.role, PAYER_ROLE_ADMIN),
 			),
 		);
 
@@ -89,27 +92,27 @@ export async function fetchAccountSummary(
         coalesce(
           sum(
             case
-              when ${lancamentos.note} = ${INITIAL_BALANCE_NOTE} then 0
-              else ${lancamentos.amount}
+              when ${transactions.note} = ${INITIAL_BALANCE_NOTE} then 0
+              else ${transactions.amount}
             end
           ),
           0
         )
       `,
 		})
-		.from(lancamentos)
-		.innerJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
+		.from(transactions)
+		.innerJoin(payers, eq(transactions.payerId, payers.id))
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.contaId, contaId),
-				lt(lancamentos.period, selectedPeriod),
-				eq(lancamentos.isSettled, true),
-				eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+				eq(transactions.userId, userId),
+				eq(transactions.accountId, accountId),
+				lt(transactions.period, selectedPeriod),
+				eq(transactions.isSettled, true),
+				eq(payers.role, PAYER_ROLE_ADMIN),
 			),
 		);
 
-	const account = await fetchAccountData(userId, contaId);
+	const account = await fetchAccountData(userId, accountId);
 	if (!account) {
 		throw new Error("Account not found");
 	}
@@ -135,17 +138,17 @@ export async function fetchAccountLancamentos(
 	settledOnly = true,
 ) {
 	const allFilters = settledOnly
-		? [...filters, eq(lancamentos.isSettled, true)]
+		? [...filters, eq(transactions.isSettled, true)]
 		: filters;
 
-	return db.query.lancamentos.findMany({
+	return db.query.transactions.findMany({
 		where: and(...allFilters),
 		with: {
-			pagador: true,
-			conta: true,
-			cartao: true,
-			categoria: true,
+			payer: true,
+			financialAccount: true,
+			card: true,
+			category: true,
 		},
-		orderBy: desc(lancamentos.purchaseDate),
+		orderBy: desc(transactions.purchaseDate),
 	});
 }

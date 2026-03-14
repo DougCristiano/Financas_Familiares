@@ -6,10 +6,10 @@ import { and, eq, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { account, pagadores, tokensApi } from "@/db/schema";
+import { account, apiTokens, payers } from "@/db/schema";
 import { auth } from "@/shared/lib/auth/config";
 import { db, schema } from "@/shared/lib/db";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 
 type ActionResponse<T = void> = {
 	success: boolean;
@@ -47,14 +47,12 @@ const updateEmailSchema = z
 	});
 
 const deleteAccountSchema = z.object({
-	confirmation: z.literal("DELETAR", {
-		errorMap: () => ({ message: 'Você deve digitar "DELETAR" para confirmar' }),
-	}),
+	confirmation: z.literal("DELETAR"),
 });
 
 const updatePreferencesSchema = z.object({
-	extratoNoteAsColumn: z.boolean(),
-	lancamentosColumnOrder: z.array(z.string()).nullable(),
+	statementNoteAsColumn: z.boolean(),
+	transactionsColumnOrder: z.array(z.string()).nullable(),
 });
 
 // Actions
@@ -85,12 +83,12 @@ export async function updateNameAction(
 
 		// Sincronizar nome com o pagador admin
 		await db
-			.update(pagadores)
+			.update(payers)
 			.set({ name: fullName })
 			.where(
 				and(
-					eq(pagadores.userId, session.user.id),
-					eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+					eq(payers.userId, session.user.id),
+					eq(payers.role, PAYER_ROLE_ADMIN),
 				),
 			);
 
@@ -147,7 +145,7 @@ export async function updatePasswordAction(
 			return {
 				success: false,
 				error:
-					"Não é possível alterar senha para contas autenticadas via Google",
+					"Não é possível alterar senha para financialAccounts autenticadas via Google",
 			};
 		}
 
@@ -170,8 +168,8 @@ export async function updatePasswordAction(
 
 			// Verificar se o erro é de senha incorreta
 			if (
-				authError?.message?.includes("password") ||
-				authError?.message?.includes("incorrect")
+				(authError as Error)?.message?.includes("password") ||
+				(authError as Error)?.message?.includes("incorrect")
 			) {
 				return {
 					success: false,
@@ -253,7 +251,7 @@ export async function updateEmailAction(
 			if (!storedHash) {
 				return {
 					success: false,
-					error: "Conta de credencial não encontrada.",
+					error: "FinancialAccount de credencial não encontrada.",
 				};
 			}
 
@@ -350,7 +348,7 @@ export async function deleteAccountAction(
 
 		return {
 			success: true,
-			message: "Conta deletada com sucesso",
+			message: "FinancialAccount deletada com sucesso",
 		};
 	} catch (error) {
 		if (error instanceof z.ZodError) {
@@ -360,7 +358,7 @@ export async function deleteAccountAction(
 			};
 		}
 
-		console.error("Erro ao deletar conta:", error);
+		console.error("Erro ao deletar financialAccount:", error);
 		return {
 			success: false,
 			error: "Erro ao deletar conta. Tente novamente.",
@@ -388,8 +386,8 @@ export async function updatePreferencesAction(
 		// Check if preferences exist, if not create them
 		const existingResult = await db
 			.select()
-			.from(schema.preferenciasUsuario)
-			.where(eq(schema.preferenciasUsuario.userId, session.user.id))
+			.from(schema.userPreferences)
+			.where(eq(schema.userPreferences.userId, session.user.id))
 			.limit(1);
 
 		const existing = existingResult[0] || null;
@@ -397,19 +395,19 @@ export async function updatePreferencesAction(
 		if (existing) {
 			// Update existing preferences
 			await db
-				.update(schema.preferenciasUsuario)
+				.update(schema.userPreferences)
 				.set({
-					extratoNoteAsColumn: validated.extratoNoteAsColumn,
-					lancamentosColumnOrder: validated.lancamentosColumnOrder,
+					statementNoteAsColumn: validated.statementNoteAsColumn,
+					transactionsColumnOrder: validated.transactionsColumnOrder,
 					updatedAt: new Date(),
 				})
-				.where(eq(schema.preferenciasUsuario.userId, session.user.id));
+				.where(eq(schema.userPreferences.userId, session.user.id));
 		} else {
 			// Create new preferences
-			await db.insert(schema.preferenciasUsuario).values({
+			await db.insert(schema.userPreferences).values({
 				userId: session.user.id,
-				extratoNoteAsColumn: validated.extratoNoteAsColumn,
-				lancamentosColumnOrder: validated.lancamentosColumnOrder,
+				statementNoteAsColumn: validated.statementNoteAsColumn,
+				transactionsColumnOrder: validated.transactionsColumnOrder,
 			});
 		}
 
@@ -480,7 +478,7 @@ export async function createApiTokenAction(
 
 		// Save to database
 		const [newToken] = await db
-			.insert(tokensApi)
+			.insert(apiTokens)
 			.values({
 				userId: session.user.id,
 				name: validated.name,
@@ -488,7 +486,7 @@ export async function createApiTokenAction(
 				tokenPrefix,
 				expiresAt: null, // No expiration for now
 			})
-			.returning({ id: tokensApi.id });
+			.returning({ id: apiTokens.id });
 
 		revalidatePath("/settings");
 
@@ -536,12 +534,12 @@ export async function revokeApiTokenAction(
 		// Find token and verify ownership
 		const [existingToken] = await db
 			.select()
-			.from(tokensApi)
+			.from(apiTokens)
 			.where(
 				and(
-					eq(tokensApi.id, validated.tokenId),
-					eq(tokensApi.userId, session.user.id),
-					isNull(tokensApi.revokedAt),
+					eq(apiTokens.id, validated.tokenId),
+					eq(apiTokens.userId, session.user.id),
+					isNull(apiTokens.revokedAt),
 				),
 			)
 			.limit(1);
@@ -555,11 +553,11 @@ export async function revokeApiTokenAction(
 
 		// Revoke token
 		await db
-			.update(tokensApi)
+			.update(apiTokens)
 			.set({
 				revokedAt: new Date(),
 			})
-			.where(eq(tokensApi.id, validated.tokenId));
+			.where(eq(apiTokens.id, validated.tokenId));
 
 		revalidatePath("/settings");
 

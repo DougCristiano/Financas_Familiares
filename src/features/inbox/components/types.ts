@@ -10,7 +10,7 @@ export interface InboxItem {
 	parsedName: string | null;
 	parsedAmount: string | null;
 	status: string;
-	lancamentoId: string | null;
+	transactionId: string | null;
 	processedAt: Date | null;
 	discardedAt: Date | null;
 	createdAt: Date;

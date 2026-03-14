@@ -103,7 +103,7 @@ export function CategoryDialog({
 		setErrorMessage(null);
 
 		if (mode === "update" && !category?.id) {
-			const message = "Categoria inválida.";
+			const message = "Category inválida.";
 			setErrorMessage(message);
 			toast.error(message);
 			return;

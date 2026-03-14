@@ -9,7 +9,7 @@ import { PreferencesForm } from "@/features/settings/components/preferences-form
 import { UpdateEmailForm } from "@/features/settings/components/update-email-form";
 import { UpdateNameForm } from "@/features/settings/components/update-name-form";
 import { UpdatePasswordForm } from "@/features/settings/components/update-password-form";
-import { fetchAjustesPageData } from "@/features/settings/queries";
+import { fetchSettingsPageData } from "@/features/settings/queries";
 import { Card } from "@/shared/components/ui/card";
 import {
 	Tabs,
@@ -32,7 +32,7 @@ export default async function Page() {
 	const userEmail = session.user.email || "";
 
 	const { authProvider, userPreferences, userApiTokens } =
-		await fetchAjustesPageData(session.user.id);
+		await fetchSettingsPageData(session.user.id);
 
 	return (
 		<div className="w-full">
@@ -71,11 +71,11 @@ export default async function Page() {
 								</p>
 							</div>
 							<PreferencesForm
-								extratoNoteAsColumn={
-									userPreferences?.extratoNoteAsColumn ?? false
+								statementNoteAsColumn={
+									userPreferences?.statementNoteAsColumn ?? false
 								}
-								lancamentosColumnOrder={
-									userPreferences?.lancamentosColumnOrder ?? null
+								transactionsColumnOrder={
+									userPreferences?.transactionsColumnOrder ?? null
 								}
 							/>
 						</div>

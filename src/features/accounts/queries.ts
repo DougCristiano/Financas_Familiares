@@ -1,9 +1,9 @@
 import { and, eq, ilike, not, sql } from "drizzle-orm";
-import { contas, lancamentos, pagadores } from "@/db/schema";
+import { financialAccounts, payers, transactions } from "@/db/schema";
 import { INITIAL_BALANCE_NOTE } from "@/shared/lib/accounts/constants";
 import { db } from "@/shared/lib/db";
 import { loadLogoOptions } from "@/shared/lib/logo/options";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 
 export type AccountData = {
 	id: string;
@@ -20,58 +20,59 @@ export type AccountData = {
 
 export async function fetchAccountsForUser(
 	userId: string,
-): Promise<{ accounts: AccountData[]; logoOptions: LogoOption[] }> {
+): Promise<{ accounts: AccountData[]; logoOptions: string[] }> {
 	const [accountRows, logoOptions] = await Promise.all([
 		db
 			.select({
-				id: contas.id,
-				name: contas.name,
-				accountType: contas.accountType,
-				status: contas.status,
-				note: contas.note,
-				logo: contas.logo,
-				initialBalance: contas.initialBalance,
-				excludeFromBalance: contas.excludeFromBalance,
-				excludeInitialBalanceFromIncome: contas.excludeInitialBalanceFromIncome,
+				id: financialAccounts.id,
+				name: financialAccounts.name,
+				accountType: financialAccounts.accountType,
+				status: financialAccounts.status,
+				note: financialAccounts.note,
+				logo: financialAccounts.logo,
+				initialBalance: financialAccounts.initialBalance,
+				excludeFromBalance: financialAccounts.excludeFromBalance,
+				excludeInitialBalanceFromIncome:
+					financialAccounts.excludeInitialBalanceFromIncome,
 				balanceMovements: sql<number>`
           coalesce(
             sum(
               case
-                when ${lancamentos.note} = ${INITIAL_BALANCE_NOTE} then 0
-                else ${lancamentos.amount}
+                when ${transactions.note} = ${INITIAL_BALANCE_NOTE} then 0
+                else ${transactions.amount}
               end
             ),
             0
           )
         `,
 			})
-			.from(contas)
+			.from(financialAccounts)
 			.leftJoin(
-				lancamentos,
+				transactions,
 				and(
-					eq(lancamentos.contaId, contas.id),
-					eq(lancamentos.userId, userId),
-					eq(lancamentos.isSettled, true),
+					eq(transactions.accountId, financialAccounts.id),
+					eq(transactions.userId, userId),
+					eq(transactions.isSettled, true),
 				),
 			)
-			.leftJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
+			.leftJoin(payers, eq(transactions.payerId, payers.id))
 			.where(
 				and(
-					eq(contas.userId, userId),
-					not(ilike(contas.status, "inativa")),
-					sql`(${lancamentos.id} IS NULL OR ${pagadores.role} = ${PAGADOR_ROLE_ADMIN})`,
+					eq(financialAccounts.userId, userId),
+					not(ilike(financialAccounts.status, "inativa")),
+					sql`(${transactions.id} IS NULL OR ${payers.role} = ${PAYER_ROLE_ADMIN})`,
 				),
 			)
 			.groupBy(
-				contas.id,
-				contas.name,
-				contas.accountType,
-				contas.status,
-				contas.note,
-				contas.logo,
-				contas.initialBalance,
-				contas.excludeFromBalance,
-				contas.excludeInitialBalanceFromIncome,
+				financialAccounts.id,
+				financialAccounts.name,
+				financialAccounts.accountType,
+				financialAccounts.status,
+				financialAccounts.note,
+				financialAccounts.logo,
+				financialAccounts.initialBalance,
+				financialAccounts.excludeFromBalance,
+				financialAccounts.excludeInitialBalanceFromIncome,
 			),
 		loadLogoOptions(),
 	]);
@@ -94,60 +95,61 @@ export async function fetchAccountsForUser(
 	return { accounts, logoOptions };
 }
 
-export async function fetchInativosForUser(
+export async function fetchInactiveForUser(
 	userId: string,
-): Promise<{ accounts: AccountData[]; logoOptions: LogoOption[] }> {
+): Promise<{ accounts: AccountData[]; logoOptions: string[] }> {
 	const [accountRows, logoOptions] = await Promise.all([
 		db
 			.select({
-				id: contas.id,
-				name: contas.name,
-				accountType: contas.accountType,
-				status: contas.status,
-				note: contas.note,
-				logo: contas.logo,
-				initialBalance: contas.initialBalance,
-				excludeFromBalance: contas.excludeFromBalance,
-				excludeInitialBalanceFromIncome: contas.excludeInitialBalanceFromIncome,
+				id: financialAccounts.id,
+				name: financialAccounts.name,
+				accountType: financialAccounts.accountType,
+				status: financialAccounts.status,
+				note: financialAccounts.note,
+				logo: financialAccounts.logo,
+				initialBalance: financialAccounts.initialBalance,
+				excludeFromBalance: financialAccounts.excludeFromBalance,
+				excludeInitialBalanceFromIncome:
+					financialAccounts.excludeInitialBalanceFromIncome,
 				balanceMovements: sql<number>`
           coalesce(
             sum(
               case
-                when ${lancamentos.note} = ${INITIAL_BALANCE_NOTE} then 0
-                else ${lancamentos.amount}
+                when ${transactions.note} = ${INITIAL_BALANCE_NOTE} then 0
+                else ${transactions.amount}
               end
             ),
             0
           )
         `,
 			})
-			.from(contas)
+			.from(financialAccounts)
 			.leftJoin(
-				lancamentos,
+				transactions,
 				and(
-					eq(lancamentos.contaId, contas.id),
-					eq(lancamentos.userId, userId),
-					eq(lancamentos.isSettled, true),
+					eq(transactions.accountId, financialAccounts.id),
+					eq(transactions.userId, userId),
+					eq(transactions.isSettled, true),
 				),
 			)
-			.leftJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
+			.leftJoin(payers, eq(transactions.payerId, payers.id))
 			.where(
 				and(
-					eq(contas.userId, userId),
-					ilike(contas.status, "inativa"),
-					sql`(${lancamentos.id} IS NULL OR ${pagadores.role} = ${PAGADOR_ROLE_ADMIN})`,
+					eq(financialAccounts.userId, userId),
+					ilike(financialAccounts.status, "inativa"),
+					sql`(${transactions.id} IS NULL OR ${payers.role} = ${PAYER_ROLE_ADMIN})`,
 				),
 			)
 			.groupBy(
-				contas.id,
-				contas.name,
-				contas.accountType,
-				contas.status,
-				contas.note,
-				contas.logo,
-				contas.initialBalance,
-				contas.excludeFromBalance,
-				contas.excludeInitialBalanceFromIncome,
+				financialAccounts.id,
+				financialAccounts.name,
+				financialAccounts.accountType,
+				financialAccounts.status,
+				financialAccounts.note,
+				financialAccounts.logo,
+				financialAccounts.initialBalance,
+				financialAccounts.excludeFromBalance,
+				financialAccounts.excludeInitialBalanceFromIncome,
 			),
 		loadLogoOptions(),
 	]);
@@ -173,11 +175,11 @@ export async function fetchInativosForUser(
 export async function fetchAllAccountsForUser(userId: string): Promise<{
 	activeAccounts: AccountData[];
 	archivedAccounts: AccountData[];
-	logoOptions: LogoOption[];
+	logoOptions: string[];
 }> {
 	const [activeData, archivedData] = await Promise.all([
 		fetchAccountsForUser(userId),
-		fetchInativosForUser(userId),
+		fetchInactiveForUser(userId),
 	]);
 
 	return {

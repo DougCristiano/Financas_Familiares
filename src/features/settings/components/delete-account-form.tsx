@@ -25,7 +25,7 @@ export function DeleteAccountForm() {
 	const handleDelete = () => {
 		startTransition(async () => {
 			const result = await deleteAccountAction({
-				confirmation,
+				confirmation: confirmation as "DELETAR",
 			});
 
 			if (result.success) {

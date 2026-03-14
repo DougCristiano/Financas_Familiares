@@ -30,7 +30,7 @@ const buildUsagePercent = (spent: number, limit: number) => {
 };
 
 const formatCategoryName = (budget: Budget) =>
-	budget.category?.name ?? "Categoria removida";
+	budget.category?.name ?? "Category removida";
 
 export function BudgetCard({
 	budget,

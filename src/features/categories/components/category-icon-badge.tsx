@@ -64,6 +64,7 @@ export function CategoryIconBadge({
 			style={{ backgroundColor: bgColor }}
 		>
 			{IconComponent ? (
+				// @ts-expect-error icon accepts style but type is too narrow
 				<IconComponent className={variant.icon} style={{ color }} />
 			) : (
 				<span className={cn("uppercase", variant.text)} style={{ color }}>

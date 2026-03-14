@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { transferBetweenAccountsAction } from "@/features/accounts/actions";
 import type { AccountData } from "@/features/accounts/queries";
-import { ContaCartaoSelectContent } from "@/features/transactions/components/select-items";
+import { AccountCardSelectContent } from "@/features/transactions/components/select-items";
 import { PeriodPicker } from "@/shared/components/period-picker";
 import { Button } from "@/shared/components/ui/button";
 import { CurrencyInput } from "@/shared/components/ui/currency-input";
@@ -157,12 +157,12 @@ export function TransferDialog({
 						</div>
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor="from-account">Conta de origem</Label>
+							<Label htmlFor="from-account">FinancialAccount de origem</Label>
 							<Select value={fromAccountId} disabled>
 								<SelectTrigger id="from-account" className="w-full">
 									<SelectValue>
 										{fromAccount && (
-											<ContaCartaoSelectContent
+											<AccountCardSelectContent
 												label={fromAccount.name}
 												logo={fromAccount.logo}
 												isCartao={false}
@@ -173,7 +173,7 @@ export function TransferDialog({
 								<SelectContent>
 									{fromAccount && (
 										<SelectItem value={fromAccount.id}>
-											<ContaCartaoSelectContent
+											<AccountCardSelectContent
 												label={fromAccount.name}
 												logo={fromAccount.logo}
 												isCartao={false}
@@ -185,7 +185,7 @@ export function TransferDialog({
 						</div>
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor="to-account">Conta de destino</Label>
+							<Label htmlFor="to-account">FinancialAccount de destino</Label>
 							{availableAccounts.length === 0 ? (
 								<div className="rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground">
 									É necessário ter mais de uma conta cadastrada para realizar
@@ -201,7 +201,7 @@ export function TransferDialog({
 														(acc) => acc.id === toAccountId,
 													);
 													return selectedAccount ? (
-														<ContaCartaoSelectContent
+														<AccountCardSelectContent
 															label={selectedAccount.name}
 															logo={selectedAccount.logo}
 															isCartao={false}
@@ -213,7 +213,7 @@ export function TransferDialog({
 									<SelectContent className="w-full">
 										{availableAccounts.map((account) => (
 											<SelectItem key={account.id} value={account.id}>
-												<ContaCartaoSelectContent
+												<AccountCardSelectContent
 													label={account.name}
 													logo={account.logo}
 													isCartao={false}

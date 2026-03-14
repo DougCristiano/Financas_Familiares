@@ -70,7 +70,7 @@ const buildInitialValues = ({
 		limit: formatLimitInput(card?.limit ?? null),
 		note: card?.note ?? "",
 		logo: selectedLogo,
-		contaId: card?.contaId ?? accounts[0]?.id ?? "",
+		accountId: card?.accountId ?? accounts[0]?.id ?? "",
 	};
 };
 
@@ -146,7 +146,7 @@ export function CardDialog({
 			return;
 		}
 
-		if (!formState.contaId) {
+		if (!formState.accountId) {
 			const message = "Selecione a conta vinculada.";
 			setErrorMessage(message);
 			toast.error(message);
@@ -163,7 +163,7 @@ export function CardDialog({
 			limit: rawLimit ? Number(rawLimit) : null,
 			note: formState.note.trim() || null,
 			logo: formState.logo,
-			contaId: formState.contaId,
+			accountId: formState.accountId,
 		};
 
 		if (!payload.logo) {

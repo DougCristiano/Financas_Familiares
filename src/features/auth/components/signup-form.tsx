@@ -111,7 +111,7 @@ export function SignupForm({ className, ...props }: DivProps) {
 				},
 				onSuccess: () => {
 					setLoadingEmail(false);
-					toast.success("Conta criada com sucesso!");
+					toast.success("FinancialAccount criada com sucesso!");
 					router.replace("/dashboard");
 				},
 				onError: (ctx) => {

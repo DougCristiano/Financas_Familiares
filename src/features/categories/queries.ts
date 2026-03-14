@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { type Categoria, categorias } from "@/db/schema";
+import { type Category, categories } from "@/db/schema";
 import type { CategoryType } from "@/features/categories/components/types";
 import { db } from "@/shared/lib/db";
 
@@ -13,11 +13,11 @@ export type CategoryData = {
 export async function fetchCategoriesForUser(
 	userId: string,
 ): Promise<CategoryData[]> {
-	const categoryRows = await db.query.categorias.findMany({
-		where: eq(categorias.userId, userId),
+	const categoryRows = await db.query.categories.findMany({
+		where: eq(categories.userId, userId),
 	});
 
-	return categoryRows.map((category: Categoria) => ({
+	return categoryRows.map((category: Category) => ({
 		id: category.id,
 		name: category.name,
 		type: category.type as CategoryType,

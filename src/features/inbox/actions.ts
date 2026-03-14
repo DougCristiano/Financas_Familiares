@@ -2,7 +2,7 @@
 
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { preLancamentos } from "@/db/schema";
+import { inboxItems } from "@/db/schema";
 import {
 	handleActionError,
 	revalidateForEntity,
@@ -52,12 +52,12 @@ export async function markInboxAsProcessedAction(
 		// Verificar se item existe e pertence ao usuário
 		const [item] = await db
 			.select()
-			.from(preLancamentos)
+			.from(inboxItems)
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
-					eq(preLancamentos.status, "pending"),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
+					eq(inboxItems.status, "pending"),
 				),
 			)
 			.limit(1);
@@ -68,7 +68,7 @@ export async function markInboxAsProcessedAction(
 
 		// Marcar item como processado
 		await db
-			.update(preLancamentos)
+			.update(inboxItems)
 			.set({
 				status: "processed",
 				processedAt: new Date(),
@@ -76,8 +76,8 @@ export async function markInboxAsProcessedAction(
 			})
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
 				),
 			);
 
@@ -99,12 +99,12 @@ export async function discardInboxItemAction(
 		// Verificar se item existe e pertence ao usuário
 		const [item] = await db
 			.select()
-			.from(preLancamentos)
+			.from(inboxItems)
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
-					eq(preLancamentos.status, "pending"),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
+					eq(inboxItems.status, "pending"),
 				),
 			)
 			.limit(1);
@@ -115,7 +115,7 @@ export async function discardInboxItemAction(
 
 		// Marcar item como descartado
 		await db
-			.update(preLancamentos)
+			.update(inboxItems)
 			.set({
 				status: "discarded",
 				discardedAt: new Date(),
@@ -123,8 +123,8 @@ export async function discardInboxItemAction(
 			})
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
 				),
 			);
 
@@ -145,7 +145,7 @@ export async function bulkDiscardInboxItemsAction(
 
 		// Marcar todos os itens como descartados
 		await db
-			.update(preLancamentos)
+			.update(inboxItems)
 			.set({
 				status: "discarded",
 				discardedAt: new Date(),
@@ -153,9 +153,9 @@ export async function bulkDiscardInboxItemsAction(
 			})
 			.where(
 				and(
-					inArray(preLancamentos.id, data.inboxItemIds),
-					eq(preLancamentos.userId, user.id),
-					eq(preLancamentos.status, "pending"),
+					inArray(inboxItems.id, data.inboxItemIds),
+					eq(inboxItems.userId, user.id),
+					eq(inboxItems.status, "pending"),
 				),
 			);
 
@@ -178,13 +178,13 @@ export async function restoreDiscardedInboxItemAction(
 		const data = restoreDiscardedInboxSchema.parse(input);
 
 		const [item] = await db
-			.select({ id: preLancamentos.id })
-			.from(preLancamentos)
+			.select({ id: inboxItems.id })
+			.from(inboxItems)
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
-					eq(preLancamentos.status, "discarded"),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
+					eq(inboxItems.status, "discarded"),
 				),
 			)
 			.limit(1);
@@ -197,7 +197,7 @@ export async function restoreDiscardedInboxItemAction(
 		}
 
 		await db
-			.update(preLancamentos)
+			.update(inboxItems)
 			.set({
 				status: "pending",
 				discardedAt: null,
@@ -205,8 +205,8 @@ export async function restoreDiscardedInboxItemAction(
 			})
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
 				),
 			);
 
@@ -226,12 +226,12 @@ export async function deleteInboxItemAction(
 		const data = deleteInboxSchema.parse(input);
 
 		const [item] = await db
-			.select({ status: preLancamentos.status })
-			.from(preLancamentos)
+			.select({ status: inboxItems.status })
+			.from(inboxItems)
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
 				),
 			)
 			.limit(1);
@@ -248,11 +248,11 @@ export async function deleteInboxItemAction(
 		}
 
 		await db
-			.delete(preLancamentos)
+			.delete(inboxItems)
 			.where(
 				and(
-					eq(preLancamentos.id, data.inboxItemId),
-					eq(preLancamentos.userId, user.id),
+					eq(inboxItems.id, data.inboxItemId),
+					eq(inboxItems.userId, user.id),
 				),
 			);
 
@@ -272,14 +272,11 @@ export async function bulkDeleteInboxItemsAction(
 		const data = bulkDeleteInboxSchema.parse(input);
 
 		const result = await db
-			.delete(preLancamentos)
+			.delete(inboxItems)
 			.where(
-				and(
-					eq(preLancamentos.userId, user.id),
-					eq(preLancamentos.status, data.status),
-				),
+				and(eq(inboxItems.userId, user.id), eq(inboxItems.status, data.status)),
 			)
-			.returning({ id: preLancamentos.id });
+			.returning({ id: inboxItems.id });
 
 		revalidateInbox();
 

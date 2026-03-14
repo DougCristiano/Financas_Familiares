@@ -33,7 +33,7 @@ import { cn } from "@/shared/utils/ui";
 import { EditPaymentDateDialog } from "./edit-payment-date-dialog";
 
 type InvoiceSummaryCardProps = {
-	cartaoId: string;
+	cardId: string;
 	period: string;
 	cardName: string;
 	cardBrand: string | null;
@@ -74,7 +74,7 @@ const getCardStatusDotColor = (status: string | null) => {
 };
 
 export function InvoiceSummaryCard({
-	cartaoId,
+	cardId,
 	period,
 	cardName,
 	cardBrand,
@@ -113,7 +113,7 @@ export function InvoiceSummaryCard({
 	const handleAction = () => {
 		startTransition(async () => {
 			const result = await updateInvoicePaymentStatusAction({
-				cartaoId,
+				cardId,
 				period,
 				status: targetStatus,
 				paymentDate:
@@ -136,7 +136,7 @@ export function InvoiceSummaryCard({
 		setPaymentDate(newDate);
 		startTransition(async () => {
 			const result = await updatePaymentDateAction({
-				cartaoId,
+				cardId,
 				period,
 				paymentDate: newDate.toISOString().split("T")[0] ?? "",
 			});
@@ -177,7 +177,7 @@ export function InvoiceSummaryCard({
 								{cardName}
 							</CardTitle>
 							<p className="text-sm text-muted-foreground">
-								Fatura de {periodLabel}
+								Invoice de {periodLabel}
 							</p>
 						</div>
 						{actions ? <div className="shrink-0">{actions}</div> : null}

@@ -1,5 +1,5 @@
 import { and, desc, eq, type SQL, sum } from "drizzle-orm";
-import { cartoes, faturas, lancamentos } from "@/db/schema";
+import { cards, invoices, transactions } from "@/db/schema";
 import { buildInvoicePaymentNote } from "@/shared/lib/accounts/constants";
 import { db } from "@/shared/lib/db";
 import {
@@ -18,8 +18,8 @@ const toNumber = (value: string | number | null | undefined) => {
 	return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-export async function fetchCardData(userId: string, cartaoId: string) {
-	const card = await db.query.cartoes.findFirst({
+export async function fetchCardData(userId: string, cardId: string) {
+	const card = await db.query.cards.findFirst({
 		columns: {
 			id: true,
 			name: true,
@@ -30,9 +30,9 @@ export async function fetchCardData(userId: string, cartaoId: string) {
 			limit: true,
 			status: true,
 			note: true,
-			contaId: true,
+			accountId: true,
 		},
-		where: and(eq(cartoes.id, cartaoId), eq(cartoes.userId, userId)),
+		where: and(eq(cards.id, cardId), eq(cards.userId, userId)),
 	});
 
 	return card;
@@ -40,7 +40,7 @@ export async function fetchCardData(userId: string, cartaoId: string) {
 
 export async function fetchInvoiceData(
 	userId: string,
-	cartaoId: string,
+	cardId: string,
 	selectedPeriod: string,
 ): Promise<{
 	totalAmount: number;
@@ -48,26 +48,26 @@ export async function fetchInvoiceData(
 	paymentDate: Date | null;
 }> {
 	const [invoiceRow, totalRow] = await Promise.all([
-		db.query.faturas.findFirst({
+		db.query.invoices.findFirst({
 			columns: {
 				id: true,
 				period: true,
 				paymentStatus: true,
 			},
 			where: and(
-				eq(faturas.cartaoId, cartaoId),
-				eq(faturas.userId, userId),
-				eq(faturas.period, selectedPeriod),
+				eq(invoices.cardId, cardId),
+				eq(invoices.userId, userId),
+				eq(invoices.period, selectedPeriod),
 			),
 		}),
 		db
-			.select({ totalAmount: sum(lancamentos.amount) })
-			.from(lancamentos)
+			.select({ totalAmount: sum(transactions.amount) })
+			.from(transactions)
 			.where(
 				and(
-					eq(lancamentos.userId, userId),
-					eq(lancamentos.cartaoId, cartaoId),
-					eq(lancamentos.period, selectedPeriod),
+					eq(transactions.userId, userId),
+					eq(transactions.cardId, cardId),
+					eq(transactions.period, selectedPeriod),
 				),
 			),
 	]);
@@ -85,14 +85,14 @@ export async function fetchInvoiceData(
 	// Buscar data do pagamento se a fatura estiver paga
 	let paymentDate: Date | null = null;
 	if (invoiceStatus === INVOICE_PAYMENT_STATUS.PAID) {
-		const invoiceNote = buildInvoicePaymentNote(cartaoId, selectedPeriod);
-		const paymentLancamento = await db.query.lancamentos.findFirst({
+		const invoiceNote = buildInvoicePaymentNote(cardId, selectedPeriod);
+		const paymentLancamento = await db.query.transactions.findFirst({
 			columns: {
 				purchaseDate: true,
 			},
 			where: and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.note, invoiceNote),
+				eq(transactions.userId, userId),
+				eq(transactions.note, invoiceNote),
 			),
 		});
 		paymentDate = paymentLancamento?.purchaseDate
@@ -103,15 +103,15 @@ export async function fetchInvoiceData(
 	return { totalAmount, invoiceStatus, paymentDate };
 }
 
-export async function fetchCardLancamentos(filters: SQL[]) {
-	return db.query.lancamentos.findMany({
+export async function fetchCardTransactions(filters: SQL[]) {
+	return db.query.transactions.findMany({
 		where: and(...filters),
 		with: {
-			pagador: true,
-			conta: true,
-			cartao: true,
-			categoria: true,
+			payer: true,
+			financialAccount: true,
+			card: true,
+			category: true,
 		},
-		orderBy: desc(lancamentos.purchaseDate),
+		orderBy: desc(transactions.purchaseDate),
 	});
 }

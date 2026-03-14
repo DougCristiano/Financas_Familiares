@@ -2,7 +2,12 @@
 
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { categorias, contas, lancamentos, pagadores } from "@/db/schema";
+import {
+	categories,
+	financialAccounts,
+	payers,
+	transactions,
+} from "@/db/schema";
 import {
 	INITIAL_BALANCE_CATEGORY_NAME,
 	INITIAL_BALANCE_CONDITION,
@@ -17,7 +22,7 @@ import {
 } from "@/shared/lib/actions/helpers";
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 import { noteSchema, uuidSchema } from "@/shared/lib/schemas/common";
 import {
 	TRANSFER_CATEGORY_NAME,
@@ -67,10 +72,10 @@ const accountBaseSchema = z.object({
 
 const createAccountSchema = accountBaseSchema;
 const updateAccountSchema = accountBaseSchema.extend({
-	id: uuidSchema("Conta"),
+	id: uuidSchema("FinancialAccount"),
 });
 const deleteAccountSchema = z.object({
-	id: uuidSchema("Conta"),
+	id: uuidSchema("FinancialAccount"),
 });
 
 type AccountCreateInput = z.infer<typeof createAccountSchema>;
@@ -91,7 +96,7 @@ export async function createAccountAction(
 
 		await db.transaction(async (tx: typeof db) => {
 			const [createdAccount] = await tx
-				.insert(contas)
+				.insert(financialAccounts)
 				.values({
 					name: data.name,
 					accountType: data.accountType,
@@ -103,7 +108,7 @@ export async function createAccountAction(
 					excludeInitialBalanceFromIncome: data.excludeInitialBalanceFromIncome,
 					userId: user.id,
 				})
-				.returning({ id: contas.id, name: contas.name });
+				.returning({ id: financialAccounts.id, name: financialAccounts.name });
 
 			if (!createdAccount) {
 				throw new Error("Não foi possível criar a conta.");
@@ -114,37 +119,37 @@ export async function createAccountAction(
 			}
 
 			const [category, adminPagador] = await Promise.all([
-				tx.query.categorias.findFirst({
+				tx.query.categories.findFirst({
 					columns: { id: true },
 					where: and(
-						eq(categorias.userId, user.id),
-						eq(categorias.name, INITIAL_BALANCE_CATEGORY_NAME),
+						eq(categories.userId, user.id),
+						eq(categories.name, INITIAL_BALANCE_CATEGORY_NAME),
 					),
 				}),
-				tx.query.pagadores.findFirst({
+				tx.query.payers.findFirst({
 					columns: { id: true },
 					where: and(
-						eq(pagadores.userId, user.id),
-						eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+						eq(payers.userId, user.id),
+						eq(payers.role, PAYER_ROLE_ADMIN),
 					),
 				}),
 			]);
 
 			if (!category) {
 				throw new Error(
-					'Categoria "Saldo inicial" não encontrada. Crie-a antes de definir um saldo inicial.',
+					'Category "Saldo inicial" não encontrada. Crie-a antes de definir um saldo inicial.',
 				);
 			}
 
 			if (!adminPagador) {
 				throw new Error(
-					"Pagador com papel administrador não encontrado. Crie um pagador admin antes de definir um saldo inicial.",
+					"Payer com papel administrador não encontrado. Crie um pagador admin antes de definir um saldo inicial.",
 				);
 			}
 
 			const { date, period } = getTodayInfo();
 
-			await tx.insert(lancamentos).values({
+			await tx.insert(transactions).values({
 				condition: INITIAL_BALANCE_CONDITION,
 				name: `Saldo inicial - ${createdAccount.name}`,
 				paymentMethod: INITIAL_BALANCE_PAYMENT_METHOD,
@@ -155,17 +160,17 @@ export async function createAccountAction(
 				period,
 				isSettled: true,
 				userId: user.id,
-				contaId: createdAccount.id,
-				categoriaId: category.id,
-				pagadorId: adminPagador.id,
+				accountId: createdAccount.id,
+				categoryId: category.id,
+				payerId: adminPagador.id,
 			});
 		});
 
-		revalidateForEntity("contas");
+		revalidateForEntity("accounts");
 
 		return {
 			success: true,
-			message: "Conta criada com sucesso.",
+			message: "FinancialAccount criada com sucesso.",
 		};
 	} catch (error) {
 		return handleActionError(error);
@@ -182,7 +187,7 @@ export async function updateAccountAction(
 		const logoFile = normalizeFilePath(data.logo);
 
 		const [updated] = await db
-			.update(contas)
+			.update(financialAccounts)
 			.set({
 				name: data.name,
 				accountType: data.accountType,
@@ -193,21 +198,26 @@ export async function updateAccountAction(
 				excludeFromBalance: data.excludeFromBalance,
 				excludeInitialBalanceFromIncome: data.excludeInitialBalanceFromIncome,
 			})
-			.where(and(eq(contas.id, data.id), eq(contas.userId, user.id)))
+			.where(
+				and(
+					eq(financialAccounts.id, data.id),
+					eq(financialAccounts.userId, user.id),
+				),
+			)
 			.returning();
 
 		if (!updated) {
 			return {
 				success: false,
-				error: "Conta não encontrada.",
+				error: "FinancialAccount não encontrada.",
 			};
 		}
 
-		revalidateForEntity("contas");
+		revalidateForEntity("accounts");
 
 		return {
 			success: true,
-			message: "Conta atualizada com sucesso.",
+			message: "FinancialAccount atualizada com sucesso.",
 		};
 	} catch (error) {
 		return handleActionError(error);
@@ -222,22 +232,27 @@ export async function deleteAccountAction(
 		const data = deleteAccountSchema.parse(input);
 
 		const [deleted] = await db
-			.delete(contas)
-			.where(and(eq(contas.id, data.id), eq(contas.userId, user.id)))
-			.returning({ id: contas.id });
+			.delete(financialAccounts)
+			.where(
+				and(
+					eq(financialAccounts.id, data.id),
+					eq(financialAccounts.userId, user.id),
+				),
+			)
+			.returning({ id: financialAccounts.id });
 
 		if (!deleted) {
 			return {
 				success: false,
-				error: "Conta não encontrada.",
+				error: "FinancialAccount não encontrada.",
 			};
 		}
 
-		revalidateForEntity("contas");
+		revalidateForEntity("accounts");
 
 		return {
 			success: true,
-			message: "Conta removida com sucesso.",
+			message: "FinancialAccount removida com sucesso.",
 		};
 	} catch (error) {
 		return handleActionError(error);
@@ -246,8 +261,8 @@ export async function deleteAccountAction(
 
 // Transfer between accounts
 const transferSchema = z.object({
-	fromAccountId: uuidSchema("Conta de origem"),
-	toAccountId: uuidSchema("Conta de destino"),
+	fromAccountId: uuidSchema("FinancialAccount de origem"),
+	toAccountId: uuidSchema("FinancialAccount de destino"),
 	amount: z
 		.string()
 		.trim()
@@ -265,7 +280,7 @@ const transferSchema = z.object({
 		.min(1, "Informe o período."),
 });
 
-type TransferInput = z.infer<typeof transferSchema>;
+type TransferInput = z.input<typeof transferSchema>;
 
 export async function transferBetweenAccountsAction(
 	input: TransferInput,
@@ -288,64 +303,64 @@ export async function transferBetweenAccountsAction(
 		await db.transaction(async (tx: typeof db) => {
 			// Verify both accounts exist and belong to the user
 			const [fromAccount, toAccount] = await Promise.all([
-				tx.query.contas.findFirst({
+				tx.query.financialAccounts.findFirst({
 					columns: { id: true, name: true },
 					where: and(
-						eq(contas.id, data.fromAccountId),
-						eq(contas.userId, user.id),
+						eq(financialAccounts.id, data.fromAccountId),
+						eq(financialAccounts.userId, user.id),
 					),
 				}),
-				tx.query.contas.findFirst({
+				tx.query.financialAccounts.findFirst({
 					columns: { id: true, name: true },
 					where: and(
-						eq(contas.id, data.toAccountId),
-						eq(contas.userId, user.id),
+						eq(financialAccounts.id, data.toAccountId),
+						eq(financialAccounts.userId, user.id),
 					),
 				}),
 			]);
 
 			if (!fromAccount) {
-				throw new Error("Conta de origem não encontrada.");
+				throw new Error("FinancialAccount de origem não encontrada.");
 			}
 
 			if (!toAccount) {
-				throw new Error("Conta de destino não encontrada.");
+				throw new Error("FinancialAccount de destino não encontrada.");
 			}
 
 			// Get the transfer category
-			const transferCategory = await tx.query.categorias.findFirst({
+			const transferCategory = await tx.query.categories.findFirst({
 				columns: { id: true },
 				where: and(
-					eq(categorias.userId, user.id),
-					eq(categorias.name, TRANSFER_CATEGORY_NAME),
+					eq(categories.userId, user.id),
+					eq(categories.name, TRANSFER_CATEGORY_NAME),
 				),
 			});
 
 			if (!transferCategory) {
 				throw new Error(
-					`Categoria "${TRANSFER_CATEGORY_NAME}" não encontrada. Por favor, crie esta categoria antes de fazer transferências.`,
+					`Category "${TRANSFER_CATEGORY_NAME}" não encontrada. Por favor, crie esta categoria antes de fazer transferências.`,
 				);
 			}
 
 			// Get the admin payer
-			const adminPagador = await tx.query.pagadores.findFirst({
+			const adminPagador = await tx.query.payers.findFirst({
 				columns: { id: true },
 				where: and(
-					eq(pagadores.userId, user.id),
-					eq(pagadores.role, PAGADOR_ROLE_ADMIN),
+					eq(payers.userId, user.id),
+					eq(payers.role, PAYER_ROLE_ADMIN),
 				),
 			});
 
 			if (!adminPagador) {
 				throw new Error(
-					"Pagador administrador não encontrado. Por favor, crie um pagador admin.",
+					"Payer administrador não encontrado. Por favor, crie um pagador admin.",
 				);
 			}
 
 			const transferNote = `de ${fromAccount.name} -> ${toAccount.name}`;
 
 			// Create outgoing transaction (transfer from source account)
-			await tx.insert(lancamentos).values({
+			await tx.insert(transactions).values({
 				condition: TRANSFER_CONDITION,
 				name: TRANSFER_ESTABLISHMENT_SAIDA,
 				paymentMethod: TRANSFER_PAYMENT_METHOD,
@@ -356,14 +371,14 @@ export async function transferBetweenAccountsAction(
 				period: data.period,
 				isSettled: true,
 				userId: user.id,
-				contaId: fromAccount.id,
-				categoriaId: transferCategory.id,
-				pagadorId: adminPagador.id,
+				accountId: fromAccount.id,
+				categoryId: transferCategory.id,
+				payerId: adminPagador.id,
 				transferId,
 			});
 
 			// Create incoming transaction (transfer to destination account)
-			await tx.insert(lancamentos).values({
+			await tx.insert(transactions).values({
 				condition: TRANSFER_CONDITION,
 				name: TRANSFER_ESTABLISHMENT_ENTRADA,
 				paymentMethod: TRANSFER_PAYMENT_METHOD,
@@ -374,15 +389,15 @@ export async function transferBetweenAccountsAction(
 				period: data.period,
 				isSettled: true,
 				userId: user.id,
-				contaId: toAccount.id,
-				categoriaId: transferCategory.id,
-				pagadorId: adminPagador.id,
+				accountId: toAccount.id,
+				categoryId: transferCategory.id,
+				payerId: adminPagador.id,
 				transferId,
 			});
 		});
 
-		revalidateForEntity("contas");
-		revalidateForEntity("lancamentos");
+		revalidateForEntity("accounts");
+		revalidateForEntity("transactions");
 
 		return {
 			success: true,

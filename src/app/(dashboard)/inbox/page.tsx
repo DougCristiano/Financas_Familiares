@@ -24,12 +24,12 @@ export default async function Page() {
 				pendingItems={pendingItems}
 				processedItems={processedItems}
 				discardedItems={discardedItems}
-				pagadorOptions={dialogData.pagadorOptions}
-				splitPagadorOptions={dialogData.splitPagadorOptions}
-				defaultPagadorId={dialogData.defaultPagadorId}
-				contaOptions={dialogData.contaOptions}
-				cartaoOptions={dialogData.cartaoOptions}
-				categoriaOptions={dialogData.categoriaOptions}
+				payerOptions={dialogData.payerOptions}
+				splitPayerOptions={dialogData.splitPayerOptions}
+				defaultPayerId={dialogData.defaultPayerId}
+				accountOptions={dialogData.accountOptions}
+				cardOptions={dialogData.cardOptions}
+				categoryOptions={dialogData.categoryOptions}
 				estabelecimentos={dialogData.estabelecimentos}
 				appLogoMap={appLogoMap}
 			/>
