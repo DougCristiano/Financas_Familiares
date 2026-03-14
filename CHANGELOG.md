@@ -7,6 +7,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+### Alterado
+
+- Refatoração de identificadores: todos os identificadores internos (variáveis, props, tipos, funções) foram migrados de PT-BR para inglês (`lancamento` → `transaction`, `pagador` → `payer`, `conta` → `account`, `cartao` → `card`, `categoria` → `category`, `orcamento` → `budget`, entre outros). Strings de UI e mensagens para o usuário foram mantidas em português.
+- Consistência interna: filtros de lançamentos passaram a usar search params em inglês (`type`, `condition`, `payment`, `payer`, `category`, `accountCard`), e resíduos de naming PT-BR foram limpos em dialogs, pages e helpers de `transactions`, `payers` e dashboard.
+
 ### Corrigido
 
 - Lançamentos: o schema compartilhado de observação voltou a aceitar `null`, corrigindo o erro `Invalid input: expected string, received null` ao salvar novos lançamentos sem anotação.
