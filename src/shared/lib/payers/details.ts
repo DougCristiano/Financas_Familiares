@@ -11,7 +11,7 @@ import {
 	sql,
 	sum,
 } from "drizzle-orm";
-import { cartoes, lancamentos } from "@/db/schema";
+import { cards, transactions } from "@/db/schema";
 import { ACCOUNT_AUTO_INVOICE_NOTE_PREFIX } from "@/shared/lib/accounts/constants";
 import { db } from "@/shared/lib/db";
 import { toDateOnlyString } from "@/shared/utils/date";
@@ -27,27 +27,27 @@ const DESPESA = "Despesa";
 const PAYMENT_METHOD_CARD = "Cartão de crédito";
 const PAYMENT_METHOD_BOLETO = "Boleto";
 
-export type PagadorMonthlyBreakdown = {
+export type PayerMonthlyBreakdown = {
 	totalExpenses: number;
 	totalIncomes: number;
 	paymentSplits: Record<"card" | "boleto" | "instant", number>;
 };
 
-export type PagadorHistoryPoint = {
+export type PayerHistoryPoint = {
 	period: string;
 	label: string;
 	receitas: number;
 	despesas: number;
 };
 
-export type PagadorCardUsageItem = {
+export type PayerCardUsageItem = {
 	id: string;
 	name: string;
 	logo: string | null;
 	amount: number;
 };
 
-export type PagadorBoletoStats = {
+export type PayerBoletoStats = {
 	totalAmount: number;
 	paidAmount: number;
 	pendingAmount: number;
@@ -55,7 +55,7 @@ export type PagadorBoletoStats = {
 	pendingCount: number;
 };
 
-export type PagadorBoletoItem = {
+export type PayerBoletoItem = {
 	id: string;
 	name: string;
 	amount: number;
@@ -64,7 +64,7 @@ export type PagadorBoletoItem = {
 	isSettled: boolean;
 };
 
-export type PagadorPaymentStatusData = {
+export type PayerPaymentStatusData = {
 	paidAmount: number;
 	paidCount: number;
 	pendingAmount: number;
@@ -74,39 +74,39 @@ export type PagadorPaymentStatusData = {
 
 const excludeAutoInvoiceEntries = () =>
 	or(
-		isNull(lancamentos.note),
-		not(ilike(lancamentos.note, `${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}%`)),
+		isNull(transactions.note),
+		not(ilike(transactions.note, `${ACCOUNT_AUTO_INVOICE_NOTE_PREFIX}%`)),
 	);
 
 type BaseFilters = {
 	userId: string;
-	pagadorId: string;
+	payerId: string;
 	period: string;
 };
 
-export async function fetchPagadorMonthlyBreakdown({
+export async function fetchPayerMonthlyBreakdown({
 	userId,
-	pagadorId,
+	payerId,
 	period,
-}: BaseFilters): Promise<PagadorMonthlyBreakdown> {
+}: BaseFilters): Promise<PayerMonthlyBreakdown> {
 	const rows = await db
 		.select({
-			paymentMethod: lancamentos.paymentMethod,
-			transactionType: lancamentos.transactionType,
-			totalAmount: sum(lancamentos.amount).as("total"),
+			paymentMethod: transactions.paymentMethod,
+			transactionType: transactions.transactionType,
+			totalAmount: sum(transactions.amount).as("total"),
 		})
-		.from(lancamentos)
+		.from(transactions)
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.pagadorId, pagadorId),
-				eq(lancamentos.period, period),
+				eq(transactions.userId, userId),
+				eq(transactions.payerId, payerId),
+				eq(transactions.period, period),
 				excludeAutoInvoiceEntries(),
 			),
 		)
-		.groupBy(lancamentos.paymentMethod, lancamentos.transactionType);
+		.groupBy(transactions.paymentMethod, transactions.transactionType);
 
-	const paymentSplits: PagadorMonthlyBreakdown["paymentSplits"] = {
+	const paymentSplits: PayerMonthlyBreakdown["paymentSplits"] = {
 		card: 0,
 		boleto: 0,
 		instant: 0,
@@ -137,12 +137,12 @@ export async function fetchPagadorMonthlyBreakdown({
 	};
 }
 
-export async function fetchPagadorHistory({
+export async function fetchPayerHistory({
 	userId,
-	pagadorId,
+	payerId,
 	period,
 	months = 6,
-}: BaseFilters & { months?: number }): Promise<PagadorHistoryPoint[]> {
+}: BaseFilters & { months?: number }): Promise<PayerHistoryPoint[]> {
 	const startPeriod = addMonthsToPeriod(period, -(Math.max(months, 1) - 1));
 	const windowPeriods = buildPeriodRange(startPeriod, period);
 	const start = windowPeriods[0];
@@ -150,21 +150,21 @@ export async function fetchPagadorHistory({
 
 	const rows = await db
 		.select({
-			period: lancamentos.period,
-			transactionType: lancamentos.transactionType,
-			totalAmount: sum(lancamentos.amount).as("total"),
+			period: transactions.period,
+			transactionType: transactions.transactionType,
+			totalAmount: sum(transactions.amount).as("total"),
 		})
-		.from(lancamentos)
+		.from(transactions)
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.pagadorId, pagadorId),
-				gte(lancamentos.period, start),
-				lte(lancamentos.period, end),
+				eq(transactions.userId, userId),
+				eq(transactions.payerId, payerId),
+				gte(transactions.period, start),
+				lte(transactions.period, end),
 				excludeAutoInvoiceEntries(),
 			),
 		)
-		.groupBy(lancamentos.period, lancamentos.transactionType);
+		.groupBy(transactions.period, transactions.transactionType);
 
 	const totalsByPeriod = new Map<
 		string,
@@ -198,38 +198,38 @@ export async function fetchPagadorHistory({
 
 export async function fetchPagadorCardUsage({
 	userId,
-	pagadorId,
+	payerId,
 	period,
-}: BaseFilters): Promise<PagadorCardUsageItem[]> {
+}: BaseFilters): Promise<PayerCardUsageItem[]> {
 	const rows = await db
 		.select({
-			cartaoId: lancamentos.cartaoId,
-			cardName: cartoes.name,
-			cardLogo: cartoes.logo,
-			totalAmount: sum(lancamentos.amount).as("total"),
+			cardId: transactions.cardId,
+			cardName: cards.name,
+			cardLogo: cards.logo,
+			totalAmount: sum(transactions.amount).as("total"),
 		})
-		.from(lancamentos)
-		.innerJoin(cartoes, eq(lancamentos.cartaoId, cartoes.id))
+		.from(transactions)
+		.innerJoin(cards, eq(transactions.cardId, cards.id))
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.pagadorId, pagadorId),
-				eq(lancamentos.period, period),
-				eq(lancamentos.paymentMethod, PAYMENT_METHOD_CARD),
+				eq(transactions.userId, userId),
+				eq(transactions.payerId, payerId),
+				eq(transactions.period, period),
+				eq(transactions.paymentMethod, PAYMENT_METHOD_CARD),
 				excludeAutoInvoiceEntries(),
 			),
 		)
-		.groupBy(lancamentos.cartaoId, cartoes.name, cartoes.logo);
+		.groupBy(transactions.cardId, cards.name, cards.logo);
 
-	const items: PagadorCardUsageItem[] = [];
+	const items: PayerCardUsageItem[] = [];
 
 	for (const row of rows) {
-		if (!row.cartaoId) {
+		if (!row.cardId) {
 			continue;
 		}
 
 		items.push({
-			id: row.cartaoId,
+			id: row.cardId,
 			name: row.cardName ?? "Cartão",
 			logo: row.cardLogo ?? null,
 			amount: Math.abs(toNumber(row.totalAmount)),
@@ -241,26 +241,26 @@ export async function fetchPagadorCardUsage({
 
 export async function fetchPagadorBoletoStats({
 	userId,
-	pagadorId,
+	payerId,
 	period,
-}: BaseFilters): Promise<PagadorBoletoStats> {
+}: BaseFilters): Promise<PayerBoletoStats> {
 	const rows = await db
 		.select({
-			isSettled: lancamentos.isSettled,
-			totalAmount: sum(lancamentos.amount).as("total"),
-			totalCount: sql<number>`count(${lancamentos.id})`.as("count"),
+			isSettled: transactions.isSettled,
+			totalAmount: sum(transactions.amount).as("total"),
+			totalCount: sql<number>`count(${transactions.id})`.as("count"),
 		})
-		.from(lancamentos)
+		.from(transactions)
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.pagadorId, pagadorId),
-				eq(lancamentos.period, period),
-				eq(lancamentos.paymentMethod, PAYMENT_METHOD_BOLETO),
+				eq(transactions.userId, userId),
+				eq(transactions.payerId, payerId),
+				eq(transactions.period, period),
+				eq(transactions.paymentMethod, PAYMENT_METHOD_BOLETO),
 				excludeAutoInvoiceEntries(),
 			),
 		)
-		.groupBy(lancamentos.isSettled);
+		.groupBy(transactions.isSettled);
 
 	let paidAmount = 0;
 	let pendingAmount = 0;
@@ -290,31 +290,31 @@ export async function fetchPagadorBoletoStats({
 
 export async function fetchPagadorBoletoItems({
 	userId,
-	pagadorId,
+	payerId,
 	period,
-}: BaseFilters): Promise<PagadorBoletoItem[]> {
+}: BaseFilters): Promise<PayerBoletoItem[]> {
 	const rows = await db
 		.select({
-			id: lancamentos.id,
-			name: lancamentos.name,
-			amount: lancamentos.amount,
-			dueDate: lancamentos.dueDate,
-			boletoPaymentDate: lancamentos.boletoPaymentDate,
-			isSettled: lancamentos.isSettled,
+			id: transactions.id,
+			name: transactions.name,
+			amount: transactions.amount,
+			dueDate: transactions.dueDate,
+			boletoPaymentDate: transactions.boletoPaymentDate,
+			isSettled: transactions.isSettled,
 		})
-		.from(lancamentos)
+		.from(transactions)
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.pagadorId, pagadorId),
-				eq(lancamentos.period, period),
-				eq(lancamentos.paymentMethod, PAYMENT_METHOD_BOLETO),
+				eq(transactions.userId, userId),
+				eq(transactions.payerId, payerId),
+				eq(transactions.period, period),
+				eq(transactions.paymentMethod, PAYMENT_METHOD_BOLETO),
 				excludeAutoInvoiceEntries(),
 			),
 		)
-		.orderBy(asc(lancamentos.dueDate));
+		.orderBy(asc(transactions.dueDate));
 
-	const items: PagadorBoletoItem[] = [];
+	const items: PayerBoletoItem[] = [];
 
 	for (const row of rows) {
 		items.push({
@@ -332,23 +332,23 @@ export async function fetchPagadorBoletoItems({
 
 export async function fetchPagadorPaymentStatus({
 	userId,
-	pagadorId,
+	payerId,
 	period,
-}: BaseFilters): Promise<PagadorPaymentStatusData> {
+}: BaseFilters): Promise<PayerPaymentStatusData> {
 	const rows = await db
 		.select({
-			paidAmount: sql<string>`coalesce(sum(case when ${lancamentos.isSettled} = true then abs(${lancamentos.amount}) else 0 end), 0)`,
-			paidCount: sql<number>`sum(case when ${lancamentos.isSettled} = true then 1 else 0 end)`,
-			pendingAmount: sql<string>`coalesce(sum(case when (${lancamentos.isSettled} = false or ${lancamentos.isSettled} is null) then abs(${lancamentos.amount}) else 0 end), 0)`,
-			pendingCount: sql<number>`sum(case when (${lancamentos.isSettled} = false or ${lancamentos.isSettled} is null) then 1 else 0 end)`,
+			paidAmount: sql<string>`coalesce(sum(case when ${transactions.isSettled} = true then abs(${transactions.amount}) else 0 end), 0)`,
+			paidCount: sql<number>`sum(case when ${transactions.isSettled} = true then 1 else 0 end)`,
+			pendingAmount: sql<string>`coalesce(sum(case when (${transactions.isSettled} = false or ${transactions.isSettled} is null) then abs(${transactions.amount}) else 0 end), 0)`,
+			pendingCount: sql<number>`sum(case when (${transactions.isSettled} = false or ${transactions.isSettled} is null) then 1 else 0 end)`,
 		})
-		.from(lancamentos)
+		.from(transactions)
 		.where(
 			and(
-				eq(lancamentos.userId, userId),
-				eq(lancamentos.pagadorId, pagadorId),
-				eq(lancamentos.period, period),
-				eq(lancamentos.transactionType, DESPESA),
+				eq(transactions.userId, userId),
+				eq(transactions.payerId, payerId),
+				eq(transactions.period, period),
+				eq(transactions.transactionType, DESPESA),
 				excludeAutoInvoiceEntries(),
 			),
 		);

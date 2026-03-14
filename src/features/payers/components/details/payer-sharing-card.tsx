@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
-	deletePagadorShareAction,
-	regeneratePagadorShareCodeAction,
+	deletePayerShareAction,
+	regeneratePayerShareCodeAction,
 } from "@/features/payers/actions";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -25,13 +25,13 @@ type PagadorShare = {
 };
 
 interface PagadorSharingCardProps {
-	pagadorId: string;
+	payerId: string;
 	shareCode: string;
 	shares: PagadorShare[];
 }
 
-export function PagadorSharingCard({
-	pagadorId,
+export function PayerSharingCard({
+	payerId,
 	shareCode,
 	shares,
 }: PagadorSharingCardProps) {
@@ -51,14 +51,14 @@ export function PagadorSharingCard({
 
 	const handleRegenerate = () => {
 		startRegenerate(async () => {
-			const result = await regeneratePagadorShareCodeAction({ pagadorId });
+			const result = await regeneratePayerShareCodeAction({ payerId });
 
 			if (!result.success) {
 				toast.error(result.error);
 				return;
 			}
 
-			setCurrentCode(result.code);
+			if ("code" in result) setCurrentCode(result.code);
 			toast.success("Novo código gerado com sucesso.");
 			router.refresh();
 		});
@@ -67,7 +67,7 @@ export function PagadorSharingCard({
 	const handleRemove = (shareId: string) => {
 		setRemovePendingId(shareId);
 		startRegenerate(async () => {
-			const result = await deletePagadorShareAction({ shareId });
+			const result = await deletePayerShareAction({ shareId });
 
 			if (!result.success) {
 				toast.error(result.error);

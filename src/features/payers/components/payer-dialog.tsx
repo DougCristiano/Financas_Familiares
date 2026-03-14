@@ -3,8 +3,8 @@ import Image from "next/image";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
-	createPagadorAction,
-	updatePagadorAction,
+	createPayerAction,
+	updatePayerAction,
 } from "@/features/payers/actions";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
@@ -29,50 +29,50 @@ import {
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
 import { useFormState } from "@/shared/hooks/use-form-state";
 import {
-	DEFAULT_PAGADOR_AVATAR,
-	PAGADOR_STATUS_OPTIONS,
-	type PagadorStatus,
+	DEFAULT_PAYER_AVATAR,
+	PAYER_STATUS_OPTIONS,
+	type PayerStatus,
 } from "@/shared/lib/payers/constants";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
 import { StatusSelectContent } from "./payer-select-items";
-import type { Pagador, PagadorFormValues } from "./types";
+import type { Payer, PayerFormValues } from "./types";
 
-interface PagadorDialogProps {
+interface PayerDialogProps {
 	mode: "create" | "update";
 	trigger?: React.ReactNode;
-	pagador?: Pagador;
+	payer?: Payer;
 	avatarOptions: string[];
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 }
 
 const buildInitialValues = ({
-	pagador,
+	payer,
 	avatarOptions,
 }: {
-	pagador?: Pagador;
+	payer?: Payer;
 	avatarOptions: string[];
-}): PagadorFormValues => {
-	const defaultAvatar = avatarOptions[0] ?? DEFAULT_PAGADOR_AVATAR;
+}): PayerFormValues => {
+	const defaultAvatar = avatarOptions[0] ?? DEFAULT_PAYER_AVATAR;
 
 	return {
-		name: pagador?.name ?? "",
-		email: pagador?.email ?? "",
-		status: (pagador?.status as PagadorStatus) ?? PAGADOR_STATUS_OPTIONS[0],
-		avatarUrl: pagador?.avatarUrl ?? defaultAvatar,
-		note: pagador?.note ?? "",
-		isAutoSend: pagador?.isAutoSend ?? false,
+		name: payer?.name ?? "",
+		email: payer?.email ?? "",
+		status: (payer?.status as PayerStatus) ?? PAYER_STATUS_OPTIONS[0],
+		avatarUrl: payer?.avatarUrl ?? defaultAvatar,
+		note: payer?.note ?? "",
+		isAutoSend: payer?.isAutoSend ?? false,
 	};
 };
 
-export function PagadorDialog({
+export function PayerDialog({
 	mode,
 	trigger,
-	pagador,
+	payer,
 	avatarOptions,
 	open,
 	onOpenChange,
-}: PagadorDialogProps) {
+}: PayerDialogProps) {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 
@@ -84,19 +84,19 @@ export function PagadorDialog({
 	);
 
 	const initialState = useMemo(
-		() => buildInitialValues({ pagador, avatarOptions }),
-		[pagador, avatarOptions],
+		() => buildInitialValues({ payer, avatarOptions }),
+		[payer, avatarOptions],
 	);
 
 	// Use form state hook for form management
 	const { formState, resetForm, updateField } =
-		useFormState<PagadorFormValues>(initialState);
+		useFormState<PayerFormValues>(initialState);
 
 	const availableAvatars = useMemo(() => {
 		const set = new Set<string>();
 		avatarOptions.forEach((avatar) => set.add(avatar));
 		set.add(initialState.avatarUrl);
-		set.add(DEFAULT_PAGADOR_AVATAR);
+		set.add(DEFAULT_PAYER_AVATAR);
 		return Array.from(set).sort((a, b) =>
 			a.localeCompare(b, "pt-BR", { sensitivity: "base" }),
 		);
@@ -110,22 +110,22 @@ export function PagadorDialog({
 		}
 	}, [dialogOpen, initialState, resetForm]);
 
-	type PagadorCreatePayload = Parameters<typeof createPagadorAction>[0];
+	type PayerCreatePayload = Parameters<typeof createPayerAction>[0];
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setErrorMessage(null);
-		const pagadorId = pagador?.id;
+		const payerId = payer?.id;
 
-		if (mode === "update" && !pagadorId) {
-			const message = "Pagador inválido.";
+		if (mode === "update" && !payerId) {
+			const message = "Payer inválido.";
 			setErrorMessage(message);
 			toast.error(message);
 			return;
 		}
 
 		const emailValue = formState.email.trim();
-		const payload: PagadorCreatePayload = {
+		const payload: PayerCreatePayload = {
 			name: formState.name.trim(),
 			status: formState.status,
 			avatarUrl: formState.avatarUrl,
@@ -136,7 +136,7 @@ export function PagadorDialog({
 
 		startTransition(async () => {
 			if (mode === "create") {
-				const result = await createPagadorAction(payload);
+				const result = await createPayerAction(payload);
 
 				if (result.success) {
 					toast.success(result.message);
@@ -150,12 +150,12 @@ export function PagadorDialog({
 				return;
 			}
 
-			if (!pagadorId) {
+			if (!payerId) {
 				return;
 			}
 
-			const result = await updatePagadorAction({
-				id: pagadorId,
+			const result = await updatePayerAction({
+				id: payerId,
 				...payload,
 			});
 
@@ -193,9 +193,9 @@ export function PagadorDialog({
 						<div className="flex flex-col gap-3">
 							<div className="flex w-full gap-2">
 								<div className="flex flex-col gap-2 w-full">
-									<Label htmlFor="pagador-name">Nome</Label>
+									<Label htmlFor="payer-name">Nome</Label>
 									<Input
-										id="pagador-name"
+										id="payer-name"
 										value={formState.name}
 										onChange={(event) =>
 											updateField("name", event.target.value)
@@ -206,9 +206,9 @@ export function PagadorDialog({
 								</div>
 
 								<div className="flex flex-col gap-2 w-full">
-									<Label htmlFor="pagador-email">E-mail</Label>
+									<Label htmlFor="payer-email">E-mail</Label>
 									<Input
-										id="pagador-email"
+										id="payer-email"
 										type="email"
 										value={formState.email}
 										onChange={(event) =>
@@ -220,14 +220,14 @@ export function PagadorDialog({
 							</div>
 
 							<div className="flex flex-col gap-2">
-								<Label htmlFor="pagador-status">Status</Label>
+								<Label htmlFor="payer-status">Status</Label>
 								<Select
 									value={formState.status}
-									onValueChange={(value: PagadorStatus) =>
+									onValueChange={(value: PayerStatus) =>
 										updateField("status", value)
 									}
 								>
-									<SelectTrigger id="pagador-status" className="w-full">
+									<SelectTrigger id="payer-status" className="w-full">
 										<SelectValue placeholder="Selecione o status">
 											{formState.status && (
 												<StatusSelectContent label={formState.status} />
@@ -235,7 +235,7 @@ export function PagadorDialog({
 										</SelectValue>
 									</SelectTrigger>
 									<SelectContent>
-										{PAGADOR_STATUS_OPTIONS.map((status) => (
+										{PAYER_STATUS_OPTIONS.map((status) => (
 											<SelectItem key={status} value={status}>
 												<StatusSelectContent label={status} />
 											</SelectItem>
@@ -247,7 +247,7 @@ export function PagadorDialog({
 							<fieldset className="flex flex-col gap-3">
 								<div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/10 p-3">
 									<Checkbox
-										id="pagador-auto-send"
+										id="payer-auto-send"
 										checked={formState.isAutoSend}
 										onCheckedChange={(checked) =>
 											updateField("isAutoSend", Boolean(checked))
@@ -256,7 +256,7 @@ export function PagadorDialog({
 									/>
 									<div className="space-y-1">
 										<Label
-											htmlFor="pagador-auto-send"
+											htmlFor="payer-auto-send"
 											className="text-sm font-medium text-foreground"
 										>
 											Enviar automaticamente
@@ -296,9 +296,9 @@ export function PagadorDialog({
 							</fieldset>
 
 							<div className="flex flex-col gap-2">
-								<Label htmlFor="pagador-note">Anotações</Label>
+								<Label htmlFor="payer-note">Anotações</Label>
 								<Input
-									id="pagador-note"
+									id="payer-note"
 									value={formState.note}
 									onChange={(event) => updateField("note", event.target.value)}
 									placeholder="Observações sobre este pagador"

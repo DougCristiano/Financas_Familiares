@@ -4,41 +4,41 @@ import {
 	RiWallet3Line,
 } from "@remixicon/react";
 import { notFound } from "next/navigation";
-import { PagadorCardUsageCard } from "@/features/payers/components/details/payer-card-usage-card";
-import { PagadorHeaderCard } from "@/features/payers/components/details/payer-header-card";
-import { PagadorHistoryCard } from "@/features/payers/components/details/payer-history-card";
+import { PayerCardUsageCard } from "@/features/payers/components/details/payer-card-usage-card";
+import { PayerHeaderCard } from "@/features/payers/components/details/payer-header-card";
+import { PayerHistoryCard } from "@/features/payers/components/details/payer-history-card";
 import { PagadorInfoCard } from "@/features/payers/components/details/payer-info-card";
-import { PagadorLeaveShareCard } from "@/features/payers/components/details/payer-leave-share-card";
-import { PagadorMonthlySummaryCard } from "@/features/payers/components/details/payer-monthly-summary-card";
+import { PayerLeaveShareCard } from "@/features/payers/components/details/payer-leave-share-card";
+import { PayerMonthlySummaryCard } from "@/features/payers/components/details/payer-monthly-summary-card";
 import {
-	PagadorBoletoCard,
-	PagadorPaymentStatusCard,
+	PayerBoletoCard,
+	PayerPaymentStatusCard,
 } from "@/features/payers/components/details/payer-payment-method-cards";
-import { PagadorSharingCard } from "@/features/payers/components/details/payer-sharing-card";
+import { PayerSharingCard } from "@/features/payers/components/details/payer-sharing-card";
 import {
 	fetchCurrentUserShare,
 	fetchPagadorLancamentos,
-	fetchPagadorShares,
+	fetchPayerShares,
 } from "@/features/payers/detail-queries";
 import { buildReadOnlyOptionSets } from "@/features/payers/lib/build-readonly-option-sets";
 import { fetchUserPreferences } from "@/features/settings/queries";
-import { LancamentosPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
+import { TransactionsPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
 import {
-	buildLancamentoWhere,
 	buildOptionSets,
 	buildSluggedFilters,
 	buildSlugMaps,
-	extractLancamentoSearchFilters,
+	buildTransactionWhere,
+	extractTransactionSearchFilters,
 	getSingleParam,
-	type LancamentoSearchFilters,
-	mapLancamentosData,
+	mapTransactionsData,
 	type ResolvedSearchParams,
 	type SluggedFilters,
 	type SlugMaps,
+	type TransactionSearchFilters,
 } from "@/features/transactions/page-helpers";
 import {
-	fetchLancamentoFilterSources,
 	fetchRecentEstablishments,
+	fetchTransactionFilterSources,
 } from "@/features/transactions/queries";
 import { ExpandableWidgetCard } from "@/shared/components/expandable-widget-card";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
@@ -49,15 +49,15 @@ import {
 	TabsTrigger,
 } from "@/shared/components/ui/tabs";
 import { getUserId } from "@/shared/lib/auth/server";
-import { getPagadorAccess } from "@/shared/lib/payers/access";
+import { getPayerAccess } from "@/shared/lib/payers/access";
 import {
 	fetchPagadorBoletoItems,
 	fetchPagadorBoletoStats,
 	fetchPagadorCardUsage,
-	fetchPagadorHistory,
-	fetchPagadorMonthlyBreakdown,
 	fetchPagadorPaymentStatus,
-	type PagadorCardUsageItem,
+	fetchPayerHistory,
+	fetchPayerMonthlyBreakdown,
+	type PayerCardUsageItem,
 } from "@/shared/lib/payers/details";
 import { parsePeriodParam } from "@/shared/utils/period";
 
@@ -71,31 +71,31 @@ type PageProps = {
 const capitalize = (value: string) =>
 	value.length ? value.charAt(0).toUpperCase().concat(value.slice(1)) : value;
 
-const EMPTY_FILTERS: LancamentoSearchFilters = {
+const EMPTY_FILTERS: TransactionSearchFilters = {
 	transactionFilter: null,
 	conditionFilter: null,
 	paymentFilter: null,
-	pagadorFilter: null,
-	categoriaFilter: null,
-	contaCartaoFilter: null,
+	payerFilter: null,
+	categoryFilter: null,
+	accountCardFilter: null,
 	searchFilter: null,
 };
 
 const createEmptySlugMaps = (): SlugMaps => ({
-	pagador: new Map(),
-	categoria: new Map(),
-	conta: new Map(),
-	cartao: new Map(),
+	payer: new Map(),
+	category: new Map(),
+	financialAccount: new Map(),
+	card: new Map(),
 });
 
 type OptionSet = ReturnType<typeof buildOptionSets>;
 
 export default async function Page({ params, searchParams }: PageProps) {
-	const { payerId: pagadorId } = await params;
+	const { payerId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 
-	const access = await getPagadorAccess(userId, pagadorId);
+	const access = await getPayerAccess(userId, payerId);
 
 	if (!access) {
 		notFound();
@@ -112,7 +112,8 @@ export default async function Page({ params, searchParams }: PageProps) {
 	} = parsePeriodParam(periodoParamRaw);
 	const periodLabel = `${capitalize(monthName)} de ${year}`;
 
-	const allSearchFilters = extractLancamentoSearchFilters(resolvedSearchParams);
+	const allSearchFilters =
+		extractTransactionSearchFilters(resolvedSearchParams);
 	const searchFilters = canEdit
 		? allSearchFilters
 		: {
@@ -121,40 +122,40 @@ export default async function Page({ params, searchParams }: PageProps) {
 			};
 
 	let filterSources: Awaited<
-		ReturnType<typeof fetchLancamentoFilterSources>
+		ReturnType<typeof fetchTransactionFilterSources>
 	> | null = null;
 	let loggedUserFilterSources: Awaited<
-		ReturnType<typeof fetchLancamentoFilterSources>
+		ReturnType<typeof fetchTransactionFilterSources>
 	> | null = null;
 	let sluggedFilters: SluggedFilters;
 	let slugMaps: SlugMaps;
 
 	if (canEdit) {
-		filterSources = await fetchLancamentoFilterSources(dataOwnerId);
+		filterSources = await fetchTransactionFilterSources(dataOwnerId);
 		sluggedFilters = buildSluggedFilters(filterSources);
 		slugMaps = buildSlugMaps(sluggedFilters);
 	} else {
 		// Buscar opções do usuário logado para usar ao importar
-		loggedUserFilterSources = await fetchLancamentoFilterSources(userId);
+		loggedUserFilterSources = await fetchTransactionFilterSources(userId);
 		sluggedFilters = {
-			pagadorFiltersRaw: [],
-			categoriaFiltersRaw: [],
-			contaFiltersRaw: [],
-			cartaoFiltersRaw: [],
+			payerFiltersRaw: [],
+			categoryFiltersRaw: [],
+			accountFiltersRaw: [],
+			cardFiltersRaw: [],
 		};
 		slugMaps = createEmptySlugMaps();
 	}
 
-	const filters = buildLancamentoWhere({
+	const filters = buildTransactionWhere({
 		userId: dataOwnerId,
 		period: selectedPeriod,
 		filters: searchFilters,
 		slugMaps,
-		pagadorId: pagador.id,
+		payerId: pagador.id,
 	});
 
 	const sharesPromise = canEdit
-		? fetchPagadorShares(pagador.id)
+		? fetchPayerShares(pagador.id)
 		: Promise.resolve([]);
 
 	const currentUserSharePromise = !canEdit
@@ -162,7 +163,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 		: Promise.resolve(null);
 
 	const [
-		lancamentoRows,
+		transactionRows,
 		monthlyBreakdown,
 		historyData,
 		cardUsage,
@@ -175,34 +176,34 @@ export default async function Page({ params, searchParams }: PageProps) {
 		userPreferences,
 	] = await Promise.all([
 		fetchPagadorLancamentos(filters),
-		fetchPagadorMonthlyBreakdown({
+		fetchPayerMonthlyBreakdown({
 			userId: dataOwnerId,
-			pagadorId: pagador.id,
+			payerId: pagador.id,
 			period: selectedPeriod,
 		}),
-		fetchPagadorHistory({
+		fetchPayerHistory({
 			userId: dataOwnerId,
-			pagadorId: pagador.id,
+			payerId: pagador.id,
 			period: selectedPeriod,
 		}),
 		fetchPagadorCardUsage({
 			userId: dataOwnerId,
-			pagadorId: pagador.id,
+			payerId: pagador.id,
 			period: selectedPeriod,
 		}),
 		fetchPagadorBoletoStats({
 			userId: dataOwnerId,
-			pagadorId: pagador.id,
+			payerId: pagador.id,
 			period: selectedPeriod,
 		}),
 		fetchPagadorBoletoItems({
 			userId: dataOwnerId,
-			pagadorId: pagador.id,
+			payerId: pagador.id,
 			period: selectedPeriod,
 		}),
 		fetchPagadorPaymentStatus({
 			userId: dataOwnerId,
-			pagadorId: pagador.id,
+			payerId: pagador.id,
 			period: selectedPeriod,
 		}),
 		sharesPromise,
@@ -211,12 +212,12 @@ export default async function Page({ params, searchParams }: PageProps) {
 		fetchUserPreferences(userId),
 	]);
 
-	const mappedLancamentos = mapLancamentosData(lancamentoRows);
-	const lancamentosData = canEdit
-		? mappedLancamentos
-		: mappedLancamentos.map((item) => ({ ...item, readonly: true }));
+	const mappedTransactions = mapTransactionsData(transactionRows);
+	const transactionData = canEdit
+		? mappedTransactions
+		: mappedTransactions.map((item) => ({ ...item, readonly: true }));
 
-	const pagadorSharesData = shareRows;
+	const payerSharesData = shareRows;
 
 	let optionSets: OptionSet;
 	let loggedUserOptionSets: OptionSet | null = null;
@@ -225,11 +226,11 @@ export default async function Page({ params, searchParams }: PageProps) {
 	if (canEdit && filterSources) {
 		optionSets = buildOptionSets({
 			...sluggedFilters,
-			pagadorRows: filterSources.pagadorRows,
+			payerRows: filterSources.payerRows,
 		});
 	} else {
 		effectiveSluggedFilters = {
-			pagadorFiltersRaw: [
+			payerFiltersRaw: [
 				{
 					id: pagador.id,
 					label: pagador.name,
@@ -238,11 +239,11 @@ export default async function Page({ params, searchParams }: PageProps) {
 					avatarUrl: pagador.avatarUrl,
 				},
 			],
-			categoriaFiltersRaw: [],
-			contaFiltersRaw: [],
-			cartaoFiltersRaw: [],
+			categoryFiltersRaw: [],
+			accountFiltersRaw: [],
+			cardFiltersRaw: [],
 		};
-		optionSets = buildReadOnlyOptionSets(lancamentosData, pagador);
+		optionSets = buildReadOnlyOptionSets(transactionData, pagador);
 
 		// Construir opções do usuário logado para usar ao importar
 		if (loggedUserFilterSources) {
@@ -251,23 +252,23 @@ export default async function Page({ params, searchParams }: PageProps) {
 			);
 			loggedUserOptionSets = buildOptionSets({
 				...loggedUserSluggedFilters,
-				pagadorRows: loggedUserFilterSources.pagadorRows,
+				payerRows: loggedUserFilterSources.payerRows,
 			});
 		}
 	}
 
-	const pagadorSlug =
-		effectiveSluggedFilters.pagadorFiltersRaw.find(
+	const payerSlug =
+		effectiveSluggedFilters.payerFiltersRaw.find(
 			(item) => item.id === pagador.id,
 		)?.slug ?? null;
 
-	const pagadorFilterOptions = pagadorSlug
-		? optionSets.pagadorFilterOptions.filter(
-				(option) => option.slug === pagadorSlug,
+	const payerFilterOptions = payerSlug
+		? optionSets.payerFilterOptions.filter(
+				(option) => option.slug === payerSlug,
 			)
-		: optionSets.pagadorFilterOptions;
+		: optionSets.payerFilterOptions;
 
-	const pagadorData = {
+	const payerData = {
 		id: pagador.id,
 		name: pagador.name,
 		email: pagador.email ?? null,
@@ -288,7 +289,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 		periodLabel,
 		totalExpenses: monthlyBreakdown.totalExpenses,
 		paymentSplits: monthlyBreakdown.paymentSplits,
-		cardUsage: cardUsage.slice(0, 3).map((item: PagadorCardUsageItem) => ({
+		cardUsage: cardUsage.slice(0, 3).map((item: PayerCardUsageItem) => ({
 			name: item.name,
 			amount: item.amount,
 		})),
@@ -299,7 +300,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 			paidCount: boletoStats.paidCount,
 			pendingCount: boletoStats.pendingCount,
 		},
-		lancamentoCount: lancamentosData.length,
+		lancamentoCount: transactionData.length,
 	};
 
 	return (
@@ -312,25 +313,25 @@ export default async function Page({ params, searchParams }: PageProps) {
 					<TabsTrigger value="painel">Painel</TabsTrigger>
 					<TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
 				</TabsList>
-				<PagadorHeaderCard
-					pagador={pagadorData}
+				<PayerHeaderCard
+					payer={payerData}
 					selectedPeriod={selectedPeriod}
 					summary={summaryPreview}
 				/>
 
 				<TabsContent value="profile" className="space-y-4">
-					<PagadorInfoCard pagador={pagadorData} />
-					{canEdit && pagadorData.shareCode ? (
-						<PagadorSharingCard
-							pagadorId={pagador.id}
-							shareCode={pagadorData.shareCode}
-							shares={pagadorSharesData}
+					<PagadorInfoCard payer={payerData} />
+					{canEdit && payerData.shareCode ? (
+						<PayerSharingCard
+							payerId={pagador.id}
+							shareCode={payerData.shareCode}
+							shares={payerSharesData}
 						/>
 					) : null}
 					{!canEdit && currentUserShare ? (
-						<PagadorLeaveShareCard
+						<PayerLeaveShareCard
 							shareId={currentUserShare.id}
-							pagadorName={pagadorData.name}
+							pagadorName={payerData.name}
 							createdAt={currentUserShare.createdAt}
 						/>
 					) : null}
@@ -338,11 +339,11 @@ export default async function Page({ params, searchParams }: PageProps) {
 
 				<TabsContent value="painel" className="space-y-4">
 					<section className="grid gap-3 lg:grid-cols-2">
-						<PagadorMonthlySummaryCard
+						<PayerMonthlySummaryCard
 							periodLabel={periodLabel}
 							breakdown={monthlyBreakdown}
 						/>
-						<PagadorHistoryCard data={historyData} />
+						<PayerHistoryCard data={historyData} />
 					</section>
 
 					<section className="grid gap-3 lg:grid-cols-3">
@@ -351,21 +352,21 @@ export default async function Page({ params, searchParams }: PageProps) {
 							subtitle="Valores por cartão neste período"
 							icon={<RiBankCard2Line className="size-4" />}
 						>
-							<PagadorCardUsageCard items={cardUsage} />
+							<PayerCardUsageCard items={cardUsage} />
 						</ExpandableWidgetCard>
 						<ExpandableWidgetCard
 							title="Boletos"
 							subtitle="Boletos registrados neste período"
 							icon={<RiBarcodeLine className="size-4" />}
 						>
-							<PagadorBoletoCard items={boletoItems} />
+							<PayerBoletoCard items={boletoItems} />
 						</ExpandableWidgetCard>
 						<ExpandableWidgetCard
 							title="Status de Pagamento"
 							subtitle="Situação das despesas no período"
 							icon={<RiWallet3Line className="size-4" />}
 						>
-							<PagadorPaymentStatusCard data={paymentStatus} />
+							<PayerPaymentStatusCard data={paymentStatus} />
 						</ExpandableWidgetCard>
 					</section>
 				</TabsContent>
@@ -374,29 +375,27 @@ export default async function Page({ params, searchParams }: PageProps) {
 					<section className="flex flex-col gap-4">
 						<LancamentosSection
 							currentUserId={userId}
-							lancamentos={lancamentosData}
-							pagadorOptions={optionSets.pagadorOptions}
-							splitPagadorOptions={optionSets.splitPagadorOptions}
-							defaultPagadorId={pagador.id}
-							contaOptions={optionSets.contaOptions}
-							cartaoOptions={optionSets.cartaoOptions}
-							categoriaOptions={optionSets.categoriaOptions}
-							pagadorFilterOptions={pagadorFilterOptions}
-							categoriaFilterOptions={optionSets.categoriaFilterOptions}
-							contaCartaoFilterOptions={optionSets.contaCartaoFilterOptions}
+							transactions={transactionData}
+							payerOptions={optionSets.payerOptions}
+							splitPayerOptions={optionSets.splitPayerOptions}
+							defaultPayerId={pagador.id}
+							accountOptions={optionSets.accountOptions}
+							cardOptions={optionSets.cardOptions}
+							categoryOptions={optionSets.categoryOptions}
+							payerFilterOptions={payerFilterOptions}
+							categoryFilterOptions={optionSets.categoryFilterOptions}
+							accountCardFilterOptions={optionSets.accountCardFilterOptions}
 							selectedPeriod={selectedPeriod}
 							estabelecimentos={estabelecimentos}
 							allowCreate={canEdit}
-							noteAsColumn={userPreferences?.extratoNoteAsColumn ?? false}
-							columnOrder={userPreferences?.lancamentosColumnOrder ?? null}
-							importPagadorOptions={loggedUserOptionSets?.pagadorOptions}
-							importSplitPagadorOptions={
-								loggedUserOptionSets?.splitPagadorOptions
-							}
-							importDefaultPagadorId={loggedUserOptionSets?.defaultPagadorId}
-							importContaOptions={loggedUserOptionSets?.contaOptions}
-							importCartaoOptions={loggedUserOptionSets?.cartaoOptions}
-							importCategoriaOptions={loggedUserOptionSets?.categoriaOptions}
+							noteAsColumn={userPreferences?.statementNoteAsColumn ?? false}
+							columnOrder={userPreferences?.transactionsColumnOrder ?? null}
+							importPayerOptions={loggedUserOptionSets?.payerOptions}
+							importSplitPayerOptions={loggedUserOptionSets?.splitPayerOptions}
+							importDefaultPayerId={loggedUserOptionSets?.defaultPayerId}
+							importAccountOptions={loggedUserOptionSets?.accountOptions}
+							importCardOptions={loggedUserOptionSets?.cardOptions}
+							importCategoryOptions={loggedUserOptionSets?.categoryOptions}
 						/>
 					</section>
 				</TabsContent>

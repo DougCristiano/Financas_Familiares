@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { DEFAULT_PAGADOR_AVATAR } from "@/shared/lib/payers/constants";
+import { DEFAULT_PAYER_AVATAR } from "@/shared/lib/payers/constants";
 
 const AVATAR_DIRECTORY = path.join(process.cwd(), "public", "avatars");
 const AVATAR_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".svg", ".webp"]);
@@ -20,11 +20,11 @@ export async function loadAvatarOptions() {
 			.sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
 
 		if (items.length === 0) {
-			items.push(DEFAULT_PAGADOR_AVATAR);
+			items.push(DEFAULT_PAYER_AVATAR);
 		}
 
 		return Array.from(new Set(items));
 	} catch {
-		return [DEFAULT_PAGADOR_AVATAR];
+		return [DEFAULT_PAYER_AVATAR];
 	}
 }

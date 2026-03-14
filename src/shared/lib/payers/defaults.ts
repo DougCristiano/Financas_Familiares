@@ -1,14 +1,14 @@
 import { eq } from "drizzle-orm";
-import { pagadores } from "@/db/schema";
+import { payers } from "@/db/schema";
 import { db } from "@/shared/lib/db";
 import {
-	DEFAULT_PAGADOR_AVATAR,
-	PAGADOR_ROLE_ADMIN,
-	PAGADOR_STATUS_OPTIONS,
+	DEFAULT_PAYER_AVATAR,
+	PAYER_ROLE_ADMIN,
+	PAYER_STATUS_OPTIONS,
 } from "./constants";
 import { normalizeNameFromEmail } from "./utils";
 
-const DEFAULT_STATUS = PAGADOR_STATUS_OPTIONS[0];
+const DEFAULT_STATUS = PAYER_STATUS_OPTIONS[0];
 
 interface SeedUserLike {
 	id?: string;
@@ -24,9 +24,9 @@ export async function ensureDefaultPagadorForUser(user: SeedUserLike) {
 		return;
 	}
 
-	const hasAnyPagador = await db.query.pagadores.findFirst({
+	const hasAnyPagador = await db.query.payers.findFirst({
 		columns: { id: true, role: true },
-		where: eq(pagadores.userId, userId),
+		where: eq(payers.userId, userId),
 	});
 
 	if (hasAnyPagador) {
@@ -36,16 +36,16 @@ export async function ensureDefaultPagadorForUser(user: SeedUserLike) {
 	const name =
 		(user.name && user.name.trim().length > 0
 			? user.name.trim()
-			: normalizeNameFromEmail(user.email)) || "Pagador principal";
+			: normalizeNameFromEmail(user.email)) || "Payer principal";
 
 	// Usa a imagem do Google se disponível, senão usa o avatar padrão
-	const avatarUrl = user.image ?? DEFAULT_PAGADOR_AVATAR;
+	const avatarUrl = user.image ?? DEFAULT_PAYER_AVATAR;
 
-	await db.insert(pagadores).values({
+	await db.insert(payers).values({
 		name,
 		email: user.email ?? null,
 		status: DEFAULT_STATUS,
-		role: PAGADOR_ROLE_ADMIN,
+		role: PAYER_ROLE_ADMIN,
 		avatarUrl,
 		note: null,
 		isAutoSend: false,

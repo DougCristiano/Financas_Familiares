@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { compartilhamentosPagador, pagadores, user } from "@/db/schema";
+import { payerShares, payers, user } from "@/db/schema";
 import {
 	handleActionError,
 	revalidateForEntity,
@@ -12,21 +12,25 @@ import {
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
 import {
-	DEFAULT_PAGADOR_AVATAR,
-	PAGADOR_ROLE_ADMIN,
-	PAGADOR_ROLE_TERCEIRO,
-	PAGADOR_STATUS_OPTIONS,
+	DEFAULT_PAYER_AVATAR,
+	PAYER_ROLE_ADMIN,
+	PAYER_ROLE_THIRD_PARTY,
+	PAYER_STATUS_OPTIONS,
 } from "@/shared/lib/payers/constants";
 import { normalizeAvatarPath } from "@/shared/lib/payers/utils";
 import { noteSchema, uuidSchema } from "@/shared/lib/schemas/common";
 import type { ActionResult } from "@/shared/lib/types/actions";
 import { normalizeOptionalString } from "@/shared/utils/string";
 
-const statusEnum = z.enum(PAGADOR_STATUS_OPTIONS as [string, ...string[]], {
-	errorMap: () => ({
-		message: "Selecione um status válido.",
-	}),
-});
+const statusEnum = z
+	.enum([...PAYER_STATUS_OPTIONS] as [string, ...string[]])
+	.refine(
+		(v) =>
+			PAYER_STATUS_OPTIONS.includes(v as (typeof PAYER_STATUS_OPTIONS)[number]),
+		{
+			message: "Selecione um status válido.",
+		},
+	);
 
 const baseSchema = z.object({
 	name: z
@@ -48,11 +52,11 @@ const baseSchema = z.object({
 const createSchema = baseSchema;
 
 const updateSchema = baseSchema.extend({
-	id: uuidSchema("Pagador"),
+	id: uuidSchema("Payer"),
 });
 
 const deleteSchema = z.object({
-	id: uuidSchema("Pagador"),
+	id: uuidSchema("Payer"),
 });
 
 const shareDeleteSchema = z.object({
@@ -67,7 +71,7 @@ const shareCodeJoinSchema = z.object({
 });
 
 const shareCodeRegenerateSchema = z.object({
-	pagadorId: uuidSchema("Pagador"),
+	payerId: uuidSchema("Payer"),
 });
 
 type CreateInput = z.infer<typeof createSchema>;
@@ -77,7 +81,7 @@ type ShareDeleteInput = z.infer<typeof shareDeleteSchema>;
 type ShareCodeJoinInput = z.infer<typeof shareCodeJoinSchema>;
 type ShareCodeRegenerateInput = z.infer<typeof shareCodeRegenerateSchema>;
 
-const revalidate = () => revalidateForEntity("pagadores");
+const revalidate = () => revalidateForEntity("payers");
 
 const generateShareCode = () => {
 	// base64url já retorna apenas [a-zA-Z0-9_-]
@@ -85,56 +89,53 @@ const generateShareCode = () => {
 	return randomBytes(18).toString("base64url").slice(0, 24);
 };
 
-export async function createPagadorAction(
+export async function createPayerAction(
 	input: CreateInput,
 ): Promise<ActionResult> {
 	try {
 		const user = await getUser();
 		const data = createSchema.parse(input);
 
-		await db.insert(pagadores).values({
+		await db.insert(payers).values({
 			name: data.name,
 			email: data.email,
 			status: data.status,
 			note: data.note,
-			avatarUrl: normalizeAvatarPath(data.avatarUrl) ?? DEFAULT_PAGADOR_AVATAR,
+			avatarUrl: normalizeAvatarPath(data.avatarUrl) ?? DEFAULT_PAYER_AVATAR,
 			isAutoSend: data.isAutoSend ?? false,
-			role: PAGADOR_ROLE_TERCEIRO,
+			role: PAYER_ROLE_THIRD_PARTY,
 			shareCode: generateShareCode(),
 			userId: user.id,
 		});
 
 		revalidate();
 
-		return { success: true, message: "Pagador criado com sucesso." };
+		return { success: true, message: "Payer criado com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
 	}
 }
 
-export async function updatePagadorAction(
+export async function updatePayerAction(
 	input: UpdateInput,
 ): Promise<ActionResult> {
 	try {
 		const currentUser = await getUser();
 		const data = updateSchema.parse(input);
 
-		const existing = await db.query.pagadores.findFirst({
-			where: and(
-				eq(pagadores.id, data.id),
-				eq(pagadores.userId, currentUser.id),
-			),
+		const existing = await db.query.payers.findFirst({
+			where: and(eq(payers.id, data.id), eq(payers.userId, currentUser.id)),
 		});
 
 		if (!existing) {
 			return {
 				success: false,
-				error: "Pagador não encontrado.",
+				error: "Payer não encontrado.",
 			};
 		}
 
 		await db
-			.update(pagadores)
+			.update(payers)
 			.set({
 				name: data.name,
 				email: data.email,
@@ -143,14 +144,12 @@ export async function updatePagadorAction(
 				avatarUrl:
 					normalizeAvatarPath(data.avatarUrl) ?? existing.avatarUrl ?? null,
 				isAutoSend: data.isAutoSend ?? false,
-				role: existing.role ?? PAGADOR_ROLE_TERCEIRO,
+				role: existing.role ?? PAYER_ROLE_THIRD_PARTY,
 			})
-			.where(
-				and(eq(pagadores.id, data.id), eq(pagadores.userId, currentUser.id)),
-			);
+			.where(and(eq(payers.id, data.id), eq(payers.userId, currentUser.id)));
 
 		// Se o pagador é admin, sincronizar nome com o usuário
-		if (existing.role === PAGADOR_ROLE_ADMIN) {
+		if (existing.role === PAYER_ROLE_ADMIN) {
 			await db
 				.update(user)
 				.set({ name: data.name })
@@ -161,31 +160,31 @@ export async function updatePagadorAction(
 
 		revalidate();
 
-		return { success: true, message: "Pagador atualizado com sucesso." };
+		return { success: true, message: "Payer atualizado com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
 	}
 }
 
-export async function deletePagadorAction(
+export async function deletePayerAction(
 	input: DeleteInput,
 ): Promise<ActionResult> {
 	try {
 		const user = await getUser();
 		const data = deleteSchema.parse(input);
 
-		const existing = await db.query.pagadores.findFirst({
-			where: and(eq(pagadores.id, data.id), eq(pagadores.userId, user.id)),
+		const existing = await db.query.payers.findFirst({
+			where: and(eq(payers.id, data.id), eq(payers.userId, user.id)),
 		});
 
 		if (!existing) {
 			return {
 				success: false,
-				error: "Pagador não encontrado.",
+				error: "Payer não encontrado.",
 			};
 		}
 
-		if (existing.role === PAGADOR_ROLE_ADMIN) {
+		if (existing.role === PAYER_ROLE_ADMIN) {
 			return {
 				success: false,
 				error: "Pagadores administradores não podem ser removidos.",
@@ -193,26 +192,26 @@ export async function deletePagadorAction(
 		}
 
 		await db
-			.delete(pagadores)
-			.where(and(eq(pagadores.id, data.id), eq(pagadores.userId, user.id)));
+			.delete(payers)
+			.where(and(eq(payers.id, data.id), eq(payers.userId, user.id)));
 
 		revalidate();
 
-		return { success: true, message: "Pagador removido com sucesso." };
+		return { success: true, message: "Payer removido com sucesso." };
 	} catch (error) {
 		return handleActionError(error);
 	}
 }
 
-export async function joinPagadorByShareCodeAction(
+export async function joinPayerByShareCodeAction(
 	input: ShareCodeJoinInput,
 ): Promise<ActionResult> {
 	try {
 		const user = await getUser();
 		const data = shareCodeJoinSchema.parse(input);
 
-		const pagadorRow = await db.query.pagadores.findFirst({
-			where: eq(pagadores.shareCode, data.code),
+		const pagadorRow = await db.query.payers.findFirst({
+			where: eq(payers.shareCode, data.code),
 		});
 
 		if (!pagadorRow) {
@@ -226,10 +225,10 @@ export async function joinPagadorByShareCodeAction(
 			};
 		}
 
-		const existingShare = await db.query.compartilhamentosPagador.findFirst({
+		const existingShare = await db.query.payerShares.findFirst({
 			where: and(
-				eq(compartilhamentosPagador.pagadorId, pagadorRow.id),
-				eq(compartilhamentosPagador.sharedWithUserId, user.id),
+				eq(payerShares.payerId, pagadorRow.id),
+				eq(payerShares.sharedWithUserId, user.id),
 			),
 		});
 
@@ -240,8 +239,8 @@ export async function joinPagadorByShareCodeAction(
 			};
 		}
 
-		await db.insert(compartilhamentosPagador).values({
-			pagadorId: pagadorRow.id,
+		await db.insert(payerShares).values({
+			payerId: pagadorRow.id,
 			sharedWithUserId: user.id,
 			permission: "read",
 			createdByUserId: pagadorRow.userId,
@@ -249,28 +248,28 @@ export async function joinPagadorByShareCodeAction(
 
 		revalidate();
 
-		return { success: true, message: "Pagador adicionado à sua lista." };
+		return { success: true, message: "Payer adicionado à sua lista." };
 	} catch (error) {
 		return handleActionError(error);
 	}
 }
 
-export async function deletePagadorShareAction(
+export async function deletePayerShareAction(
 	input: ShareDeleteInput,
 ): Promise<ActionResult> {
 	try {
 		const user = await getUser();
 		const data = shareDeleteSchema.parse(input);
 
-		const existing = await db.query.compartilhamentosPagador.findFirst({
+		const existing = await db.query.payerShares.findFirst({
 			columns: {
 				id: true,
-				pagadorId: true,
+				payerId: true,
 				sharedWithUserId: true,
 			},
-			where: eq(compartilhamentosPagador.id, data.shareId),
+			where: eq(payerShares.id, data.shareId),
 			with: {
-				pagador: {
+				payer: {
 					columns: {
 						userId: true,
 					},
@@ -279,10 +278,10 @@ export async function deletePagadorShareAction(
 		});
 
 		// Permitir que o owner OU o próprio usuário compartilhado remova o share
+		const payerOwner = existing?.payer as { userId: string } | null | undefined;
 		if (
 			!existing ||
-			(existing.pagador.userId !== user.id &&
-				existing.sharedWithUserId !== user.id)
+			(payerOwner?.userId !== user.id && existing.sharedWithUserId !== user.id)
 		) {
 			return {
 				success: false,
@@ -290,12 +289,10 @@ export async function deletePagadorShareAction(
 			};
 		}
 
-		await db
-			.delete(compartilhamentosPagador)
-			.where(eq(compartilhamentosPagador.id, data.shareId));
+		await db.delete(payerShares).where(eq(payerShares.id, data.shareId));
 
 		revalidate();
-		revalidatePath(`/payers/${existing.pagadorId}`);
+		revalidatePath(`/payers/${existing.payerId}`);
 
 		return { success: true, message: "Compartilhamento removido." };
 	} catch (error) {
@@ -303,23 +300,20 @@ export async function deletePagadorShareAction(
 	}
 }
 
-export async function regeneratePagadorShareCodeAction(
+export async function regeneratePayerShareCodeAction(
 	input: ShareCodeRegenerateInput,
 ): Promise<{ success: true; message: string; code: string } | ActionResult> {
 	try {
 		const user = await getUser();
 		const data = shareCodeRegenerateSchema.parse(input);
 
-		const existing = await db.query.pagadores.findFirst({
+		const existing = await db.query.payers.findFirst({
 			columns: { id: true, userId: true },
-			where: and(
-				eq(pagadores.id, data.pagadorId),
-				eq(pagadores.userId, user.id),
-			),
+			where: and(eq(payers.id, data.payerId), eq(payers.userId, user.id)),
 		});
 
 		if (!existing) {
-			return { success: false, error: "Pagador não encontrado." };
+			return { success: false, error: "Payer não encontrado." };
 		}
 
 		let attempts = 0;
@@ -327,17 +321,12 @@ export async function regeneratePagadorShareCodeAction(
 			const newCode = generateShareCode();
 			try {
 				await db
-					.update(pagadores)
+					.update(payers)
 					.set({ shareCode: newCode })
-					.where(
-						and(
-							eq(pagadores.id, data.pagadorId),
-							eq(pagadores.userId, user.id),
-						),
-					);
+					.where(and(eq(payers.id, data.payerId), eq(payers.userId, user.id)));
 
 				revalidate();
-				revalidatePath(`/payers/${data.pagadorId}`);
+				revalidatePath(`/payers/${data.payerId}`);
 				return {
 					success: true,
 					message: "Código atualizado com sucesso.",
@@ -347,8 +336,8 @@ export async function regeneratePagadorShareCodeAction(
 				if (
 					error instanceof Error &&
 					"constraint" in error &&
-					// @ts-expect-error constraint is present in postgres errors
-					error.constraint === "pagadores_share_code_key"
+					(error as { constraint?: string }).constraint ===
+						"pagadores_share_code_key"
 				) {
 					attempts += 1;
 					continue;

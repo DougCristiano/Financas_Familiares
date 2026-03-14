@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { sendPagadorSummaryAction } from "@/features/payers/detail-actions";
+import { sendPayerSummaryAction } from "@/features/payers/detail-actions";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -30,41 +30,41 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDateTime } from "@/shared/utils/date";
-import type { PagadorInfo, PagadorSummaryPreview } from "./types";
+import type { PayerInfo, PayerSummaryPreview } from "./types";
 
-type PagadorHeaderCardProps = {
-	pagador: PagadorInfo;
+type PayerHeaderCardProps = {
+	payer: PayerInfo;
 	selectedPeriod: string;
-	summary: PagadorSummaryPreview;
+	summary: PayerSummaryPreview;
 };
 
-export function PagadorHeaderCard({
-	pagador,
+export function PayerHeaderCard({
+	payer,
 	selectedPeriod,
 	summary,
-}: PagadorHeaderCardProps) {
+}: PayerHeaderCardProps) {
 	const router = useRouter();
 	const [isSending, startTransition] = useTransition();
 	const [confirmOpen, setConfirmOpen] = useState(false);
 
-	const avatarSrc = getAvatarSrc(pagador.avatarUrl);
-	const createdAtLabel = formatDate(pagador.createdAt);
-	const isAdmin = pagador.role === PAGADOR_ROLE_ADMIN;
+	const avatarSrc = getAvatarSrc(payer.avatarUrl);
+	const createdAtLabel = formatDate(payer.createdAt);
+	const isAdmin = payer.role === PAYER_ROLE_ADMIN;
 
 	const lastMailLabel =
-		formatDateTime(pagador.lastMailAt, {
+		formatDateTime(payer.lastMailAt, {
 			dateStyle: "short",
 			timeStyle: "short",
 		}) ?? "Nunca enviado";
 
-	const disableSend = isSending || !pagador.email || !pagador.canEdit;
+	const disableSend = isSending || !payer.email || !payer.canEdit;
 
 	const openConfirmDialog = () => {
-		if (!pagador.email) {
+		if (!payer.email) {
 			toast.error("Cadastre um e-mail para este pagador antes de enviar.");
 			return;
 		}
@@ -72,14 +72,14 @@ export function PagadorHeaderCard({
 	};
 
 	const handleSendSummary = () => {
-		if (!pagador.email) {
+		if (!payer.email) {
 			toast.error("Cadastre um e-mail para este pagador antes de enviar.");
 			return;
 		}
 
 		startTransition(async () => {
-			const result = await sendPagadorSummaryAction({
-				pagadorId: pagador.id,
+			const result = await sendPayerSummaryAction({
+				payerId: payer.id,
 				period: selectedPeriod,
 			});
 
@@ -109,7 +109,7 @@ export function PagadorHeaderCard({
 					<div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden">
 						<Image
 							src={avatarSrc}
-							alt={`Avatar de ${pagador.name}`}
+							alt={`Avatar de ${payer.name}`}
 							width={64}
 							height={64}
 							className="h-full w-full rounded-full object-cover"
@@ -119,7 +119,7 @@ export function PagadorHeaderCard({
 					<div className="flex flex-1 flex-col gap-2">
 						<div className="flex flex-wrap items-center gap-2">
 							<CardTitle className="text-xl font-semibold text-foreground">
-								{pagador.name}
+								{payer.name}
 							</CardTitle>
 							{isAdmin ? (
 								<RiVerifiedBadgeFill
@@ -128,12 +128,12 @@ export function PagadorHeaderCard({
 								/>
 							) : null}
 							<Badge
-								variant={getStatusBadgeVariant(pagador.status)}
+								variant={getStatusBadgeVariant(payer.status)}
 								className="text-xs"
 							>
-								{pagador.status}
+								{payer.status}
 							</Badge>
-							{pagador.isAutoSend ? (
+							{payer.isAutoSend ? (
 								<Badge variant="info" className="gap-1 text-xs">
 									<RiMailSendLine className="size-3.5" aria-hidden />
 									Envio automático
@@ -144,14 +144,14 @@ export function PagadorHeaderCard({
 						<CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
 							<span>Criado em {createdAtLabel}</span>
 							<span className="hidden text-border/80 sm:inline">•</span>
-							{pagador.email ? (
+							{payer.email ? (
 								<Link
 									prefetch
-									href={`mailto:${pagador.email}`}
+									href={`mailto:${payer.email}`}
 									className="inline-flex items-center gap-1.5 text-primary"
 								>
 									<RiMailLine className="size-4" aria-hidden />
-									{pagador.email}
+									{payer.email}
 								</Link>
 							) : (
 								<span>Sem e-mail cadastrado</span>
@@ -161,7 +161,7 @@ export function PagadorHeaderCard({
 				</div>
 
 				<div className="flex w-full flex-col items-stretch gap-2 lg:w-auto lg:items-end">
-					{pagador.canEdit ? (
+					{payer.canEdit ? (
 						<>
 							<Button
 								type="button"
@@ -184,7 +184,7 @@ export function PagadorHeaderCard({
 				</div>
 			</CardHeader>
 
-			{pagador.canEdit ? (
+			{payer.canEdit ? (
 				<Dialog
 					open={confirmOpen}
 					onOpenChange={(open) => {
@@ -202,7 +202,7 @@ export function PagadorHeaderCard({
 								</span>{" "}
 								para{" "}
 								<span className="font-medium text-foreground">
-									{pagador.email}
+									{payer.email}
 								</span>
 							</DialogDescription>
 						</DialogHeader>

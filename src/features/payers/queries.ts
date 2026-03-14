@@ -2,21 +2,21 @@ import { eq } from "drizzle-orm";
 import { user } from "@/db/schema";
 import { loadAvatarOptions } from "@/features/payers/lib/avatar-options";
 import { db } from "@/shared/lib/db";
-import { fetchPagadoresWithAccess } from "@/shared/lib/payers/access";
-import type { PagadorStatus } from "@/shared/lib/payers/constants";
+import { fetchPayersWithAccess } from "@/shared/lib/payers/access";
+import type { PayerStatus } from "@/shared/lib/payers/constants";
 import {
-	PAGADOR_ROLE_ADMIN,
-	PAGADOR_STATUS_OPTIONS,
+	PAYER_ROLE_ADMIN,
+	PAYER_STATUS_OPTIONS,
 } from "@/shared/lib/payers/constants";
 
-export type PagadorData = {
+export type PayerData = {
 	id: string;
 	name: string;
 	email: string | null;
 	avatarUrl: string | null;
-	status: PagadorStatus;
+	status: PayerStatus;
 	note: string | null;
-	role: string;
+	role: string | null;
 	isAutoSend: boolean;
 	createdAt: string;
 	canEdit: boolean;
@@ -26,19 +26,19 @@ export type PagadorData = {
 	shareCode: string | null;
 };
 
-const resolveStatus = (status: string | null): PagadorStatus => {
+const resolveStatus = (status: string | null): PayerStatus => {
 	const normalized = status?.trim() ?? "";
-	const found = PAGADOR_STATUS_OPTIONS.find(
+	const found = PAYER_STATUS_OPTIONS.find(
 		(option) => option.toLowerCase() === normalized.toLowerCase(),
 	);
-	return found ?? PAGADOR_STATUS_OPTIONS[0];
+	return found ?? PAYER_STATUS_OPTIONS[0];
 };
 
-export async function fetchPagadoresForUser(
+export async function fetchPayersForUser(
 	userId: string,
-): Promise<{ pagadores: PagadorData[]; avatarOptions: string[] }> {
-	const [pagadorRows, localAvatarOptions, userData] = await Promise.all([
-		fetchPagadoresWithAccess(userId),
+): Promise<{ payers: PayerData[]; avatarOptions: string[] }> {
+	const [payerRows, localAvatarOptions, userData] = await Promise.all([
+		fetchPayersWithAccess(userId),
 		loadAvatarOptions(),
 		db.query.user.findFirst({
 			columns: { image: true },
@@ -51,7 +51,7 @@ export async function fetchPagadoresForUser(
 		? [userImage, ...localAvatarOptions]
 		: localAvatarOptions;
 
-	const pagadores = pagadorRows
+	const payers = payerRows
 		.map((pagador) => ({
 			id: pagador.id,
 			name: pagador.name,
@@ -69,12 +69,10 @@ export async function fetchPagadoresForUser(
 			shareCode: pagador.canEdit ? (pagador.shareCode ?? null) : null,
 		}))
 		.sort((a, b) => {
-			if (a.role === PAGADOR_ROLE_ADMIN && b.role !== PAGADOR_ROLE_ADMIN)
-				return -1;
-			if (a.role !== PAGADOR_ROLE_ADMIN && b.role === PAGADOR_ROLE_ADMIN)
-				return 1;
+			if (a.role === PAYER_ROLE_ADMIN && b.role !== PAYER_ROLE_ADMIN) return -1;
+			if (a.role !== PAYER_ROLE_ADMIN && b.role === PAYER_ROLE_ADMIN) return 1;
 			return 0;
 		});
 
-	return { pagadores, avatarOptions };
+	return { payers, avatarOptions };
 }

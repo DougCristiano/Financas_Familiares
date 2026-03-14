@@ -1,4 +1,4 @@
-export type PagadorInfo = {
+export type PayerInfo = {
 	id: string;
 	name: string;
 	email: string | null;
@@ -13,7 +13,7 @@ export type PagadorInfo = {
 	canEdit: boolean;
 };
 
-export type PagadorSummaryPreview = {
+export type PayerSummaryPreview = {
 	periodLabel: string;
 	totalExpenses: number;
 	paymentSplits: {

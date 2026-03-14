@@ -11,20 +11,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card } from "@/shared/components/ui/card";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
-import type { Pagador } from "./types";
+import type { Payer } from "./types";
 
-interface PagadorCardProps {
-	pagador: Pagador;
+interface PayerCardProps {
+	payer: Payer;
 	onEdit?: () => void;
 	onRemove?: () => void;
 }
 
-export function PagadorCard({ pagador, onEdit, onRemove }: PagadorCardProps) {
-	const avatarSrc = getAvatarSrc(pagador.avatarUrl);
-	const isAdmin = pagador.role === PAGADOR_ROLE_ADMIN;
-	const isReadOnly = !pagador.canEdit;
+export function PayerCard({ payer, onEdit, onRemove }: PayerCardProps) {
+	const avatarSrc = getAvatarSrc(payer.avatarUrl);
+	const isAdmin = payer.role === PAYER_ROLE_ADMIN;
+	const isReadOnly = !payer.canEdit;
 
 	return (
 		<Card className=" overflow-hidden px-6">
@@ -33,7 +33,7 @@ export function PagadorCard({ pagador, onEdit, onRemove }: PagadorCardProps) {
 				<div className="relative mb-3 flex size-16 items-center justify-center overflow-hidden rounded-full  border-background bg-background shadow-lg">
 					<Image
 						src={avatarSrc}
-						alt={`Avatar de ${pagador.name}`}
+						alt={`Avatar de ${payer.name}`}
 						width={80}
 						height={80}
 						className="h-full w-full object-cover"
@@ -43,19 +43,19 @@ export function PagadorCard({ pagador, onEdit, onRemove }: PagadorCardProps) {
 				{/* Nome e badges */}
 				<div className="flex items-center gap-1.5">
 					<h3 className="text-base font-semibold text-foreground">
-						{pagador.name}
+						{payer.name}
 					</h3>
 					{isAdmin ? (
 						<RiVerifiedBadgeFill className="size-4 text-blue-500" aria-hidden />
 					) : null}
-					{pagador.isAutoSend ? (
+					{payer.isAutoSend ? (
 						<RiMailSendLine className="size-4 text-primary" aria-hidden />
 					) : null}
 				</div>
 
 				{/* Email */}
-				{pagador.email ? (
-					<p className="mt-1 text-xs text-muted-foreground">{pagador.email}</p>
+				{payer.email ? (
+					<p className="mt-1 text-xs text-muted-foreground">{payer.email}</p>
 				) : (
 					<p className="mt-1 text-xs text-muted-foreground">
 						Sem email cadastrado
@@ -65,10 +65,10 @@ export function PagadorCard({ pagador, onEdit, onRemove }: PagadorCardProps) {
 				{/* Status badges */}
 				<div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
 					<Badge
-						variant={pagador.status === "Ativo" ? "success" : "outline"}
+						variant={payer.status === "Ativo" ? "success" : "outline"}
 						className="text-xs"
 					>
-						{pagador.status}
+						{payer.status}
 					</Badge>
 
 					{isReadOnly ? (
@@ -93,7 +93,7 @@ export function PagadorCard({ pagador, onEdit, onRemove }: PagadorCardProps) {
 				) : null}
 
 				<Link
-					href={`/payers/${pagador.id}`}
+					href={`/payers/${payer.id}`}
 					className={`text-primary flex items-center gap-1 font-medium transition-opacity hover:opacity-80`}
 				>
 					<RiFileList2Line className="size-4" aria-hidden />

@@ -1,11 +1,11 @@
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import {
-	cartoes,
-	categorias,
-	compartilhamentosPagador,
-	contas,
-	lancamentos,
-	pagadores,
+	cards,
+	categories,
+	financialAccounts,
+	payerShares,
+	payers,
+	transactions,
 	user as usersTable,
 } from "@/db/schema";
 import { db } from "@/shared/lib/db";
@@ -18,23 +18,18 @@ export type ShareData = {
 	createdAt: string;
 };
 
-export async function fetchPagadorShares(
-	pagadorId: string,
-): Promise<ShareData[]> {
+export async function fetchPayerShares(payerId: string): Promise<ShareData[]> {
 	const shareRows = await db
 		.select({
-			id: compartilhamentosPagador.id,
-			sharedWithUserId: compartilhamentosPagador.sharedWithUserId,
-			createdAt: compartilhamentosPagador.createdAt,
+			id: payerShares.id,
+			sharedWithUserId: payerShares.sharedWithUserId,
+			createdAt: payerShares.createdAt,
 			userName: usersTable.name,
 			userEmail: usersTable.email,
 		})
-		.from(compartilhamentosPagador)
-		.innerJoin(
-			usersTable,
-			eq(compartilhamentosPagador.sharedWithUserId, usersTable.id),
-		)
-		.where(eq(compartilhamentosPagador.pagadorId, pagadorId));
+		.from(payerShares)
+		.innerJoin(usersTable, eq(payerShares.sharedWithUserId, usersTable.id))
+		.where(eq(payerShares.payerId, payerId));
 
 	return shareRows.map((share) => ({
 		id: share.id,
@@ -46,17 +41,17 @@ export async function fetchPagadorShares(
 }
 
 export async function fetchCurrentUserShare(
-	pagadorId: string,
+	payerId: string,
 	userId: string,
 ): Promise<{ id: string; createdAt: string } | null> {
-	const shareRow = await db.query.compartilhamentosPagador.findFirst({
+	const shareRow = await db.query.payerShares.findFirst({
 		columns: {
 			id: true,
 			createdAt: true,
 		},
 		where: and(
-			eq(compartilhamentosPagador.pagadorId, pagadorId),
-			eq(compartilhamentosPagador.sharedWithUserId, userId),
+			eq(payerShares.payerId, payerId),
+			eq(payerShares.sharedWithUserId, userId),
 		),
 	});
 
@@ -71,28 +66,31 @@ export async function fetchCurrentUserShare(
 }
 
 export async function fetchPagadorLancamentos(filters: SQL[]) {
-	const lancamentoRows = await db
+	const transactionRows = await db
 		.select({
-			lancamento: lancamentos,
-			pagador: pagadores,
-			conta: contas,
-			cartao: cartoes,
-			categoria: categorias,
+			transaction: transactions,
+			payer: payers,
+			financialAccount: financialAccounts,
+			card: cards,
+			category: categories,
 		})
-		.from(lancamentos)
-		.leftJoin(pagadores, eq(lancamentos.pagadorId, pagadores.id))
-		.leftJoin(contas, eq(lancamentos.contaId, contas.id))
-		.leftJoin(cartoes, eq(lancamentos.cartaoId, cartoes.id))
-		.leftJoin(categorias, eq(lancamentos.categoriaId, categorias.id))
+		.from(transactions)
+		.leftJoin(payers, eq(transactions.payerId, payers.id))
+		.leftJoin(
+			financialAccounts,
+			eq(transactions.accountId, financialAccounts.id),
+		)
+		.leftJoin(cards, eq(transactions.cardId, cards.id))
+		.leftJoin(categories, eq(transactions.categoryId, categories.id))
 		.where(and(...filters))
-		.orderBy(desc(lancamentos.purchaseDate), desc(lancamentos.createdAt));
+		.orderBy(desc(transactions.purchaseDate), desc(transactions.createdAt));
 
 	// Transformar resultado para o formato esperado
-	return lancamentoRows.map((row: Record<string, unknown>) => ({
-		...row.lancamento,
-		pagador: row.pagador,
-		conta: row.conta,
-		cartao: row.cartao,
-		categoria: row.categoria,
+	return transactionRows.map((row) => ({
+		...row.transaction,
+		payer: row.payer,
+		financialAccount: row.financialAccount,
+		card: row.card,
+		category: row.category,
 	}));
 }

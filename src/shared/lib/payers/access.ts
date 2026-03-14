@@ -1,42 +1,36 @@
 import { and, eq } from "drizzle-orm";
-import {
-	compartilhamentosPagador,
-	pagadores,
-	user as usersTable,
-} from "@/db/schema";
+import { payerShares, payers, user as usersTable } from "@/db/schema";
 import { db } from "@/shared/lib/db";
 
-export type PagadorWithAccess = typeof pagadores.$inferSelect & {
+export type PayerWithAccess = Omit<typeof payers.$inferSelect, "shareCode"> & {
+	shareCode: string | null;
 	canEdit: boolean;
 	sharedByName: string | null;
 	sharedByEmail: string | null;
 	shareId: string | null;
 };
 
-export async function fetchPagadoresWithAccess(
+export async function fetchPayersWithAccess(
 	userId: string,
-): Promise<PagadorWithAccess[]> {
+): Promise<PayerWithAccess[]> {
 	const [owned, shared] = await Promise.all([
-		db.query.pagadores.findMany({
-			where: eq(pagadores.userId, userId),
+		db.query.payers.findMany({
+			where: eq(payers.userId, userId),
 		}),
 		db
 			.select({
-				shareId: compartilhamentosPagador.id,
-				pagador: pagadores,
+				shareId: payerShares.id,
+				payer: payers,
 				ownerName: usersTable.name,
 				ownerEmail: usersTable.email,
 			})
-			.from(compartilhamentosPagador)
-			.innerJoin(
-				pagadores,
-				eq(compartilhamentosPagador.pagadorId, pagadores.id),
-			)
-			.leftJoin(usersTable, eq(pagadores.userId, usersTable.id))
-			.where(eq(compartilhamentosPagador.sharedWithUserId, userId)),
+			.from(payerShares)
+			.innerJoin(payers, eq(payerShares.payerId, payers.id))
+			.leftJoin(usersTable, eq(payers.userId, usersTable.id))
+			.where(eq(payerShares.sharedWithUserId, userId)),
 	]);
 
-	const ownedMapped: PagadorWithAccess[] = owned.map((item) => ({
+	const ownedMapped: PayerWithAccess[] = owned.map((item) => ({
 		...item,
 		canEdit: true,
 		sharedByName: null,
@@ -44,8 +38,8 @@ export async function fetchPagadoresWithAccess(
 		shareId: null,
 	}));
 
-	const sharedMapped: PagadorWithAccess[] = shared.map((item) => ({
-		...item.pagador,
+	const sharedMapped: PayerWithAccess[] = shared.map((item) => ({
+		...(item.payer as typeof payers.$inferSelect),
 		shareCode: null,
 		canEdit: false,
 		sharedByName: item.ownerName ?? null,
@@ -56,9 +50,9 @@ export async function fetchPagadoresWithAccess(
 	return [...ownedMapped, ...sharedMapped];
 }
 
-export async function getPagadorAccess(userId: string, pagadorId: string) {
-	const pagador = await db.query.pagadores.findFirst({
-		where: and(eq(pagadores.id, pagadorId)),
+export async function getPayerAccess(userId: string, payerId: string) {
+	const pagador = await db.query.payers.findFirst({
+		where: and(eq(payers.id, payerId)),
 	});
 
 	if (!pagador) {
@@ -69,14 +63,14 @@ export async function getPagadorAccess(userId: string, pagadorId: string) {
 		return {
 			pagador,
 			canEdit: true,
-			share: null as typeof compartilhamentosPagador.$inferSelect | null,
+			share: null as typeof payerShares.$inferSelect | null,
 		};
 	}
 
-	const share = await db.query.compartilhamentosPagador.findFirst({
+	const share = await db.query.payerShares.findFirst({
 		where: and(
-			eq(compartilhamentosPagador.pagadorId, pagadorId),
-			eq(compartilhamentosPagador.sharedWithUserId, userId),
+			eq(payerShares.payerId, payerId),
+			eq(payerShares.sharedWithUserId, userId),
 		),
 	});
 

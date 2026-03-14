@@ -1,24 +1,19 @@
 import { and, eq } from "drizzle-orm";
 import { cache } from "react";
-import { pagadores } from "@/db/schema";
+import { payers } from "@/db/schema";
 import { db } from "@/shared/lib/db";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 
 /**
  * Returns the admin pagador ID for a user (cached per request via React.cache).
- * Eliminates the need for JOIN with pagadores in ~20 dashboard queries.
+ * Eliminates the need for JOIN with payers in ~20 dashboard queries.
  */
-export const getAdminPagadorId = cache(
+export const getAdminPayerId = cache(
 	async (userId: string): Promise<string | null> => {
 		const [row] = await db
-			.select({ id: pagadores.id })
-			.from(pagadores)
-			.where(
-				and(
-					eq(pagadores.userId, userId),
-					eq(pagadores.role, PAGADOR_ROLE_ADMIN),
-				),
-			)
+			.select({ id: payers.id })
+			.from(payers)
+			.where(and(eq(payers.userId, userId), eq(payers.role, PAYER_ROLE_ADMIN)))
 			.limit(1);
 		return row?.id ?? null;
 	},

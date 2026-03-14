@@ -8,17 +8,17 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/shared/components/ui/card";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 import { formatDateTime } from "@/shared/utils/date";
 import { cn } from "@/shared/utils/ui";
-import type { PagadorInfo } from "./types";
+import type { PayerInfo } from "./types";
 
-type PagadorInfoCardProps = {
-	pagador: PagadorInfo;
+type PayerInfoCardProps = {
+	payer: PayerInfo;
 };
 
-export function PagadorInfoCard({ pagador }: PagadorInfoCardProps) {
-	const showSensitiveDetails = pagador.canEdit;
+export function PagadorInfoCard({ payer }: PayerInfoCardProps) {
+	const showSensitiveDetails = payer.canEdit;
 
 	const getStatusBadgeVariant = (status: string): "success" | "outline" => {
 		const normalizedStatus = status.toLowerCase();
@@ -32,7 +32,7 @@ export function PagadorInfoCard({ pagador }: PagadorInfoCardProps) {
 		<Card className="border gap-4">
 			<CardHeader className="gap-1.5">
 				<CardTitle className="text-lg font-semibold">
-					Detalhes do pagador
+					Detalhes do payer
 				</CardTitle>
 				<CardDescription>
 					{showSensitiveDetails
@@ -46,10 +46,10 @@ export function PagadorInfoCard({ pagador }: PagadorInfoCardProps) {
 					label="Status"
 					value={
 						<Badge
-							variant={getStatusBadgeVariant(pagador.status)}
+							variant={getStatusBadgeVariant(payer.status)}
 							className="text-xs"
 						>
-							{pagador.status}
+							{payer.status}
 						</Badge>
 					}
 				/>
@@ -59,23 +59,23 @@ export function PagadorInfoCard({ pagador }: PagadorInfoCardProps) {
 					value={
 						<span className="inline-flex items-center gap-2">
 							<RiUser3Line className="size-4 text-muted-foreground" />
-							{resolveRoleLabel(pagador.role)}
+							{resolveRoleLabel(payer.role)}
 						</span>
 					}
 				/>
 				{showSensitiveDetails ? (
 					<InfoItem
 						label="Envio automático"
-						value={pagador.isAutoSend ? "Ativado" : "Desativado"}
+						value={payer.isAutoSend ? "Ativado" : "Desativado"}
 					/>
 				) : null}
 				{showSensitiveDetails ? (
 					<InfoItem
 						label="Último envio"
-						value={formatDateTime(pagador.lastMailAt) ?? "Nunca enviado"}
+						value={formatDateTime(payer.lastMailAt) ?? "Nunca enviado"}
 					/>
 				) : null}
-				{showSensitiveDetails && !pagador.email ? (
+				{showSensitiveDetails && !payer.email ? (
 					<InfoItem
 						label="Aviso"
 						value={
@@ -90,8 +90,8 @@ export function PagadorInfoCard({ pagador }: PagadorInfoCardProps) {
 					<InfoItem
 						label="Observações"
 						value={
-							pagador.note ? (
-								<span className="text-muted-foreground">{pagador.note}</span>
+							payer.note ? (
+								<span className="text-muted-foreground">{payer.note}</span>
 							) : (
 								"Sem observações"
 							)
@@ -105,8 +105,8 @@ export function PagadorInfoCard({ pagador }: PagadorInfoCardProps) {
 }
 
 const resolveRoleLabel = (role: string | null) => {
-	if (role === PAGADOR_ROLE_ADMIN) return "Administrador";
-	return "Pagador";
+	if (role === PAYER_ROLE_ADMIN) return "Administrador";
+	return "Payer";
 };
 
 type InfoItemProps = {

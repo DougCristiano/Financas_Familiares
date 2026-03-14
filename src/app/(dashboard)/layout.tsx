@@ -3,8 +3,8 @@ import { fetchPendingInboxCount } from "@/features/inbox/queries";
 import { AppNavbar } from "@/shared/components/navigation/navbar/app-navbar";
 import { PrivacyProvider } from "@/shared/components/providers/privacy-provider";
 import { getUserSession } from "@/shared/lib/auth/server";
-import { fetchPagadoresWithAccess } from "@/shared/lib/payers/access";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import { fetchPayersWithAccess } from "@/shared/lib/payers/access";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
 import { parsePeriodParam } from "@/shared/utils/period";
 
 export default async function DashboardLayout({
@@ -15,11 +15,11 @@ export default async function DashboardLayout({
 	searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }>) {
 	const session = await getUserSession();
-	const pagadoresList = await fetchPagadoresWithAccess(session.user.id);
+	const payerList = await fetchPayersWithAccess(session.user.id);
 
 	// Encontrar o pagador admin do usuário
-	const adminPagador = pagadoresList.find(
-		(p) => p.role === PAGADOR_ROLE_ADMIN && p.userId === session.user.id,
+	const adminPagador = payerList.find(
+		(p) => p.role === PAYER_ROLE_ADMIN && p.userId === session.user.id,
 	);
 
 	// Buscar notificações para o período atual

@@ -1,6 +1,6 @@
 import { inArray } from "drizzle-orm";
 import { Resend } from "resend";
-import { pagadores } from "@/db/schema";
+import { payers } from "@/db/schema";
 import { db } from "@/shared/lib/db";
 import { getResendFromEmail } from "@/shared/lib/email/resend";
 import { formatCurrency } from "@/shared/utils/currency";
@@ -9,7 +9,7 @@ import { formatDateTime } from "@/shared/utils/date";
 type ActionType = "created" | "deleted";
 
 export type NotificationEntry = {
-	pagadorId: string;
+	payerId: string;
 	name: string | null;
 	amount: number;
 	transactionType: string | null;
@@ -20,13 +20,13 @@ export type NotificationEntry = {
 	note: string | null;
 };
 
-export type PagadorNotificationRequest = {
+export type PayerNotificationRequest = {
 	userLabel: string;
 	action: ActionType;
 	entriesByPagador: Map<string, NotificationEntry[]>;
 };
 
-type PagadorNotificationRecipient = {
+type PayerNotificationRecipient = {
 	id: string;
 	name: string | null;
 	email: string | null;
@@ -110,11 +110,11 @@ const buildHtmlBody = ({
   `;
 };
 
-export async function sendPagadorAutoEmails({
+export async function sendPayerAutoEmails({
 	userLabel,
 	action,
 	entriesByPagador,
-}: PagadorNotificationRequest) {
+}: PayerNotificationRequest) {
 	"use server";
 
 	if (entriesByPagador.size === 0) {
@@ -136,11 +136,11 @@ export async function sendPagadorAutoEmails({
 		return;
 	}
 
-	const pagadorRows = (await db.query.pagadores.findMany({
-		where: inArray(pagadores.id, pagadorIds),
-	})) as PagadorNotificationRecipient[];
+	const payerRows = (await db.query.payers.findMany({
+		where: inArray(payers.id, pagadorIds),
+	})) as PayerNotificationRecipient[];
 
-	if (pagadorRows.length === 0) {
+	if (payerRows.length === 0) {
 		return;
 	}
 
@@ -149,12 +149,12 @@ export async function sendPagadorAutoEmails({
 		action === "created" ? "Novo lançamento" : "Lançamento removido";
 
 	const results = await Promise.allSettled(
-		pagadorRows.map(async (pagador: PagadorNotificationRecipient) => {
-			if (!pagador.email || !pagador.isAutoSend) {
+		payerRows.map(async (payer: PayerNotificationRecipient) => {
+			if (!payer.email || !payer.isAutoSend) {
 				return;
 			}
 
-			const entries = entriesByPagador.get(pagador.id);
+			const entries = entriesByPagador.get(payer.id);
 			if (!entries || entries.length === 0) {
 				return;
 			}
@@ -167,8 +167,8 @@ export async function sendPagadorAutoEmails({
 
 			await resend.emails.send({
 				from: resendFrom,
-				to: pagador.email,
-				subject: `${subjectPrefix} - ${pagador.name}`,
+				to: payer.email,
+				subject: `${subjectPrefix} - ${payer.name}`,
 				html,
 			});
 		}),
@@ -177,7 +177,7 @@ export async function sendPagadorAutoEmails({
 	// Log any failed email sends
 	results.forEach((result: PromiseSettledResult<void>, index: number) => {
 		if (result.status === "rejected") {
-			const pagador = pagadorRows[index];
+			const pagador = payerRows[index];
 			console.error(
 				`Failed to send email notification to ${pagador?.name} (${pagador?.email}):`,
 				result.reason,
@@ -187,7 +187,7 @@ export async function sendPagadorAutoEmails({
 }
 
 export type RawNotificationRecord = {
-	pagadorId: string | null;
+	payerId: string | null;
 	name: string | null;
 	amount: string | number | null;
 	transactionType: string | null;
@@ -198,13 +198,13 @@ export type RawNotificationRecord = {
 	note: string | null;
 };
 
-export const buildEntriesByPagador = (
+export const buildEntriesByPayer = (
 	records: RawNotificationRecord[],
 ): Map<string, NotificationEntry[]> => {
 	const map = new Map<string, NotificationEntry[]>();
 
 	records.forEach((record) => {
-		if (!record.pagadorId) {
+		if (!record.payerId) {
 			return;
 		}
 
@@ -220,7 +220,7 @@ export const buildEntriesByPagador = (
 					: null;
 
 		const entry: NotificationEntry = {
-			pagadorId: record.pagadorId,
+			payerId: record.payerId,
 			name: record.name ?? null,
 			amount,
 			transactionType: record.transactionType ?? null,
@@ -231,9 +231,9 @@ export const buildEntriesByPagador = (
 			note: record.note ?? null,
 		};
 
-		const list = map.get(record.pagadorId) ?? [];
+		const list = map.get(record.payerId) ?? [];
 		list.push(entry);
-		map.set(record.pagadorId, list);
+		map.set(record.payerId, list);
 	});
 
 	return map;

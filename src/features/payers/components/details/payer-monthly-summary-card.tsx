@@ -6,7 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/shared/components/ui/card";
-import type { PagadorMonthlyBreakdown } from "@/shared/lib/payers/details";
+import type { PayerMonthlyBreakdown } from "@/shared/lib/payers/details";
 import { cn } from "@/shared/utils/ui";
 
 const segmentConfig = {
@@ -26,10 +26,10 @@ const segmentConfig = {
 
 type PagadorMonthlySummaryCardProps = {
 	periodLabel: string;
-	breakdown: PagadorMonthlyBreakdown;
+	breakdown: PayerMonthlyBreakdown;
 };
 
-export function PagadorMonthlySummaryCard({
+export function PayerMonthlySummaryCard({
 	periodLabel,
 	breakdown,
 }: PagadorMonthlySummaryCardProps) {

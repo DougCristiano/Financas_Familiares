@@ -1,11 +1,11 @@
-import type { PagadorStatus } from "@/shared/lib/payers/constants";
+import type { PayerStatus } from "@/shared/lib/payers/constants";
 
-export type Pagador = {
+export type Payer = {
 	id: string;
 	name: string;
 	email: string | null;
 	avatarUrl: string | null;
-	status: PagadorStatus;
+	status: PayerStatus;
 	note: string | null;
 	role: string | null;
 	isAutoSend: boolean;
@@ -17,10 +17,10 @@ export type Pagador = {
 	shareCode?: string | null;
 };
 
-export type PagadorFormValues = {
+export type PayerFormValues = {
 	name: string;
 	email: string;
-	status: PagadorStatus;
+	status: PayerStatus;
 	avatarUrl: string;
 	note: string;
 	isAutoSend: boolean;

@@ -5,84 +5,81 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
-	deletePagadorAction,
-	joinPagadorByShareCodeAction,
+	deletePayerAction,
+	joinPayerByShareCodeAction,
 } from "@/features/payers/actions";
-import { PagadorCard } from "@/features/payers/components/payer-card";
-import { PagadorDialog } from "@/features/payers/components/payer-dialog";
+import { PayerCard } from "@/features/payers/components/payer-card";
+import { PayerDialog } from "@/features/payers/components/payer-dialog";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { PAGADOR_ROLE_ADMIN } from "@/shared/lib/payers/constants";
-import type { Pagador } from "./types";
+import { PAYER_ROLE_ADMIN } from "@/shared/lib/payers/constants";
+import type { Payer } from "./types";
 
-interface PagadoresPageProps {
-	pagadores: Pagador[];
+interface PayersPageProps {
+	payers: Payer[];
 	avatarOptions: string[];
 }
 
-export function PagadoresPage({
-	pagadores,
-	avatarOptions,
-}: PagadoresPageProps) {
+export function PayersPage({ payers, avatarOptions }: PayersPageProps) {
 	const router = useRouter();
 	const [editOpen, setEditOpen] = useState(false);
-	const [selectedPagador, setSelectedPagador] = useState<Pagador | null>(null);
+	const [selectedPayer, setSelectedPayer] = useState<Payer | null>(null);
 	const [removeOpen, setRemoveOpen] = useState(false);
-	const [pagadorToRemove, setPagadorToRemove] = useState<Pagador | null>(null);
+	const [payerToRemove, setPayerToRemove] = useState<Payer | null>(null);
 	const [shareCodeInput, setShareCodeInput] = useState("");
 	const [joinPending, startJoin] = useTransition();
 
-	const orderedPagadores = useMemo(
+	const orderedPayers = useMemo(
 		() =>
-			[...pagadores].sort((a, b) => {
+			[...payers].sort((a, b) => {
 				// Admin sempre primeiro
-				if (a.role === PAGADOR_ROLE_ADMIN && b.role !== PAGADOR_ROLE_ADMIN) {
+				if (a.role === PAYER_ROLE_ADMIN && b.role !== PAYER_ROLE_ADMIN) {
 					return -1;
 				}
-				if (a.role !== PAGADOR_ROLE_ADMIN && b.role === PAGADOR_ROLE_ADMIN) {
+				if (a.role !== PAYER_ROLE_ADMIN && b.role === PAYER_ROLE_ADMIN) {
 					return 1;
 				}
 				// Se ambos têm o mesmo tipo de role, ordena por nome
 				return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
 			}),
-		[pagadores],
+		[payers],
 	);
 
-	const handleEdit = (pagador: Pagador) => {
-		setSelectedPagador(pagador);
+	const handleEdit = (payer: Payer) => {
+		setSelectedPayer(payer);
 		setEditOpen(true);
 	};
 
 	const handleEditOpenChange = (open: boolean) => {
 		setEditOpen(open);
 		if (!open) {
-			setSelectedPagador(null);
+			setSelectedPayer(null);
 		}
 	};
 
-	const handleRemoveRequest = (pagador: Pagador) => {
-		if (pagador.role === PAGADOR_ROLE_ADMIN) {
+	const handleRemoveRequest = (payer: Payer) => {
+		if (payer.role === PAYER_ROLE_ADMIN) {
 			toast.error("Pagadores administradores não podem ser removidos.");
 			return;
 		}
-		setPagadorToRemove(pagador);
+		setPayerToRemove(payer);
 		setRemoveOpen(true);
 	};
 
 	const handleRemoveOpenChange = (open: boolean) => {
 		setRemoveOpen(open);
 		if (!open) {
-			setPagadorToRemove(null);
+			setPayerToRemove(null);
 		}
 	};
 
 	const handleRemoveConfirm = async () => {
-		if (!pagadorToRemove) {
+		if (!payerToRemove) {
 			return;
 		}
 
-		const result = await deletePagadorAction({ id: pagadorToRemove.id });
+		const result = await deletePayerAction({ id: payerToRemove.id });
 
 		if (result.success) {
 			toast.success(result.message);
@@ -93,8 +90,8 @@ export function PagadoresPage({
 		throw new Error(result.error);
 	};
 
-	const removeTitle = pagadorToRemove
-		? `Remover pagador "${pagadorToRemove.name}"?`
+	const removeTitle = payerToRemove
+		? `Remover pagador "${payerToRemove.name}"?`
 		: "Remover pagador?";
 
 	const handleJoinByCode = (event: React.FormEvent<HTMLFormElement>) => {
@@ -105,7 +102,7 @@ export function PagadoresPage({
 		}
 
 		startJoin(async () => {
-			const result = await joinPagadorByShareCodeAction({
+			const result = await joinPayerByShareCodeAction({
 				code: shareCodeInput.trim(),
 			});
 
@@ -124,7 +121,7 @@ export function PagadoresPage({
 		<>
 			<div className="flex flex-col gap-6 w-full">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-					<PagadorDialog
+					<PayerDialog
 						mode="create"
 						avatarOptions={avatarOptions}
 						trigger={
@@ -151,7 +148,7 @@ export function PagadoresPage({
 					</form>
 				</div>
 
-				{orderedPagadores.length === 0 ? (
+				{orderedPayers.length === 0 ? (
 					<div className="flex min-h-[320px] items-center justify-center rounded-lg border border-dashed bg-muted/30">
 						<div className="max-w-sm text-center text-sm text-muted-foreground">
 							Cadastre seu primeiro pagador para organizar cobranças e
@@ -160,14 +157,14 @@ export function PagadoresPage({
 					</div>
 				) : (
 					<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-						{orderedPagadores.map((pagador) => (
-							<PagadorCard
-								key={pagador.id}
-								pagador={pagador}
-								onEdit={pagador.canEdit ? () => handleEdit(pagador) : undefined}
+						{orderedPayers.map((payer) => (
+							<PayerCard
+								key={payer.id}
+								payer={payer}
+								onEdit={payer.canEdit ? () => handleEdit(payer) : undefined}
 								onRemove={
-									pagador.canEdit && pagador.role !== PAGADOR_ROLE_ADMIN
-										? () => handleRemoveRequest(pagador)
+									payer.canEdit && payer.role !== PAYER_ROLE_ADMIN
+										? () => handleRemoveRequest(payer)
 										: undefined
 								}
 							/>
@@ -176,16 +173,16 @@ export function PagadoresPage({
 				)}
 			</div>
 
-			<PagadorDialog
+			<PayerDialog
 				mode="update"
-				pagador={selectedPagador ?? undefined}
+				payer={selectedPayer ?? undefined}
 				avatarOptions={avatarOptions}
-				open={editOpen && !!selectedPagador}
+				open={editOpen && !!selectedPayer}
 				onOpenChange={handleEditOpenChange}
 			/>
 
 			<ConfirmActionDialog
-				open={removeOpen && !!pagadorToRemove}
+				open={removeOpen && !!payerToRemove}
 				onOpenChange={handleRemoveOpenChange}
 				title={removeTitle}
 				description="Ao remover este pagador, os registros relacionados a ele deixarão de ser associados automaticamente."

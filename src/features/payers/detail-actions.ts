@@ -4,22 +4,22 @@ import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { z } from "zod";
-import { lancamentos, pagadores } from "@/db/schema";
+import { payers, transactions } from "@/db/schema";
 import { getUser } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
 import { getResendFromEmail } from "@/shared/lib/email/resend";
 import {
 	fetchPagadorBoletoStats,
 	fetchPagadorCardUsage,
-	fetchPagadorHistory,
-	fetchPagadorMonthlyBreakdown,
+	fetchPayerHistory,
+	fetchPayerMonthlyBreakdown,
 } from "@/shared/lib/payers/details";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDateTime } from "@/shared/utils/date";
 import { displayPeriod } from "@/shared/utils/period";
 
 const inputSchema = z.object({
-	pagadorId: z.string().uuid("Pagador inválido."),
+	payerId: z.string().uuid("Payer inválido."),
 	period: z
 		.string()
 		.regex(/^\d{4}-\d{2}$/, "Período inválido. Informe no formato AAAA-MM."),
@@ -78,12 +78,12 @@ type ParceladoItem = {
 type SummaryPayload = {
 	pagadorName: string;
 	periodLabel: string;
-	monthlyBreakdown: Awaited<ReturnType<typeof fetchPagadorMonthlyBreakdown>>;
-	historyData: Awaited<ReturnType<typeof fetchPagadorHistory>>;
+	monthlyBreakdown: Awaited<ReturnType<typeof fetchPayerMonthlyBreakdown>>;
+	historyData: Awaited<ReturnType<typeof fetchPayerHistory>>;
 	cardUsage: Awaited<ReturnType<typeof fetchPagadorCardUsage>>;
 	boletoStats: Awaited<ReturnType<typeof fetchPagadorBoletoStats>>;
 	boletos: BoletoItem[];
-	lancamentos: LancamentoRow[];
+	transactions: LancamentoRow[];
 	parcelados: ParceladoItem[];
 };
 
@@ -98,7 +98,7 @@ const buildSummaryHtml = ({
 	cardUsage,
 	boletoStats,
 	boletos,
-	lancamentos,
+	transactions,
 	parcelados,
 }: SummaryPayload) => {
 	// Calcular máximo de despesas para barras de progresso
@@ -173,9 +173,9 @@ const buildSummaryHtml = ({
 					.join("")
 			: `<tr><td colspan="3" style="padding:16px;text-align:center;color:#94a3b8;">Sem boletos neste período.</td></tr>`;
 
-	const lancamentoRows =
-		lancamentos.length > 0
-			? lancamentos
+	const transactionRows =
+		transactions.length > 0
+			? transactions
 					.map(
 						(item) => `
           <tr>
@@ -361,7 +361,7 @@ const buildSummaryHtml = ({
           <th style="text-align:right;padding:12px 14px;border-bottom:1px solid #e2e8f0;font-weight:600;color:#475569;">Valor</th>
         </tr>
       </thead>
-      <tbody>${lancamentoRows}</tbody>
+      <tbody>${transactionRows}</tbody>
     </table>
 
     <!-- Lançamentos Parcelados -->
@@ -392,19 +392,19 @@ const buildSummaryHtml = ({
   `;
 };
 
-export async function sendPagadorSummaryAction(
+export async function sendPayerSummaryAction(
 	input: z.infer<typeof inputSchema>,
 ): Promise<ActionResult> {
 	try {
-		const { pagadorId, period } = inputSchema.parse(input);
+		const { payerId, period } = inputSchema.parse(input);
 		const user = await getUser();
 
-		const pagadorRow = await db.query.pagadores.findFirst({
-			where: and(eq(pagadores.id, pagadorId), eq(pagadores.userId, user.id)),
+		const pagadorRow = await db.query.payers.findFirst({
+			where: and(eq(payers.id, payerId), eq(payers.userId, user.id)),
 		});
 
 		if (!pagadorRow) {
-			return { success: false, error: "Pagador não encontrado." };
+			return { success: false, error: "Payer não encontrado." };
 		}
 
 		if (!pagadorRow.email) {
@@ -432,83 +432,83 @@ export async function sendPagadorSummaryAction(
 			cardUsage,
 			boletoStats,
 			boletoRows,
-			lancamentoRows,
+			transactionRows,
 			parceladoRows,
 		] = await Promise.all([
-			fetchPagadorMonthlyBreakdown({
+			fetchPayerMonthlyBreakdown({
 				userId: user.id,
-				pagadorId,
+				payerId,
 				period,
 			}),
-			fetchPagadorHistory({
+			fetchPayerHistory({
 				userId: user.id,
-				pagadorId,
+				payerId,
 				period,
 			}),
 			fetchPagadorCardUsage({
 				userId: user.id,
-				pagadorId,
+				payerId,
 				period,
 			}),
 			fetchPagadorBoletoStats({
 				userId: user.id,
-				pagadorId,
+				payerId,
 				period,
 			}),
 			db
 				.select({
-					name: lancamentos.name,
-					amount: lancamentos.amount,
-					dueDate: lancamentos.dueDate,
+					name: transactions.name,
+					amount: transactions.amount,
+					dueDate: transactions.dueDate,
 				})
-				.from(lancamentos)
+				.from(transactions)
 				.where(
 					and(
-						eq(lancamentos.userId, user.id),
-						eq(lancamentos.pagadorId, pagadorId),
-						eq(lancamentos.period, period),
-						eq(lancamentos.paymentMethod, "Boleto"),
+						eq(transactions.userId, user.id),
+						eq(transactions.payerId, payerId),
+						eq(transactions.period, period),
+						eq(transactions.paymentMethod, "Boleto"),
 					),
 				)
-				.orderBy(desc(lancamentos.dueDate)),
+				.orderBy(desc(transactions.dueDate)),
 			db
 				.select({
-					id: lancamentos.id,
-					name: lancamentos.name,
-					paymentMethod: lancamentos.paymentMethod,
-					condition: lancamentos.condition,
-					amount: lancamentos.amount,
-					transactionType: lancamentos.transactionType,
-					purchaseDate: lancamentos.purchaseDate,
+					id: transactions.id,
+					name: transactions.name,
+					paymentMethod: transactions.paymentMethod,
+					condition: transactions.condition,
+					amount: transactions.amount,
+					transactionType: transactions.transactionType,
+					purchaseDate: transactions.purchaseDate,
 				})
-				.from(lancamentos)
+				.from(transactions)
 				.where(
 					and(
-						eq(lancamentos.userId, user.id),
-						eq(lancamentos.pagadorId, pagadorId),
-						eq(lancamentos.period, period),
+						eq(transactions.userId, user.id),
+						eq(transactions.payerId, payerId),
+						eq(transactions.period, period),
 					),
 				)
-				.orderBy(desc(lancamentos.purchaseDate)),
+				.orderBy(desc(transactions.purchaseDate)),
 			db
 				.select({
-					name: lancamentos.name,
-					amount: lancamentos.amount,
-					installmentCount: lancamentos.installmentCount,
-					currentInstallment: lancamentos.currentInstallment,
-					purchaseDate: lancamentos.purchaseDate,
+					name: transactions.name,
+					amount: transactions.amount,
+					installmentCount: transactions.installmentCount,
+					currentInstallment: transactions.currentInstallment,
+					purchaseDate: transactions.purchaseDate,
 				})
-				.from(lancamentos)
+				.from(transactions)
 				.where(
 					and(
-						eq(lancamentos.userId, user.id),
-						eq(lancamentos.pagadorId, pagadorId),
-						eq(lancamentos.period, period),
-						eq(lancamentos.condition, "Parcelado"),
-						eq(lancamentos.isAnticipated, false),
+						eq(transactions.userId, user.id),
+						eq(transactions.payerId, payerId),
+						eq(transactions.period, period),
+						eq(transactions.condition, "Parcelado"),
+						eq(transactions.isAnticipated, false),
 					),
 				)
-				.orderBy(desc(lancamentos.purchaseDate)),
+				.orderBy(desc(transactions.purchaseDate)),
 		]);
 
 		const normalizedBoletos: BoletoItem[] = (
@@ -524,7 +524,7 @@ export async function sendPagadorSummaryAction(
 		}));
 
 		const normalizedLancamentos: LancamentoRow[] = (
-			lancamentoRows as Array<{
+			transactionRows as Array<{
 				id: string;
 				name: string | null;
 				paymentMethod: string | null;
@@ -574,7 +574,7 @@ export async function sendPagadorSummaryAction(
 			cardUsage,
 			boletoStats,
 			boletos: normalizedBoletos,
-			lancamentos: normalizedLancamentos,
+			transactions: normalizedLancamentos,
 			parcelados: normalizedParcelados,
 		});
 
@@ -588,11 +588,9 @@ export async function sendPagadorSummaryAction(
 		const now = new Date();
 
 		await db
-			.update(pagadores)
+			.update(payers)
 			.set({ lastMailAt: now })
-			.where(
-				and(eq(pagadores.id, pagadorRow.id), eq(pagadores.userId, user.id)),
-			);
+			.where(and(eq(payers.id, pagadorRow.id), eq(payers.userId, user.id)));
 
 		revalidatePath(`/payers/${pagadorRow.id}`);
 
@@ -600,7 +598,7 @@ export async function sendPagadorSummaryAction(
 	} catch (error) {
 		// Log estruturado em desenvolvimento
 		if (process.env.NODE_ENV === "development") {
-			console.error("[sendPagadorSummaryAction]", error);
+			console.error("[sendPayerSummaryAction]", error);
 		}
 
 		// Tratar erros de validação separadamente

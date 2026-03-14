@@ -4,7 +4,7 @@ import MoneyValues from "@/shared/components/money-values";
 import { CardContent } from "@/shared/components/ui/card";
 import { WidgetEmptyState } from "@/shared/components/widget-empty-state";
 import { resolveLogoSrc } from "@/shared/lib/logo";
-import type { PagadorCardUsageItem } from "@/shared/lib/payers/details";
+import type { PayerCardUsageItem } from "@/shared/lib/payers/details";
 
 const buildInitials = (value: string) => {
 	const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -19,10 +19,10 @@ const buildInitials = (value: string) => {
 };
 
 type PagadorCardUsageCardProps = {
-	items: PagadorCardUsageItem[];
+	items: PayerCardUsageItem[];
 };
 
-export function PagadorCardUsageCard({ items }: PagadorCardUsageCardProps) {
+export function PayerCardUsageCard({ items }: PagadorCardUsageCardProps) {
 	if (items.length === 0) {
 		return (
 			<CardContent className="px-0">

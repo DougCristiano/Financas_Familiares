@@ -1,4 +1,4 @@
-import { DEFAULT_PAGADOR_AVATAR } from "./constants";
+import { DEFAULT_PAYER_AVATAR } from "./constants";
 
 /**
  * Normaliza o caminho do avatar extraindo apenas o nome do arquivo.
@@ -29,7 +29,7 @@ export const normalizeAvatarPath = (
  */
 export const getAvatarSrc = (avatar: string | null | undefined): string => {
 	if (!avatar) {
-		return `/avatars/${DEFAULT_PAGADOR_AVATAR}`;
+		return `/avatars/${DEFAULT_PAYER_AVATAR}`;
 	}
 
 	// Se for uma URL completa (Google, etc), retorna diretamente
@@ -43,7 +43,7 @@ export const getAvatarSrc = (avatar: string | null | undefined): string => {
 
 	// Se for um caminho local, normaliza e adiciona o prefixo
 	const normalized = normalizeAvatarPath(avatar);
-	return `/avatars/${normalized ?? DEFAULT_PAGADOR_AVATAR}`;
+	return `/avatars/${normalized ?? DEFAULT_PAYER_AVATAR}`;
 };
 
 /**

@@ -115,7 +115,7 @@ export const auth = betterAuth({
 				/**
 				 * Após criar novo usuário, inicializa:
 				 * 1. Categorias padrão (Receitas/Despesas)
-				 * 2. Pagador padrão (vinculado ao usuário)
+				 * 2. Payer padrão (vinculado ao usuário)
 				 */
 				after: async (user) => {
 					// Se falhar aqui, o usuário já foi criado - considere usar queue para retry

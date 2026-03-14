@@ -1,9 +1,9 @@
-import type { pagadores } from "@/db/schema";
+import type { payers } from "@/db/schema";
 import type {
-	ContaCartaoFilterOption,
-	LancamentoFilterOption,
-	LancamentoItem,
+	AccountCardFilterOption,
+	TransactionFilterOption,
 	SelectOption,
+	TransactionItem,
 } from "@/features/transactions/components/types";
 import type { buildOptionSets } from "@/features/transactions/page-helpers";
 
@@ -15,15 +15,15 @@ const normalizeOptionLabel = (
 ) => (value?.trim().length ? value.trim() : fallback);
 
 export function buildReadOnlyOptionSets(
-	items: LancamentoItem[],
-	pagador: typeof pagadores.$inferSelect,
+	items: TransactionItem[],
+	payer: typeof payers.$inferSelect,
 ): OptionSet {
-	const pagadorLabel = normalizeOptionLabel(pagador.name, "Pagador");
-	const pagadorOptions: SelectOption[] = [
+	const pagadorLabel = normalizeOptionLabel(payer.name, "Payer");
+	const payerOptions: SelectOption[] = [
 		{
-			value: pagador.id,
+			value: payer.id,
 			label: pagadorLabel,
-			slug: pagador.id,
+			slug: payer.id,
 		},
 	];
 
@@ -32,51 +32,54 @@ export function buildReadOnlyOptionSets(
 	const categoriaOptionsMap = new Map<string, SelectOption>();
 
 	items.forEach((item) => {
-		if (item.contaId && !contaOptionsMap.has(item.contaId)) {
-			contaOptionsMap.set(item.contaId, {
-				value: item.contaId,
-				label: normalizeOptionLabel(item.contaName, "Conta sem nome"),
-				slug: item.contaId,
+		if (item.accountId && !contaOptionsMap.has(item.accountId)) {
+			contaOptionsMap.set(item.accountId, {
+				value: item.accountId,
+				label: normalizeOptionLabel(
+					item.contaName,
+					"FinancialAccount sem nome",
+				),
+				slug: item.accountId,
 			});
 		}
-		if (item.cartaoId && !cartaoOptionsMap.has(item.cartaoId)) {
-			cartaoOptionsMap.set(item.cartaoId, {
-				value: item.cartaoId,
+		if (item.cardId && !cartaoOptionsMap.has(item.cardId)) {
+			cartaoOptionsMap.set(item.cardId, {
+				value: item.cardId,
 				label: normalizeOptionLabel(item.cartaoName, "Cartão sem nome"),
-				slug: item.cartaoId,
+				slug: item.cardId,
 			});
 		}
-		if (item.categoriaId && !categoriaOptionsMap.has(item.categoriaId)) {
-			categoriaOptionsMap.set(item.categoriaId, {
-				value: item.categoriaId,
-				label: normalizeOptionLabel(item.categoriaName, "Categoria"),
-				slug: item.categoriaId,
+		if (item.categoryId && !categoriaOptionsMap.has(item.categoryId)) {
+			categoriaOptionsMap.set(item.categoryId, {
+				value: item.categoryId,
+				label: normalizeOptionLabel(item.categoriaName, "Category"),
+				slug: item.categoryId,
 			});
 		}
 	});
 
-	const contaOptions = Array.from(contaOptionsMap.values());
-	const cartaoOptions = Array.from(cartaoOptionsMap.values());
-	const categoriaOptions = Array.from(categoriaOptionsMap.values());
+	const accountOptions = Array.from(contaOptionsMap.values());
+	const cardOptions = Array.from(cartaoOptionsMap.values());
+	const categoryOptions = Array.from(categoriaOptionsMap.values());
 
-	const pagadorFilterOptions: LancamentoFilterOption[] = [
-		{ slug: pagador.id, label: pagadorLabel },
+	const payerFilterOptions: TransactionFilterOption[] = [
+		{ slug: payer.id, label: pagadorLabel },
 	];
 
-	const categoriaFilterOptions: LancamentoFilterOption[] = categoriaOptions.map(
+	const categoryFilterOptions: TransactionFilterOption[] = categoryOptions.map(
 		(option) => ({
 			slug: option.value,
 			label: option.label,
 		}),
 	);
 
-	const contaCartaoFilterOptions: ContaCartaoFilterOption[] = [
-		...contaOptions.map((option) => ({
+	const accountCardFilterOptions: AccountCardFilterOption[] = [
+		...accountOptions.map((option) => ({
 			slug: option.value,
 			label: option.label,
 			kind: "conta" as const,
 		})),
-		...cartaoOptions.map((option) => ({
+		...cardOptions.map((option) => ({
 			slug: option.value,
 			label: option.label,
 			kind: "cartao" as const,
@@ -84,14 +87,14 @@ export function buildReadOnlyOptionSets(
 	];
 
 	return {
-		pagadorOptions,
-		splitPagadorOptions: [],
-		defaultPagadorId: pagador.id,
-		contaOptions,
-		cartaoOptions,
-		categoriaOptions,
-		pagadorFilterOptions,
-		categoriaFilterOptions,
-		contaCartaoFilterOptions,
+		payerOptions,
+		splitPayerOptions: [],
+		defaultPayerId: payer.id,
+		accountOptions,
+		cardOptions,
+		categoryOptions,
+		payerFilterOptions,
+		categoryFilterOptions,
+		accountCardFilterOptions,
 	};
 }
