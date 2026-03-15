@@ -105,12 +105,12 @@ export function NavbarUser({ user, pagadorAvatarUrl }: NavbarUserProps) {
 						</Link>
 
 						<Link
-							href="/settings/changelog"
+							href="/changelog"
 							className={cn(itemClass, "text-foreground")}
 						>
 							<RiHistoryLine className="size-4 text-muted-foreground shrink-0" />
 							<span className="flex-1">Changelog</span>
-							<Badge variant="secondary">v{version}</Badge>
+							<Badge variant="outline">v{version}</Badge>
 						</Link>
 
 						<DialogTrigger asChild>

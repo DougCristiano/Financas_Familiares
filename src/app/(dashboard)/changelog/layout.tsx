@@ -2,7 +2,7 @@ import { RiHistoryLine } from "@remixicon/react";
 import PageDescription from "@/shared/components/page-description";
 
 export const metadata = {
-	title: "Cartões | OpenMonetis",
+	title: "Changelog | OpenMonetis",
 };
 
 export default function RootLayout({
