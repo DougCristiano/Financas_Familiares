@@ -143,7 +143,7 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 			onClick={() => onSelect(day)}
 			onKeyDown={handleKeyDown}
 			className={cn(
-				"flex h-full cursor-pointer flex-col gap-1.5 rounded-lg border border-transparent bg-card/80 p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-primary/10",
+				"flex h-full cursor-pointer flex-col gap-1.5 rounded-lg border border-transparent bg-card/80 p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-accent transition-colors duration-300",
 				!day.isCurrentMonth && "opacity-60",
 				day.isToday && "border-primary/70 bg-primary/5 hover:border-primary",
 			)}

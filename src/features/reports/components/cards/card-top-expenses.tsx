@@ -77,7 +77,7 @@ export function CardTopExpenses({ data }: CardTopExpensesProps) {
 											</span>
 											{expense.category && (
 												<Badge
-													variant="secondary"
+													variant="outline"
 													className="h-5 max-w-full px-1.5 py-0 text-xs truncate"
 												>
 													{expense.category}

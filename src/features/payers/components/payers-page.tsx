@@ -1,6 +1,6 @@
 "use client";
 
-import { RiAddCircleFill } from "@remixicon/react";
+import { RiAddFill } from "@remixicon/react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -126,7 +126,7 @@ export function PayersPage({ payers, avatarOptions }: PayersPageProps) {
 						avatarOptions={avatarOptions}
 						trigger={
 							<Button className="w-full sm:w-auto">
-								<RiAddCircleFill className="size-4" />
+								<RiAddFill className="size-4" />
 								Novo pagador
 							</Button>
 						}

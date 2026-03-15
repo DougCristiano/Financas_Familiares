@@ -69,7 +69,7 @@ function InlinePeriodPicker({
 
 	return (
 		<div className="-mt-1">
-			<span className="text-xs text-muted-foreground">Invoice de </span>
+			<span className="text-xs text-muted-foreground">Fatura de </span>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<button
@@ -554,7 +554,7 @@ export function MassAddDialog({
 																);
 																return selectedOption ? (
 																	<PayerSelectContent
-																		label={selectedOption.label}
+																		label={selectedOption.label.split(" ")[0]}
 																		avatarUrl={selectedOption.avatarUrl}
 																	/>
 																) : null;

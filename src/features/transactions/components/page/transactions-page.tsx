@@ -172,7 +172,11 @@ export function TransactionsPage({
 				throw new Error(result.error);
 			}
 
-			toast.success(result.message);
+			toast.success(
+				nextValue
+					? `"${item.name}" marcado como pago`
+					: `"${item.name}" desmarcado`,
+			);
 		} catch (error) {
 			const message =
 				error instanceof Error

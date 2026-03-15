@@ -1,9 +1,16 @@
 "use client";
 import {
 	RiAddCircleFill,
-	RiAddCircleLine,
+	RiAddFill,
+	RiArrowLeftDoubleLine,
 	RiArrowLeftRightLine,
+	RiArrowLeftSLine,
+	RiArrowRightDoubleLine,
+	RiArrowRightSLine,
+	RiBankCard2Line,
 	RiChat1Line,
+	RiCheckboxBlankCircleLine,
+	RiCheckboxCircleFill,
 	RiCheckLine,
 	RiDeleteBin5Line,
 	RiFileCopyLine,
@@ -12,8 +19,6 @@ import {
 	RiHistoryLine,
 	RiMoreFill,
 	RiPencilLine,
-	RiThumbUpFill,
-	RiThumbUpLine,
 	RiTimeLine,
 } from "@remixicon/react";
 import {
@@ -271,7 +276,7 @@ const buildColumns = ({
 						{!noteAsColumn && hasNote ? (
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<span className="inline-flex rounded-full p-1 hover:bg-muted/60">
+									<span className="inline-flex rounded-full p-1 hover:bg-accent transition-colors duration-300">
 										<RiChat1Line
 											className="h-4 w-4 text-muted-foreground"
 											aria-hidden
@@ -544,32 +549,49 @@ const buildColumns = ({
 							paymentMethod === "Cartão de débito" ||
 							paymentMethod === "Transferência bancária" ||
 							paymentMethod === "Pré-Pago | VR/VA";
+
+						if (!canToggleSettlement)
+							return (
+								<span className="flex size-7 shrink-0 items-center justify-center">
+									<RiBankCard2Line className="size-4 text-muted-foreground/30" />
+								</span>
+							);
+
 						const readOnly = row.original.readonly;
 						const loading = isSettlementLoading(row.original.id);
 						const settled = Boolean(row.original.isSettled);
-						const Icon = settled ? RiThumbUpFill : RiThumbUpLine;
 
 						return (
-							<Button
-								variant={"outline"}
-								size="icon-sm"
-								onClick={() => handleToggleSettlement(row.original)}
-								disabled={loading || readOnly || !canToggleSettlement}
-								className={cn(
-									"border-none",
-									!canToggleSettlement && "opacity-70 ",
-									settled && "border-none",
-								)}
-							>
-								{loading ? (
-									<Spinner className="size-4" />
-								) : (
-									<Icon className={cn("size-4", settled && "text-success")} />
-								)}
-								<span className="sr-only">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										onClick={() => handleToggleSettlement(row.original)}
+										disabled={loading || readOnly}
+										className={cn(
+											"transition-colors",
+											settled
+												? "bg-success/10 text-success hover:bg-success/20 hover:text-success"
+												: "text-muted-foreground hover:text-foreground",
+										)}
+									>
+										{loading ? (
+											<Spinner className="size-4" />
+										) : settled ? (
+											<RiCheckboxCircleFill className="size-4" />
+										) : (
+											<RiCheckboxBlankCircleLine className="size-4" />
+										)}
+										<span className="sr-only">
+											{settled ? "Desfazer pagamento" : "Marcar como pago"}
+										</span>
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent side="top">
 									{settled ? "Desfazer pagamento" : "Marcar como pago"}
-								</span>
-							</Button>
+								</TooltipContent>
+							</Tooltip>
 						);
 					})()}
 
@@ -866,14 +888,14 @@ export function TransactionsTable({
 										onClick={() => onCreate("Receita")}
 										className="w-full sm:w-auto"
 									>
-										<RiAddCircleFill className="size-4" />
+										<RiAddFill className="size-4" />
 										Nova Receita
 									</Button>
 									<Button
 										onClick={() => onCreate("Despesa")}
 										className="w-full sm:w-auto"
 									>
-										<RiAddCircleFill className="size-4" />
+										<RiAddFill className="size-4" />
 										Nova Despesa
 									</Button>
 								</>
@@ -887,7 +909,7 @@ export function TransactionsTable({
 											size="icon"
 											className="hidden size-9 sm:inline-flex"
 										>
-											<RiAddCircleLine className="size-4" />
+											<RiAddCircleFill className="size-4" />
 											<span className="sr-only">
 												Adicionar múltiplos lançamentos
 											</span>
@@ -1014,7 +1036,17 @@ export function TransactionsTable({
 									</TableHeader>
 									<TableBody>
 										{rowModel.rows.map((row) => (
-											<TableRow key={row.id}>
+											<TableRow
+												key={row.id}
+												className={cn(
+													row.original.paymentMethod === "Boleto" &&
+														row.original.dueDate &&
+														!row.original.isSettled &&
+														new Date(row.original.dueDate) < new Date()
+														? "bg-destructive/[0.03] hover:bg-destructive/[0.05]"
+														: undefined,
+												)}
+											>
 												{row.getVisibleCells().map((cell) => (
 													<TableCell key={cell.id}>
 														{flexRender(
@@ -1032,7 +1064,7 @@ export function TransactionsTable({
 							<div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 								<div className="flex items-center gap-2">
 									<span className="text-sm text-muted-foreground">
-										Exibindo {rowModel.rows.length} de {totalRows} lançamentos
+										{totalRows} lançamentos
 									</span>
 									<Select
 										value={pagination.pageSize.toString()}
@@ -1055,22 +1087,50 @@ export function TransactionsTable({
 									</Select>
 								</div>
 								<div className="flex items-center gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => table.previousPage()}
-										disabled={!table.getCanPreviousPage()}
-									>
-										Anterior
-									</Button>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => table.nextPage()}
-										disabled={!table.getCanNextPage()}
-									>
-										Próximo
-									</Button>
+									<span className="text-sm text-muted-foreground">
+										Página {table.getState().pagination.pageIndex + 1} de{" "}
+										{Math.max(table.getPageCount(), 1)}
+									</span>
+									<div className="flex items-center gap-1">
+										<Button
+											variant="outline"
+											size="icon-sm"
+											onClick={() => table.setPageIndex(0)}
+											disabled={!table.getCanPreviousPage()}
+											aria-label="Primeira página"
+										>
+											<RiArrowLeftDoubleLine className="size-4" />
+										</Button>
+										<Button
+											variant="outline"
+											size="icon-sm"
+											onClick={() => table.previousPage()}
+											disabled={!table.getCanPreviousPage()}
+											aria-label="Página anterior"
+										>
+											<RiArrowLeftSLine className="size-4" />
+										</Button>
+										<Button
+											variant="outline"
+											size="icon-sm"
+											onClick={() => table.nextPage()}
+											disabled={!table.getCanNextPage()}
+											aria-label="Próxima página"
+										>
+											<RiArrowRightSLine className="size-4" />
+										</Button>
+										<Button
+											variant="outline"
+											size="icon-sm"
+											onClick={() =>
+												table.setPageIndex(table.getPageCount() - 1)
+											}
+											disabled={!table.getCanNextPage()}
+											aria-label="Última página"
+										>
+											<RiArrowRightDoubleLine className="size-4" />
+										</Button>
+									</div>
 								</div>
 							</div>
 						</>

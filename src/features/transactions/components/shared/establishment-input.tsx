@@ -77,6 +77,7 @@ export function EstabelecimentoInput({
 						required={required}
 						maxLength={maxLength}
 						autoComplete="off"
+						className={estabelecimentos.length > 0 ? "pr-8" : undefined}
 					/>
 					{estabelecimentos.length > 0 && (
 						<RiSearchLine className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />

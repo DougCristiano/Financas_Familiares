@@ -185,7 +185,7 @@ export function CardItem({
 					)}
 				</div>
 
-				<div className="flex items-center justify-between border-y border-dashed py-3 text-xs font-medium text-muted-foreground sm:text-sm">
+				<div className="flex items-center justify-between border-y py-3 text-xs font-medium text-muted-foreground sm:text-sm">
 					<span>
 						Fecha dia{" "}
 						<span className="font-semibold text-foreground">

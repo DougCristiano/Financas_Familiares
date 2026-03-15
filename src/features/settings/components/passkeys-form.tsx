@@ -1,7 +1,7 @@
 "use client";
 
 import {
-	RiAddCircleFill,
+	RiAddFill,
 	RiAlertLine,
 	RiDeleteBinLine,
 	RiFingerprintLine,
@@ -210,8 +210,8 @@ export function PasskeysForm() {
 				>
 					<DialogTrigger asChild>
 						<Button size="sm" disabled={isMutating || !passkeySupported}>
-							<RiAddCircleFill className="h-4 w-4 mr-1" />
-							Adicionar
+							<RiAddFill className="h-4 w-4 mr-1" />
+							Nova Passkey
 						</Button>
 					</DialogTrigger>
 					<DialogContent>

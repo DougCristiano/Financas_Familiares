@@ -16,7 +16,7 @@ import {
 	sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import {
-	RiAddCircleFill,
+	RiAddFill,
 	RiCheckLine,
 	RiCloseLine,
 	RiDragMove2Line,
@@ -218,7 +218,7 @@ export function DashboardGridEditable({
 										className="h-12 w-full min-w-0 flex-col justify-center gap-0.5 px-1.5 text-sm whitespace-normal sm:h-8 sm:w-auto sm:flex-row sm:gap-2 sm:px-3 sm:whitespace-nowrap"
 									>
 										<span className="flex items-center gap-0.5">
-											<RiAddCircleFill className="size-3.5 shrink-0 text-success/80" />
+											<RiAddFill className="size-3.5 shrink-0 text-success/80" />
 										</span>
 										<span className="sm:hidden">Receita</span>
 										<span className="hidden sm:inline">Nova receita</span>
@@ -243,7 +243,7 @@ export function DashboardGridEditable({
 										className="h-12 w-full min-w-0 flex-col justify-center gap-0.5 px-1.5 text-sm whitespace-normal sm:h-8 sm:w-auto sm:flex-row sm:gap-2 sm:px-3 sm:whitespace-nowrap"
 									>
 										<span className="flex items-center gap-0.5">
-											<RiAddCircleFill className="size-3.5 shrink-0 text-destructive/80" />
+											<RiAddFill className="size-3.5 shrink-0 text-destructive/80" />
 										</span>
 										<span className="sm:hidden">Despesa</span>
 										<span className="hidden sm:inline">Nova despesa</span>

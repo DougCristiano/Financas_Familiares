@@ -1,6 +1,6 @@
 "use client";
 
-import { RiAddCircleFill, RiTodoLine } from "@remixicon/react";
+import { RiAddFill, RiTodoLine } from "@remixicon/react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { archiveNoteAction, deleteNoteAction } from "@/features/notes/actions";
@@ -208,7 +208,7 @@ export function NotesPage({ notes, archivedNotes }: NotesPageProps) {
 						onOpenChange={handleCreateOpenChange}
 						trigger={
 							<Button className="w-full sm:w-auto">
-								<RiAddCircleFill className="size-4" />
+								<RiAddFill className="size-4" />
 								Nova anotação
 							</Button>
 						}
