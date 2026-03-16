@@ -8,6 +8,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import { getPaymentMethodIcon } from "@/shared/utils/icons";
 
 type InstallmentExpenseListItemProps = {
 	expense: InstallmentExpense;
@@ -27,6 +28,10 @@ export function InstallmentExpenseListItem({
 
 	return (
 		<div className="flex items-center gap-3 transition-all duration-300 py-2">
+			<div className="flex size-9.5 shrink-0 items-center justify-center rounded-full bg-muted text-foreground">
+				{getPaymentMethodIcon(expense.paymentMethod)}
+			</div>
+
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center justify-between gap-3">
 					<div className="flex min-w-0 items-center gap-2">
@@ -61,7 +66,7 @@ export function InstallmentExpenseListItem({
 
 				<p className="text-xs text-muted-foreground">
 					{endDate ? `Termina em ${endDate}` : null}
-					{" | Restante  "}
+					{" · Restante "}
 					<MoneyValues
 						amount={remainingAmount}
 						className="inline-block font-medium"

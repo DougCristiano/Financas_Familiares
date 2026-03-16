@@ -136,6 +136,8 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 		onCreate(day);
 	};
 
+	const overflowCount = day.events.length - previewEvents.length;
+
 	return (
 		<div
 			role="button"
@@ -143,7 +145,7 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 			onClick={() => onSelect(day)}
 			onKeyDown={handleKeyDown}
 			className={cn(
-				"flex h-full cursor-pointer flex-col gap-1.5 rounded-lg border border-transparent bg-card/80 p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-accent transition-colors duration-300",
+				"group flex h-full cursor-pointer flex-col gap-1.5 rounded-lg border border-transparent bg-card/80 p-2 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-accent",
 				!day.isCurrentMonth && "opacity-60",
 				day.isToday && "border-primary/70 bg-primary/5 hover:border-primary",
 			)}
@@ -153,7 +155,7 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 					className={cn(
 						"text-sm font-semibold leading-none",
 						day.isToday
-							? "text-orange-100 bg-primary size-5 rounded-full flex items-center justify-center"
+							? "text-primary-foreground bg-primary size-5 rounded-full flex items-center justify-center"
 							: "text-foreground/90",
 					)}
 				>
@@ -162,7 +164,7 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 				<button
 					type="button"
 					onClick={handleCreateClick}
-					className="flex size-6 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+					className="flex size-6 items-center justify-center rounded-full bg-muted text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-primary/20 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
 					aria-label={`Criar lançamento em ${day.date}`}
 				>
 					<RiAddLine className="size-3.5" />
@@ -170,13 +172,14 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 			</div>
 
 			<div className="flex flex-1 flex-col gap-1.5">
-				{previewEvents.map((event) => (
-					<DayEventPreview key={event.id} event={event} />
-				))}
+				{day.isCurrentMonth &&
+					previewEvents.map((event) => (
+						<DayEventPreview key={event.id} event={event} />
+					))}
 
-				{hasOverflow ? (
+				{day.isCurrentMonth && hasOverflow ? (
 					<span className="text-xs font-medium text-primary/80">
-						+ ver mais
+						+{overflowCount} mais
 					</span>
 				) : null}
 			</div>

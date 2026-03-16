@@ -12,7 +12,7 @@ export type WidgetCardProps = {
 	title: string;
 	subtitle: string;
 	children: React.ReactNode;
-	icon: React.ReactNode;
+	icon?: React.ReactNode;
 	action?: React.ReactNode;
 };
 
@@ -37,11 +37,11 @@ export default function WidgetCard({
 			<CardHeader>
 				<div className="flex w-full items-start justify-between">
 					<div>
-						<CardTitle className="flex items-center gap-1 tracking-tight lowercase">
-							<span className="size-4">{icon}</span>
+						<CardTitle className="flex items-center gap-1 tracking-tight">
+							{icon && <span className="size-4">{icon}</span>}
 							{title}
 						</CardTitle>
-						<CardDescription className="text-muted-foreground text-sm lowercase mt-1.5 tracking-tight">
+						<CardDescription className="text-muted-foreground text-sm mt-1.5 tracking-tight">
 							{subtitle}
 						</CardDescription>
 					</div>

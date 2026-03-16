@@ -12,21 +12,10 @@ import {
 } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
 import { WidgetEmptyState } from "@/shared/components/widget-empty-state";
+import { buildInitials } from "@/shared/utils/initials";
 
 type EstablishmentsListProps = {
 	establishments: TopEstabelecimentosData["establishments"];
-};
-
-const buildInitials = (value: string) => {
-	const parts = value.trim().split(/\s+/).filter(Boolean);
-	if (parts.length === 0) return "ES";
-	if (parts.length === 1) {
-		const firstPart = parts[0];
-		return firstPart ? firstPart.slice(0, 2).toUpperCase() : "ES";
-	}
-	const firstChar = parts[0]?.[0] ?? "";
-	const secondChar = parts[1]?.[0] ?? "";
-	return `${firstChar}${secondChar}`.toUpperCase() || "ES";
 };
 
 export function EstablishmentsList({

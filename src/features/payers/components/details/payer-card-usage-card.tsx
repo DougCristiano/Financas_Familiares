@@ -5,18 +5,7 @@ import { CardContent } from "@/shared/components/ui/card";
 import { WidgetEmptyState } from "@/shared/components/widget-empty-state";
 import { resolveLogoSrc } from "@/shared/lib/logo";
 import type { PayerCardUsageItem } from "@/shared/lib/payers/details";
-
-const buildInitials = (value: string) => {
-	const parts = value.trim().split(/\s+/).filter(Boolean);
-	if (parts.length === 0) return "CC";
-	if (parts.length === 1) {
-		const firstPart = parts[0];
-		return firstPart ? firstPart.slice(0, 2).toUpperCase() : "CC";
-	}
-	const firstChar = parts[0]?.[0] ?? "";
-	const secondChar = parts[1]?.[0] ?? "";
-	return `${firstChar}${secondChar}`.toUpperCase() || "CC";
-};
+import { buildInitials } from "@/shared/utils/initials";
 
 type PagadorCardUsageCardProps = {
 	items: PayerCardUsageItem[];

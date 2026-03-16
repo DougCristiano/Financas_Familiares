@@ -15,32 +15,18 @@ import {
 	AvatarFallback,
 	AvatarImage,
 } from "@/shared/components/ui/avatar";
-import { CardContent } from "@/shared/components/ui/card";
 import { WidgetEmptyState } from "@/shared/components/widget-empty-state";
 import { getAvatarSrc } from "@/shared/lib/payers/utils";
+import { buildInitials } from "@/shared/utils/initials";
 import { formatPercentage } from "@/shared/utils/percentage";
 
 type PayersWidgetProps = {
 	payers: DashboardPagador[];
 };
 
-const buildInitials = (value: string) => {
-	const parts = value.trim().split(/\s+/).filter(Boolean);
-	if (parts.length === 0) {
-		return "??";
-	}
-	if (parts.length === 1) {
-		const firstPart = parts[0];
-		return firstPart ? firstPart.slice(0, 2).toUpperCase() : "??";
-	}
-	const firstChar = parts[0]?.[0] ?? "";
-	const secondChar = parts[1]?.[0] ?? "";
-	return `${firstChar}${secondChar}`.toUpperCase() || "??";
-};
-
 export function PayersWidget({ payers }: PayersWidgetProps) {
 	return (
-		<CardContent className="flex flex-col gap-4 px-0">
+		<div className="flex flex-col">
 			{payers.length === 0 ? (
 				<WidgetEmptyState
 					icon={<RiGroupLine className="size-6 text-muted-foreground" />}
@@ -123,6 +109,6 @@ export function PayersWidget({ payers }: PayersWidgetProps) {
 					})}
 				</div>
 			)}
-		</CardContent>
+		</div>
 	);
 }

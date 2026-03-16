@@ -69,8 +69,6 @@ const renderLancamento = (
 					</span>
 
 					<div className="flex gap-1">
-						<Badge variant={"outline"}>{event.transaction.condition}</Badge>
-						<Badge variant={"outline"}>{event.transaction.paymentMethod}</Badge>
 						<Badge variant={"outline"}>{event.transaction.categoriaName}</Badge>
 					</div>
 				</div>
@@ -198,9 +196,6 @@ export function EventModal({ open, day, onClose, onCreate }: EventModalProps) {
 				</div>
 
 				<DialogFooter>
-					<Button variant="outline" onClick={onClose}>
-						Cancelar
-					</Button>
 					<Button onClick={handleCreate} disabled={!day}>
 						Novo lançamento
 					</Button>

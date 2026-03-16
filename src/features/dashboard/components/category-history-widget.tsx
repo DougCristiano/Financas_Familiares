@@ -8,7 +8,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { CategoryHistoryData } from "@/features/dashboard/categories/category-history-queries";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import {
 	type ChartConfig,
 	ChartContainer,
@@ -170,274 +169,272 @@ export function CategoryHistoryWidget({ data }: CategoryHistoryWidgetProps) {
 	}
 
 	return (
-		<Card className="h-auto">
-			<CardContent className="space-y-2.5">
-				<div className="space-y-2">
-					{selectedCategoryDetails.length > 0 && (
-						<div className="flex items-start justify-between gap-4 mb-4">
-							<div className="flex flex-wrap gap-2">
-								{selectedCategoryDetails.map((category) => {
-									if (!category) return null;
-									const IconComponent = category.icon
-										? getIconComponent(category.icon)
-										: null;
-									const colorIndex = selectedCategories.indexOf(category.id);
-									const color = CHART_COLORS[colorIndex % CHART_COLORS.length];
+		<div className="space-y-2.5">
+			<div className="space-y-2">
+				{selectedCategoryDetails.length > 0 && (
+					<div className="flex items-start justify-between gap-4 mb-4">
+						<div className="flex flex-wrap gap-2">
+							{selectedCategoryDetails.map((category) => {
+								if (!category) return null;
+								const IconComponent = category.icon
+									? getIconComponent(category.icon)
+									: null;
+								const colorIndex = selectedCategories.indexOf(category.id);
+								const color = CHART_COLORS[colorIndex % CHART_COLORS.length];
 
-									return (
-										<div
-											key={category.id}
-											className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
-											style={{ borderColor: color }}
-										>
-											{IconComponent ? (
-												<span style={{ color }}>
-													<IconComponent className="size-4" />
-												</span>
-											) : (
-												<div
-													className="size-3 rounded-sm"
-													style={{ backgroundColor: color }}
-												/>
-											)}
-											<span className="text-foreground">{category.name}</span>
-											<Button
-												variant="ghost"
-												size="sm"
-												className="h-4 w-4 p-0 hover:bg-transparent"
-												onClick={() => handleRemoveCategory(category.id)}
-											>
-												<RiCloseLine className="size-3" />
-											</Button>
-										</div>
-									);
-								})}
-							</div>
-							<div className="flex items-center gap-2 shrink-0 pt-1.5">
-								<span className="text-xs text-muted-foreground whitespace-nowrap">
-									{selectedCategories.length}/5 selecionadas
-								</span>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={handleClearAll}
-									className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-								>
-									Limpar
-								</Button>
-							</div>
-						</div>
-					)}
-
-					{selectedCategories.length < 5 && availableCategories.length > 0 && (
-						<Popover open={open} onOpenChange={setOpen} modal>
-							<PopoverTrigger asChild>
-								<Button
-									variant="outline"
-									role="combobox"
-									aria-expanded={open}
-									className="w-full justify-between hover:scale-none"
-								>
-									Selecionar categorias
-									<RiArrowDownSLine className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent
-								className="w-(--radix-popover-trigger-width) p-0"
-								align="start"
-							>
-								<Command>
-									<CommandInput placeholder="Pesquisar categoria..." />
-									<CommandList>
-										<CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
-
-										{despesaCategories.length > 0 && (
-											<CommandGroup heading="Despesas">
-												{despesaCategories.map((category) => {
-													const IconComponent = category.icon
-														? getIconComponent(category.icon)
-														: null;
-													return (
-														<CommandItem
-															key={category.id}
-															value={category.name}
-															onSelect={() => handleAddCategory(category.id)}
-															className="gap-2"
-														>
-															{IconComponent ? (
-																<IconComponent className="size-4 text-destructive" />
-															) : (
-																<div className="size-3 rounded-sm bg-destructive" />
-															)}
-															<span>{category.name}</span>
-														</CommandItem>
-													);
-												})}
-											</CommandGroup>
-										)}
-
-										{receitaCategories.length > 0 && (
-											<CommandGroup heading="Receitas">
-												{receitaCategories.map((category) => {
-													const IconComponent = category.icon
-														? getIconComponent(category.icon)
-														: null;
-													return (
-														<CommandItem
-															key={category.id}
-															value={category.name}
-															onSelect={() => handleAddCategory(category.id)}
-															className="gap-2"
-														>
-															{IconComponent ? (
-																<IconComponent className="size-4 text-success" />
-															) : (
-																<div className="size-3 rounded-sm bg-success" />
-															)}
-															<span>{category.name}</span>
-														</CommandItem>
-													);
-												})}
-											</CommandGroup>
-										)}
-									</CommandList>
-								</Command>
-							</PopoverContent>
-						</Popover>
-					)}
-				</div>
-
-				{isEmpty ? (
-					<div className="h-[450px] flex items-center justify-center">
-						<WidgetEmptyState
-							icon={
-								<RiBarChartBoxLine className="size-6 text-muted-foreground" />
-							}
-							title="Selecione categorias para visualizar"
-							description="Escolha até 5 categorias para acompanhar o histórico dos últimos 8 meses, mês atual e próximo mês."
-						/>
-					</div>
-				) : (
-					<ChartContainer config={chartConfig} className="h-[450px] w-full">
-						<AreaChart
-							data={filteredChartData}
-							margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
-						>
-							<defs>
-								{filteredCategories.map((category) => (
-									<linearGradient
-										key={`gradient-${category.id}`}
-										id={`gradient-${category.id}`}
-										x1="0"
-										y1="0"
-										x2="0"
-										y2="1"
+								return (
+									<div
+										key={category.id}
+										className="flex items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm"
+										style={{ borderColor: color }}
 									>
-										<stop
-											offset="5%"
-											stopColor={category.color}
-											stopOpacity={0.4}
-										/>
-										<stop
-											offset="95%"
-											stopColor={category.color}
-											stopOpacity={0.05}
-										/>
-									</linearGradient>
-								))}
-							</defs>
-							<CartesianGrid strokeDasharray="3 3" vertical={false} />
-							<XAxis
-								dataKey="month"
-								tickLine={false}
-								axisLine={false}
-								tickMargin={8}
-								className="text-xs"
-							/>
-							<YAxis
-								tickLine={false}
-								axisLine={false}
-								tickMargin={8}
-								className="text-xs"
-								tickFormatter={(value) => formatCurrencyCompact(Number(value))}
-							/>
-							<ChartTooltip
-								content={({ active, payload }) => {
-									if (!active || !payload || payload.length === 0) {
-										return null;
-									}
+										{IconComponent ? (
+											<span style={{ color }}>
+												<IconComponent className="size-4" />
+											</span>
+										) : (
+											<div
+												className="size-3 rounded-sm"
+												style={{ backgroundColor: color }}
+											/>
+										)}
+										<span className="text-foreground">{category.name}</span>
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-4 w-4 p-0 hover:bg-transparent"
+											onClick={() => handleRemoveCategory(category.id)}
+										>
+											<RiCloseLine className="size-3" />
+										</Button>
+									</div>
+								);
+							})}
+						</div>
+						<div className="flex items-center gap-2 shrink-0 pt-1.5">
+							<span className="text-xs text-muted-foreground whitespace-nowrap">
+								{selectedCategories.length}/5 selecionadas
+							</span>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={handleClearAll}
+								className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+							>
+								Limpar
+							</Button>
+						</div>
+					</div>
+				)}
 
-									// Sort payload by value (descending)
-									const sortedPayload = [...payload].sort(
-										(a, b) => (b.value as number) - (a.value as number),
-									);
+				{selectedCategories.length < 5 && availableCategories.length > 0 && (
+					<Popover open={open} onOpenChange={setOpen} modal>
+						<PopoverTrigger asChild>
+							<Button
+								variant="outline"
+								role="combobox"
+								aria-expanded={open}
+								className="w-full justify-between hover:scale-none"
+							>
+								Selecionar categorias
+								<RiArrowDownSLine className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							className="w-(--radix-popover-trigger-width) p-0"
+							align="start"
+						>
+							<Command>
+								<CommandInput placeholder="Pesquisar categoria..." />
+								<CommandList>
+									<CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
 
-									return (
-										<div className="rounded-lg border bg-background p-3 shadow-lg">
-											<div className="mb-2 text-xs font-medium text-muted-foreground">
-												{payload[0].payload.month}
-											</div>
-											<div className="grid gap-1.5">
-												{sortedPayload
-													.filter((entry) => (entry.value as number) > 0)
-													.map((entry) => {
-														const config =
-															chartConfig[
-																entry.dataKey as keyof typeof chartConfig
-															];
-														const value = entry.value as number;
+									{despesaCategories.length > 0 && (
+										<CommandGroup heading="Despesas">
+											{despesaCategories.map((category) => {
+												const IconComponent = category.icon
+													? getIconComponent(category.icon)
+													: null;
+												return (
+													<CommandItem
+														key={category.id}
+														value={category.name}
+														onSelect={() => handleAddCategory(category.id)}
+														className="gap-2"
+													>
+														{IconComponent ? (
+															<IconComponent className="size-4 text-destructive" />
+														) : (
+															<div className="size-3 rounded-sm bg-destructive" />
+														)}
+														<span>{category.name}</span>
+													</CommandItem>
+												);
+											})}
+										</CommandGroup>
+									)}
 
-														return (
-															<div
-																key={entry.dataKey}
-																className="flex items-center justify-between gap-4"
-															>
-																<div className="flex items-center gap-2">
-																	<div
-																		className="h-2.5 w-2.5 rounded-sm shrink-0"
-																		style={{ backgroundColor: config?.color }}
-																	/>
-																	<span className="text-xs text-muted-foreground truncate max-w-[150px]">
-																		{config?.label}
-																	</span>
-																</div>
-																<span className="text-xs font-medium tabular-nums">
-																	{formatCurrency(value)}
+									{receitaCategories.length > 0 && (
+										<CommandGroup heading="Receitas">
+											{receitaCategories.map((category) => {
+												const IconComponent = category.icon
+													? getIconComponent(category.icon)
+													: null;
+												return (
+													<CommandItem
+														key={category.id}
+														value={category.name}
+														onSelect={() => handleAddCategory(category.id)}
+														className="gap-2"
+													>
+														{IconComponent ? (
+															<IconComponent className="size-4 text-success" />
+														) : (
+															<div className="size-3 rounded-sm bg-success" />
+														)}
+														<span>{category.name}</span>
+													</CommandItem>
+												);
+											})}
+										</CommandGroup>
+									)}
+								</CommandList>
+							</Command>
+						</PopoverContent>
+					</Popover>
+				)}
+			</div>
+
+			{isEmpty ? (
+				<div className="h-[450px] flex items-center justify-center">
+					<WidgetEmptyState
+						icon={
+							<RiBarChartBoxLine className="size-6 text-muted-foreground" />
+						}
+						title="Selecione categorias para visualizar"
+						description="Escolha até 5 categorias para acompanhar o histórico dos últimos 8 meses, mês atual e próximo mês."
+					/>
+				</div>
+			) : (
+				<ChartContainer config={chartConfig} className="h-[450px] w-full">
+					<AreaChart
+						data={filteredChartData}
+						margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
+					>
+						<defs>
+							{filteredCategories.map((category) => (
+								<linearGradient
+									key={`gradient-${category.id}`}
+									id={`gradient-${category.id}`}
+									x1="0"
+									y1="0"
+									x2="0"
+									y2="1"
+								>
+									<stop
+										offset="5%"
+										stopColor={category.color}
+										stopOpacity={0.4}
+									/>
+									<stop
+										offset="95%"
+										stopColor={category.color}
+										stopOpacity={0.05}
+									/>
+								</linearGradient>
+							))}
+						</defs>
+						<CartesianGrid strokeDasharray="3 3" vertical={false} />
+						<XAxis
+							dataKey="month"
+							tickLine={false}
+							axisLine={false}
+							tickMargin={8}
+							className="text-xs"
+						/>
+						<YAxis
+							tickLine={false}
+							axisLine={false}
+							tickMargin={8}
+							className="text-xs"
+							tickFormatter={(value) => formatCurrencyCompact(Number(value))}
+						/>
+						<ChartTooltip
+							content={({ active, payload }) => {
+								if (!active || !payload || payload.length === 0) {
+									return null;
+								}
+
+								// Sort payload by value (descending)
+								const sortedPayload = [...payload].sort(
+									(a, b) => (b.value as number) - (a.value as number),
+								);
+
+								return (
+									<div className="rounded-lg border bg-background p-3 shadow-lg">
+										<div className="mb-2 text-xs font-medium text-muted-foreground">
+											{payload[0].payload.month}
+										</div>
+										<div className="grid gap-1.5">
+											{sortedPayload
+												.filter((entry) => (entry.value as number) > 0)
+												.map((entry) => {
+													const config =
+														chartConfig[
+															entry.dataKey as keyof typeof chartConfig
+														];
+													const value = entry.value as number;
+
+													return (
+														<div
+															key={entry.dataKey}
+															className="flex items-center justify-between gap-4"
+														>
+															<div className="flex items-center gap-2">
+																<div
+																	className="h-2.5 w-2.5 rounded-sm shrink-0"
+																	style={{ backgroundColor: config?.color }}
+																/>
+																<span className="text-xs text-muted-foreground truncate max-w-[150px]">
+																	{config?.label}
 																</span>
 															</div>
-														);
-													})}
-											</div>
+															<span className="text-xs font-medium tabular-nums">
+																{formatCurrency(value)}
+															</span>
+														</div>
+													);
+												})}
 										</div>
-									);
-								}}
-								cursor={{
-									stroke: "hsl(var(--muted-foreground))",
-									strokeWidth: 1,
+									</div>
+								);
+							}}
+							cursor={{
+								stroke: "hsl(var(--muted-foreground))",
+								strokeWidth: 1,
+							}}
+						/>
+						{filteredCategories.map((category) => (
+							<Area
+								key={category.id}
+								type="monotone"
+								dataKey={category.name}
+								stroke={category.color}
+								strokeWidth={1}
+								fill={`url(#gradient-${category.id})`}
+								fillOpacity={1}
+								dot={false}
+								activeDot={{
+									r: 5,
+									fill: category.color,
+									stroke: "hsl(var(--background))",
+									strokeWidth: 2,
 								}}
 							/>
-							{filteredCategories.map((category) => (
-								<Area
-									key={category.id}
-									type="monotone"
-									dataKey={category.name}
-									stroke={category.color}
-									strokeWidth={1}
-									fill={`url(#gradient-${category.id})`}
-									fillOpacity={1}
-									dot={false}
-									activeDot={{
-										r: 5,
-										fill: category.color,
-										stroke: "hsl(var(--background))",
-										strokeWidth: 2,
-									}}
-								/>
-							))}
-						</AreaChart>
-					</ChartContainer>
-				)}
-			</CardContent>
-		</Card>
+						))}
+					</AreaChart>
+				</ChartContainer>
+			)}
+		</div>
 	);
 }

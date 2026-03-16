@@ -25,8 +25,10 @@ export function GoalProgressItem({
 	const progressValue = clampGoalProgress(item.usedPercentage, 0, 100);
 	const percentageDelta = item.usedPercentage - 100;
 
+	const isExceeded = item.status === "exceeded";
+
 	return (
-		<div className="transition-all duration-300 py-2">
+		<div className="group transition-all duration-300 py-2">
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex min-w-0 flex-1 items-start gap-2">
 					<CategoryIconBadge
@@ -54,7 +56,7 @@ export function GoalProgressItem({
 						type="button"
 						variant="outline"
 						size="icon-sm"
-						className="text-muted-foreground hover:text-foreground"
+						className="opacity-30 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
 						onClick={() => onEdit(item)}
 						aria-label={`Editar orçamento de ${item.categoryName}`}
 					>
@@ -63,7 +65,14 @@ export function GoalProgressItem({
 				</div>
 			</div>
 			<div className="ml-11 mt-1.5">
-				<Progress value={progressValue} />
+				<Progress
+					value={progressValue}
+					className={
+						isExceeded
+							? "[&_[data-slot=progress-indicator]]:bg-destructive bg-destructive/20"
+							: undefined
+					}
+				/>
 			</div>
 		</div>
 	);
