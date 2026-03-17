@@ -12,6 +12,7 @@ import {
 	RiFlashlightLine,
 	RiGitBranchLine,
 	RiGithubFill,
+	RiInformationLine,
 	RiLayoutGridLine,
 	RiLineChartLine,
 	RiLockLine,
@@ -29,89 +30,135 @@ import {
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
+import type { ComponentType } from "react";
 import { AnimateOnScroll } from "@/features/landing/components/animate-on-scroll";
 import { MobileNav } from "@/features/landing/components/mobile-nav";
 import { SetupTabs } from "@/features/landing/components/setup-tabs";
 import { AnimatedThemeToggler } from "@/shared/components/animated-theme-toggler";
 import { Logo } from "@/shared/components/logo";
+import {
+	Alert,
+	AlertDescription,
+	AlertTitle,
+} from "@/shared/components/ui/alert";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { DotPattern } from "@/shared/components/ui/dot-pattern";
 import { getOptionalUserSession } from "@/shared/lib/auth/server";
 
-const mainFeatures = [
+async function fetchGitHubStats() {
+	try {
+		const res = await fetch(
+			"https://api.github.com/repos/felipegcoutinho/openmonetis",
+			{ next: { revalidate: 3600 } },
+		);
+		if (!res.ok) return { stars: 200, forks: 60 };
+		const data = await res.json();
+		return {
+			stars: data.stargazers_count as number,
+			forks: data.forks_count as number,
+		};
+	} catch {
+		return { stars: 200, forks: 60 };
+	}
+}
+
+const navbarActionClassName =
+	"border-black/10 bg-transparent text-black/75 shadow-none hover:border-black/20 hover:bg-black/10 hover:text-black focus-visible:ring-black/20 data-[state=open]:bg-black/10 data-[state=open]:text-black";
+
+type FeatureItem = {
+	icon: ComponentType<{ className?: string; style?: React.CSSProperties }>;
+	title: string;
+	description: string;
+	colorVar: string;
+};
+
+const mainFeatures: FeatureItem[] = [
 	{
 		icon: RiWalletLine,
 		title: "Contas e transações",
 		description:
 			"Registre suas contas bancárias, cartões e dinheiro. Adicione receitas, despesas e transferências. Organize por categorias. Extratos detalhados por conta.",
+		colorVar: "var(--data-9)",
 	},
 	{
 		icon: RiPercentLine,
 		title: "Parcelamentos avançados",
 		description:
 			"Controle completo de compras parceladas. Antecipe parcelas com cálculo automático de desconto. Veja análise consolidada de todas as parcelas em aberto.",
+		colorVar: "var(--data-4)",
 	},
 	{
 		icon: RiRobot2Line,
 		title: "Insights com IA",
 		description:
 			"Análises financeiras geradas por IA (Claude, GPT, Gemini). Insights personalizados sobre seus padrões de gastos e recomendações inteligentes.",
+		colorVar: "var(--data-8)",
 	},
 	{
 		icon: RiBarChartBoxLine,
 		title: "Relatórios e gráficos",
 		description:
 			"Dashboard com 20+ widgets interativos. Relatórios detalhados por categoria. Gráficos de evolução e comparativos. Exportação em PDF e Excel.",
+		colorVar: "var(--data-5)",
 	},
 	{
 		icon: RiBankCard2Line,
 		title: "Faturas de cartão",
 		description:
 			"Cadastre seus cartões e acompanhe as faturas por período. Veja o que ainda não foi fechado. Controle limites, vencimentos e fechamentos.",
+		colorVar: "var(--data-1)",
 	},
 	{
 		icon: RiTeamLine,
 		title: "Gestão colaborativa",
 		description:
 			"Compartilhe pagadores com permissões granulares (admin/viewer). Notificações automáticas por e-mail. Colabore em lançamentos compartilhados.",
+		colorVar: "var(--data-3)",
 	},
 ];
 
-const extraFeatures = [
+const extraFeatures: FeatureItem[] = [
 	{
 		icon: RiPieChartLine,
 		title: "Categorias e orçamentos",
 		description:
 			"Crie categorias personalizadas e defina orçamentos mensais com indicadores visuais.",
+		colorVar: "var(--data-7)",
 	},
 	{
 		icon: RiFileTextLine,
 		title: "Anotações e tarefas",
 		description:
 			"Notas de texto e listas de tarefas com checkboxes. Arquivamento para manter histórico.",
+		colorVar: "var(--data-6)",
 	},
 	{
 		icon: RiCalendarLine,
 		title: "Calendário financeiro",
 		description:
 			"Visualize transações em calendário mensal. Nunca perca prazos de pagamentos.",
+		colorVar: "var(--data-2)",
 	},
 	{
 		icon: RiDownloadCloudLine,
 		title: "Importação em massa",
 		description: "Lance múltiplos lançamentos de uma vez",
+		colorVar: "var(--data-9)",
 	},
 	{
 		icon: RiEyeOffLine,
 		title: "Modo privacidade",
 		description:
 			"Oculte valores sensíveis com um clique. Tema dark/light. Calculadora integrada.",
+		colorVar: "var(--data-4)",
 	},
 	{
 		icon: RiFlashlightLine,
 		title: "Performance otimizada",
 		description: "Sistema rápido e com alta performance",
+		colorVar: "var(--data-5)",
 	},
 ];
 
@@ -136,12 +183,75 @@ const screenshotSections = [
 	},
 ];
 
-const companionBanks = ["Nubank", "Itaú", "Inter", "Mercado Pago", "Outros"];
+const companionBanks = [
+	{ name: "Nubank", logo: "/logos/nubank.png" },
+	{ name: "Itaú", logo: "/logos/itau.png" },
+	{ name: "Inter", logo: "/logos/interpj.png" },
+	{ name: "Mercado Pago", logo: "/logos/mercadopago.png" },
+	{ name: "Outros", logo: null },
+];
+
+const stackItems = [
+	{
+		icon: RiCodeSSlashLine,
+		title: "Frontend",
+		subtitle: "Next.js 16, TypeScript, Tailwind CSS, shadcn/ui",
+		description: "Interface moderna e responsiva com React 19 e App Router",
+		colorVar: "var(--data-3)",
+	},
+	{
+		icon: RiDatabase2Line,
+		title: "Backend",
+		subtitle: "PostgreSQL 18, Drizzle ORM, Better Auth",
+		description: "Banco relacional robusto com type-safe ORM",
+		colorVar: "var(--data-9)",
+	},
+	{
+		icon: RiShieldCheckLine,
+		title: "Segurança",
+		subtitle: "Better Auth com OAuth (Google) e autenticação por email",
+		description: "Sessões seguras e proteção de rotas por middleware",
+		colorVar: "var(--data-1)",
+	},
+	{
+		icon: RiDeviceLine,
+		title: "Deploy",
+		subtitle:
+			"Docker com multi-stage build, health checks e volumes persistentes",
+		description: "Fácil de rodar localmente ou em qualquer servidor",
+		colorVar: "var(--data-5)",
+	},
+];
+
+const whoIsItForItems = [
+	{
+		icon: RiTimeLine,
+		title: "Tem disciplina de registrar gastos",
+		description:
+			"Não se importa em dedicar alguns minutos por dia ou semana para manter tudo atualizado",
+		colorVar: "var(--data-4)",
+	},
+	{
+		icon: RiLockLine,
+		title: "Quer controle total sobre seus dados",
+		description:
+			"Prefere hospedar seus próprios dados ao invés de depender de serviços terceiros",
+		colorVar: "var(--data-9)",
+	},
+	{
+		icon: RiLineChartLine,
+		title: "Gosta de entender exatamente onde o dinheiro vai",
+		description:
+			"Quer visualizar padrões de gastos e tomar decisões informadas",
+		colorVar: "var(--data-3)",
+	},
+];
 
 export default async function Page() {
-	const [session, headersList] = await Promise.all([
+	const [session, headersList, githubStats] = await Promise.all([
 		getOptionalUserSession(),
 		headers(),
+		fetchGitHubStats(),
 	]);
 	const hostname = headersList.get("host")?.replace(/:\d+$/, "");
 	const publicDomain = process.env.PUBLIC_DOMAIN?.replace(
@@ -153,62 +263,62 @@ export default async function Page() {
 	return (
 		<div className="flex min-h-screen flex-col">
 			{/* Navigation */}
-			<header className="sticky top-0 z-50 bg-card backdrop-blur-lg supports-backdrop-filter:bg-card/50">
-				<div className="max-w-8xl mx-auto px-4 flex h-16 items-center justify-between">
-					<Logo variant="compact" />
+			<header className="sticky top-0 z-50 flex h-16 shrink-0 items-center bg-primary">
+				<div className="pointer-events-none absolute inset-0 overflow-hidden">
+					<div className="absolute inset-0 bg-linear-to-b from-white/8 via-transparent to-black/6" />
+				</div>
+
+				<div className="relative z-10 max-w-8xl mx-auto px-4 w-full flex h-full items-center justify-between">
+					<Logo variant="compact" invertTextOnDark={false} />
 
 					{/* Center Navigation Links */}
-					<nav className="hidden md:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
-						<a
-							href="#telas"
-							className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-						>
-							Conheça as telas
-						</a>
-						<a
-							href="#funcionalidades"
-							className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-						>
-							Funcionalidades
-						</a>
-						<a
-							href="#companion"
-							className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-						>
-							Companion
-						</a>
-						<a
-							href="#stack"
-							className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-						>
-							Stack
-						</a>
-						<a
-							href="#como-usar"
-							className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-						>
-							Como usar
-						</a>
+					<nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+						{[
+							{ href: "#telas", label: "conheça as telas" },
+							{ href: "#funcionalidades", label: "funcionalidades" },
+							{ href: "#companion", label: "companion" },
+							{ href: "#stack", label: "stack" },
+							{ href: "#como-usar", label: "como usar" },
+						].map(({ href, label }) => (
+							<a
+								key={href}
+								href={href}
+								className="rounded-md px-2 py-1.5 text-sm font-medium text-black/75 hover:text-black hover:bg-black/10 transition-colors"
+							>
+								{label}
+							</a>
+						))}
 					</nav>
 
-					<nav className="flex items-center gap-2 md:gap-4">
-						<AnimatedThemeToggler />
+					<nav className="flex items-center gap-2 md:gap-3">
+						<AnimatedThemeToggler className={navbarActionClassName} />
 						{!isPublicDomain &&
 							(session?.user ? (
 								<Link prefetch href="/dashboard" className="hidden md:block">
-									<Button variant="outline" size="sm">
+									<Button
+										variant="outline"
+										size="sm"
+										className="border-black/20 text-black/80 bg-transparent hover:bg-black/10 hover:text-black shadow-none"
+									>
 										Dashboard
 									</Button>
 								</Link>
 							) : (
 								<div className="hidden md:flex items-center gap-2">
 									<Link href="/login">
-										<Button variant="ghost" size="sm">
+										<Button
+											variant="ghost"
+											size="sm"
+											className="text-black/75 hover:bg-black/10 hover:text-black shadow-none"
+										>
 											Entrar
 										</Button>
 									</Link>
 									<Link href="/signup">
-										<Button size="sm" className="gap-2">
+										<Button
+											size="sm"
+											className="bg-black/10 border border-black/20 text-black shadow-none hover:bg-black/20 gap-2"
+										>
 											Começar
 										</Button>
 									</Link>
@@ -217,22 +327,32 @@ export default async function Page() {
 						<MobileNav
 							isPublicDomain={isPublicDomain}
 							isLoggedIn={!!session?.user}
+							triggerClassName="border border-black/10 text-black/75 shadow-none hover:border-black/20 hover:bg-black/10 hover:text-black focus-visible:ring-black/20"
 						/>
 					</nav>
 				</div>
 			</header>
 
-			{/* Hero Section */}
-			<section className="relative overflow-hidden py-12 md:py-24 lg:py-32">
-				{/* Background gradient */}
-				<div className="pointer-events-none absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-transparent" />
+			{/* Hero Section — texto + preview integrado */}
+			<section className="relative overflow-hidden pt-14 md:pt-20 lg:pt-24 pb-0">
+				{/* Background — DotPattern fade conectando com navbar */}
+				<div className="pointer-events-none absolute inset-x-0 top-0 h-80 overflow-hidden">
+					<DotPattern
+						width={20}
+						height={20}
+						cx={1.25}
+						cy={1.25}
+						cr={1.25}
+						className="text-primary/10 mask-[linear-gradient(to_bottom,black_0%,transparent_100%)]"
+					/>
+					<div className="absolute inset-0 bg-linear-to-b from-primary/6 to-transparent" />
+				</div>
 
 				<div className="max-w-8xl mx-auto px-4 relative">
-					<div className="mx-auto flex max-w-5xl flex-col items-center text-center gap-5 md:gap-6">
-						<Logo variant="small" className="h-12 w-12 mb-1" />
-
-						<Badge variant="default">
-							<RiGithubFill size={14} className="mr-1" />
+					{/* Texto */}
+					<div className="mx-auto flex max-w-3xl flex-col items-center text-center gap-5 md:gap-6 pb-10 md:pb-14">
+						<Badge variant="outline">
+							<RiGithubFill className="size-4 mr-1" />
 							Projeto Open Source
 						</Badge>
 
@@ -242,30 +362,22 @@ export default async function Page() {
 						</h1>
 
 						<p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl px-4 sm:px-0">
-							Um projeto pessoal de gestão financeira. Self-hosted, sem Open
-							Finance, sem sincronização automática. Rode no seu computador ou
-							servidor e tenha controle total sobre suas finanças.
+							Gestão financeira self-hosted e open source. Lance manualmente ou
+							capture notificações bancárias direto pelo{" "}
+							<span className="text-foreground font-medium">
+								Companion para Android
+							</span>
+							. Seus dados, seu servidor.
 						</p>
 
-						<div className="rounded-lg border bg-muted/30 p-3 sm:p-4 max-w-2xl mx-4 sm:mx-0">
-							<p className="text-xs sm:text-sm text-muted-foreground">
-								<span className="font-semibold text-foreground">
-									Aviso importante:
-								</span>{" "}
-								Este sistema requer disciplina. Você precisa registrar
-								manualmente cada transação. Se prefere algo automático, este
-								projeto não é pra você.
-							</p>
-						</div>
-
-						<div className="flex flex-col sm:flex-row gap-3 mt-2 w-full sm:w-auto px-4 sm:px-0">
+						<div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto px-4 sm:px-0">
 							<Link
 								href="https://github.com/felipegcoutinho/openmonetis"
 								target="_blank"
 								className="w-full sm:w-auto"
 							>
 								<Button size="lg" className="gap-2 w-full sm:w-auto">
-									<RiGithubFill size={18} />
+									<RiGithubFill className="size-5" />
 									Baixar no GitHub
 								</Button>
 							</Link>
@@ -283,16 +395,33 @@ export default async function Page() {
 								</Button>
 							</Link>
 						</div>
+					</div>
 
-						<div className="mt-4 md:mt-8 flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-muted-foreground">
-							<div className="flex items-center gap-2">
-								<RiLockLine size={18} className="text-primary" />
-								Seus dados, seu servidor
+					{/* Dashboard preview integrado ao hero */}
+					<div className="mx-auto max-w-6xl">
+						<div className="rounded-t-xl overflow-hidden border-x border-t bg-card">
+							<div className="flex items-center gap-1.5 px-3 h-8 border-b bg-muted/50">
+								<div className="size-2.5 rounded-full bg-muted-foreground/20" />
+								<div className="size-2.5 rounded-full bg-muted-foreground/20" />
+								<div className="size-2.5 rounded-full bg-muted-foreground/20" />
+								<div className="ml-2 flex-1 max-w-52 h-4 rounded bg-muted-foreground/10" />
 							</div>
-							<div className="flex items-center gap-2">
-								<RiGithubFill size={18} className="text-primary" />
-								100% Open Source
-							</div>
+							<Image
+								src="/images/dashboard-preview-light.webp"
+								alt="openmonetis Dashboard Preview"
+								width={1920}
+								height={1080}
+								className="w-full h-auto dark:hidden"
+								priority
+							/>
+							<Image
+								src="/images/dashboard-preview-dark.webp"
+								alt="openmonetis Dashboard Preview"
+								width={1920}
+								height={1080}
+								className="w-full h-auto hidden dark:block"
+								priority
+							/>
 						</div>
 					</div>
 				</div>
@@ -303,71 +432,46 @@ export default async function Page() {
 				<div className="max-w-8xl mx-auto px-4">
 					<div className="mx-auto max-w-4xl">
 						<div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-8">
-							<div className="flex flex-col items-center text-center gap-1.5">
-								<div className="flex items-center gap-2 text-primary">
-									<RiLayoutGridLine size={20} />
+							{[
+								{
+									icon: RiLayoutGridLine,
+									value: "20+",
+									label: "Widgets no dashboard",
+									colorVar: "var(--data-9)",
+								},
+								{
+									icon: RiShieldCheckLine,
+									value: "100%",
+									label: "Self-hosted",
+									colorVar: "var(--data-1)",
+								},
+								{
+									icon: RiStarLine,
+									value: `${githubStats.stars}`,
+									label: "Stars no GitHub",
+									colorVar: "var(--data-4)",
+								},
+								{
+									icon: RiGitBranchLine,
+									value: `${githubStats.forks}`,
+									label: "Forks no GitHub",
+									colorVar: "var(--data-3)",
+								},
+							].map(({ icon: Icon, value, label, colorVar }) => (
+								<div
+									key={label}
+									className="flex flex-col items-center text-center gap-1.5"
+								>
+									<Icon className="size-5" style={{ color: colorVar }} />
+									<span className="text-2xl md:text-3xl font-bold">
+										{value}
+									</span>
+									<span className="text-xs md:text-sm text-muted-foreground">
+										{label}
+									</span>
 								</div>
-								<span className="text-2xl md:text-3xl font-bold">20+</span>
-								<span className="text-xs md:text-sm text-muted-foreground">
-									Widgets no dashboard
-								</span>
-							</div>
-							<div className="flex flex-col items-center text-center gap-1.5">
-								<div className="flex items-center gap-2 text-primary">
-									<RiShieldCheckLine size={20} />
-								</div>
-								<span className="text-2xl md:text-3xl font-bold">100%</span>
-								<span className="text-xs md:text-sm text-muted-foreground">
-									Self-hosted
-								</span>
-							</div>
-							<div className="flex flex-col items-center text-center gap-1.5">
-								<div className="flex items-center gap-2 text-primary">
-									<RiStarLine size={20} />
-								</div>
-								<span className="text-2xl md:text-3xl font-bold">+200</span>
-								<span className="text-xs md:text-sm text-muted-foreground">
-									Stars no GitHub
-								</span>
-							</div>
-							<div className="flex flex-col items-center text-center gap-1.5">
-								<div className="flex items-center gap-2 text-primary">
-									<RiGitBranchLine size={20} />
-								</div>
-								<span className="text-2xl md:text-3xl font-bold">+60</span>
-								<span className="text-xs md:text-sm text-muted-foreground">
-									Forks no GitHub
-								</span>
-							</div>
+							))}
 						</div>
-					</div>
-				</div>
-			</section>
-
-			{/* Dashboard Preview Section */}
-			<section className="py-6 md:py-16">
-				<div className="max-w-8xl mx-auto px-4">
-					<div className="mx-auto max-w-6xl">
-						<AnimateOnScroll>
-							<div>
-								<Image
-									src="/images/dashboard-preview-light.webp"
-									alt="openmonetis Dashboard Preview"
-									width={1920}
-									height={1080}
-									className="w-full h-auto dark:hidden"
-									priority
-								/>
-								<Image
-									src="/images/dashboard-preview-dark.webp"
-									alt="openmonetis Dashboard Preview"
-									width={1920}
-									height={1080}
-									className="w-full h-auto hidden dark:block"
-									priority
-								/>
-							</div>
-						</AnimateOnScroll>
 					</div>
 				</div>
 			</section>
@@ -378,7 +482,7 @@ export default async function Page() {
 					<div className="mx-auto max-w-6xl">
 						<AnimateOnScroll>
 							<div className="text-center mb-8 md:mb-12">
-								<Badge variant="default" className="mb-4">
+								<Badge variant="outline" className="mb-4">
 									Conheça as telas
 								</Badge>
 								<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
@@ -401,7 +505,13 @@ export default async function Page() {
 											{section.description}
 										</p>
 									</div>
-									<div>
+									<div className="rounded-lg overflow-hidden border bg-card">
+										<div className="flex items-center gap-1.5 px-3 h-8 border-b bg-muted/50">
+											<div className="size-2.5 rounded-full bg-muted-foreground/20" />
+											<div className="size-2.5 rounded-full bg-muted-foreground/20" />
+											<div className="size-2.5 rounded-full bg-muted-foreground/20" />
+											<div className="ml-2 flex-1 max-w-52 h-4 rounded bg-muted-foreground/10" />
+										</div>
 										<Image
 											src={section.lightSrc}
 											alt={`Preview ${section.title}`}
@@ -430,7 +540,7 @@ export default async function Page() {
 					<div className="mx-auto max-w-5xl">
 						<AnimateOnScroll>
 							<div className="text-center mb-8 md:mb-12">
-								<Badge variant="default" className="mb-4">
+								<Badge variant="outline" className="mb-4">
 									O que tem aqui
 								</Badge>
 								<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
@@ -447,16 +557,18 @@ export default async function Page() {
 						<AnimateOnScroll>
 							<div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
 								{mainFeatures.map((feature) => (
-									<Card
-										key={feature.title}
-										className="border hover:border-primary/50 transition-colors"
-									>
+									<Card key={feature.title}>
 										<CardContent className="pt-5 pb-5 md:pt-6">
 											<div className="flex flex-col gap-3 md:gap-4">
-												<div className="flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-lg bg-primary/10">
+												<div
+													className="flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-lg"
+													style={{
+														backgroundColor: `color-mix(in oklch, ${feature.colorVar} 14%, transparent)`,
+													}}
+												>
 													<feature.icon
-														size={22}
-														className="text-primary md:size-6"
+														className="size-[22px] md:size-6"
+														style={{ color: feature.colorVar }}
 													/>
 												</div>
 												<div>
@@ -484,10 +596,18 @@ export default async function Page() {
 									{extraFeatures.map((feature) => (
 										<div
 											key={feature.title}
-											className="flex items-start gap-3 rounded-lg border bg-background p-3 md:p-4"
+											className="flex items-start gap-3 rounded-lg border bg-card p-3 md:p-4"
 										>
-											<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10">
-												<feature.icon size={18} className="text-primary" />
+											<div
+												className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md"
+												style={{
+													backgroundColor: `color-mix(in oklch, ${feature.colorVar} 14%, transparent)`,
+												}}
+											>
+												<feature.icon
+													className="size-[18px]"
+													style={{ color: feature.colorVar }}
+												/>
 											</div>
 											<div className="min-w-0">
 												<h4 className="font-medium text-sm mb-0.5">
@@ -514,8 +634,8 @@ export default async function Page() {
 							<div className="grid gap-8 md:gap-12 md:grid-cols-2 items-center">
 								{/* Text content */}
 								<div className="order-2 md:order-1">
-									<Badge variant="default" className="mb-4">
-										<RiSmartphoneLine size={14} className="mr-1" />
+									<Badge variant="outline" className="mb-4">
+										<RiSmartphoneLine className="size-3.5 mr-1" />
 										App Android
 									</Badge>
 									<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
@@ -529,48 +649,47 @@ export default async function Page() {
 
 									{/* Flow steps */}
 									<div className="space-y-3 mb-6">
-										<div className="flex items-start gap-3">
-											<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-												<RiNotification3Line
-													size={16}
-													className="text-primary"
-												/>
+										{[
+											{
+												icon: RiNotification3Line,
+												title: "Notificação bancária chega",
+												subtitle: "O Companion intercepta automaticamente",
+												colorVar: "var(--data-1)",
+											},
+											{
+												icon: RiSmartphoneLine,
+												title: "Dados extraídos e enviados",
+												subtitle: "Valor, descrição e banco são identificados",
+												colorVar: "var(--data-4)",
+											},
+											{
+												icon: RiCheckLine,
+												title: "Revise e confirme no OpenMonetis",
+												subtitle:
+													"Pré-lançamentos ficam na inbox para sua aprovação",
+												colorVar: "var(--data-9)",
+											},
+										].map((step) => (
+											<div key={step.title} className="flex items-start gap-3">
+												<div
+													className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+													style={{
+														backgroundColor: `color-mix(in oklch, ${step.colorVar} 14%, transparent)`,
+													}}
+												>
+													<step.icon
+														className="size-4"
+														style={{ color: step.colorVar }}
+													/>
+												</div>
+												<div>
+													<p className="text-sm font-medium">{step.title}</p>
+													<p className="text-xs text-muted-foreground">
+														{step.subtitle}
+													</p>
+												</div>
 											</div>
-											<div>
-												<p className="text-sm font-medium">
-													Notificação bancária chega
-												</p>
-												<p className="text-xs text-muted-foreground">
-													O Companion intercepta automaticamente
-												</p>
-											</div>
-										</div>
-										<div className="flex items-start gap-3">
-											<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-												<RiSmartphoneLine size={16} className="text-primary" />
-											</div>
-											<div>
-												<p className="text-sm font-medium">
-													Dados extraídos e enviados
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Valor, descrição e banco são identificados
-												</p>
-											</div>
-										</div>
-										<div className="flex items-start gap-3">
-											<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-												<RiCheckLine size={16} className="text-primary" />
-											</div>
-											<div>
-												<p className="text-sm font-medium">
-													Revise e confirme no OpenMonetis
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Pré-lançamentos ficam na inbox para sua aprovação
-												</p>
-											</div>
-										</div>
+										))}
 									</div>
 
 									{/* Supported banks */}
@@ -581,10 +700,23 @@ export default async function Page() {
 										<div className="flex flex-wrap gap-2">
 											{companionBanks.map((bank) => (
 												<span
-													key={bank}
-													className="rounded-full border bg-muted/50 px-3 py-1 text-xs font-medium"
+													key={bank.name}
+													className="inline-flex items-center gap-1.5 rounded-full border bg-muted/50 py-1 text-xs font-medium"
+													style={{
+														paddingLeft: bank.logo ? "4px" : "12px",
+														paddingRight: "12px",
+													}}
 												>
-													{bank}
+													{bank.logo && (
+														<Image
+															src={bank.logo}
+															alt={bank.name}
+															width={18}
+															height={18}
+															className="rounded-full"
+														/>
+													)}
+													{bank.name}
 												</span>
 											))}
 										</div>
@@ -595,7 +727,7 @@ export default async function Page() {
 										target="_blank"
 									>
 										<Button variant="outline" className="gap-2">
-											<RiGithubFill size={16} />
+											<RiGithubFill className="size-4" />
 											Ver no GitHub
 										</Button>
 									</Link>
@@ -625,7 +757,7 @@ export default async function Page() {
 					<div className="mx-auto max-w-5xl">
 						<AnimateOnScroll>
 							<div className="text-center mb-8 md:mb-12">
-								<Badge variant="default" className="mb-4">
+								<Badge variant="outline" className="mb-4">
 									Stack técnica
 								</Badge>
 								<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
@@ -639,96 +771,36 @@ export default async function Page() {
 
 						<AnimateOnScroll>
 							<div className="grid gap-4 md:gap-6 sm:grid-cols-2">
-								<Card className="border">
-									<CardContent>
-										<div className="flex items-start gap-4">
-											<RiCodeSSlashLine
-												size={28}
-												className="text-primary shrink-0 md:size-8"
-											/>
-											<div>
-												<h3 className="font-semibold text-base md:text-lg mb-1.5 md:mb-2">
-													Frontend
-												</h3>
-												<p className="text-sm text-muted-foreground mb-2 md:mb-3">
-													Next.js 16, TypeScript, Tailwind CSS, shadcn/ui
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Interface moderna e responsiva com React 19 e App
-													Router
-												</p>
+								{stackItems.map((item) => (
+									<Card key={item.title}>
+										<CardContent>
+											<div className="flex items-start gap-4">
+												<div
+													className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
+													style={{
+														backgroundColor: `color-mix(in oklch, ${item.colorVar} 14%, transparent)`,
+													}}
+												>
+													<item.icon
+														className="size-6"
+														style={{ color: item.colorVar }}
+													/>
+												</div>
+												<div>
+													<h3 className="font-semibold text-base md:text-lg mb-1.5 md:mb-2">
+														{item.title}
+													</h3>
+													<p className="text-sm text-muted-foreground mb-2 md:mb-3">
+														{item.subtitle}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														{item.description}
+													</p>
+												</div>
 											</div>
-										</div>
-									</CardContent>
-								</Card>
-
-								<Card className="border">
-									<CardContent>
-										<div className="flex items-start gap-4">
-											<RiDatabase2Line
-												size={28}
-												className="text-primary shrink-0 md:size-8"
-											/>
-											<div>
-												<h3 className="font-semibold text-base md:text-lg mb-1.5 md:mb-2">
-													Backend
-												</h3>
-												<p className="text-sm text-muted-foreground mb-2 md:mb-3">
-													PostgreSQL 18, Drizzle ORM, Better Auth
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Banco relacional robusto com type-safe ORM
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-
-								<Card className="border">
-									<CardContent>
-										<div className="flex items-start gap-4">
-											<RiShieldCheckLine
-												size={28}
-												className="text-primary shrink-0 md:size-8"
-											/>
-											<div>
-												<h3 className="font-semibold text-base md:text-lg mb-1.5 md:mb-2">
-													Segurança
-												</h3>
-												<p className="text-sm text-muted-foreground mb-2 md:mb-3">
-													Better Auth com OAuth (Google) e autenticação por
-													email
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Sessões seguras e proteção de rotas por middleware
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-
-								<Card className="border">
-									<CardContent>
-										<div className="flex items-start gap-4">
-											<RiDeviceLine
-												size={28}
-												className="text-primary shrink-0 md:size-8"
-											/>
-											<div>
-												<h3 className="font-semibold text-base md:text-lg mb-1.5 md:mb-2">
-													Deploy
-												</h3>
-												<p className="text-sm text-muted-foreground mb-2 md:mb-3">
-													Docker com multi-stage build, health checks e volumes
-													persistentes
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Fácil de rodar localmente ou em qualquer servidor
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
+										</CardContent>
+									</Card>
+								))}
 							</div>
 						</AnimateOnScroll>
 
@@ -748,7 +820,7 @@ export default async function Page() {
 					<div className="mx-auto max-w-3xl">
 						<AnimateOnScroll>
 							<div className="text-center mb-8 md:mb-12">
-								<Badge variant="default" className="mb-4">
+								<Badge variant="outline" className="mb-4">
 									Como usar
 								</Badge>
 								<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
@@ -783,6 +855,9 @@ export default async function Page() {
 					<div className="mx-auto max-w-3xl">
 						<AnimateOnScroll>
 							<div className="text-center mb-8 md:mb-12">
+								<Badge variant="outline" className="mb-4">
+									Para quem é?
+								</Badge>
 								<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
 									Para quem funciona?
 								</h2>
@@ -794,83 +869,45 @@ export default async function Page() {
 
 						<AnimateOnScroll>
 							<div className="space-y-3 md:space-y-4">
-								<Card className="border">
-									<CardContent>
-										<div className="flex gap-3 md:gap-4">
-											<div className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-												<RiTimeLine
-													size={18}
-													className="text-primary md:size-5"
-												/>
+								{whoIsItForItems.map((item) => (
+									<Card key={item.title}>
+										<CardContent>
+											<div className="flex gap-3 md:gap-4">
+												<div
+													className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg"
+													style={{
+														backgroundColor: `color-mix(in oklch, ${item.colorVar} 14%, transparent)`,
+													}}
+												>
+													<item.icon
+														className="size-[18px] md:size-5"
+														style={{ color: item.colorVar }}
+													/>
+												</div>
+												<div>
+													<h3 className="font-semibold mb-1">{item.title}</h3>
+													<p className="text-xs sm:text-sm text-muted-foreground">
+														{item.description}
+													</p>
+												</div>
 											</div>
-											<div>
-												<h3 className="font-semibold mb-1">
-													Tem disciplina de registrar gastos
-												</h3>
-												<p className="text-xs sm:text-sm text-muted-foreground">
-													Não se importa em dedicar alguns minutos por dia ou
-													semana para manter tudo atualizado
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-
-								<Card className="border">
-									<CardContent>
-										<div className="flex gap-3 md:gap-4">
-											<div className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-												<RiLockLine
-													size={18}
-													className="text-primary md:size-5"
-												/>
-											</div>
-											<div>
-												<h3 className="font-semibold mb-1">
-													Quer controle total sobre seus dados
-												</h3>
-												<p className="text-xs sm:text-sm text-muted-foreground">
-													Prefere hospedar seus próprios dados ao invés de
-													depender de serviços terceiros
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-
-								<Card className="border">
-									<CardContent>
-										<div className="flex gap-3 md:gap-4">
-											<div className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-												<RiLineChartLine
-													size={18}
-													className="text-primary md:size-5"
-												/>
-											</div>
-											<div>
-												<h3 className="font-semibold mb-1">
-													Gosta de entender exatamente onde o dinheiro vai
-												</h3>
-												<p className="text-xs sm:text-sm text-muted-foreground">
-													Quer visualizar padrões de gastos e tomar decisões
-													informadas
-												</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
+										</CardContent>
+									</Card>
+								))}
 							</div>
 						</AnimateOnScroll>
 
 						<AnimateOnScroll>
-							<div className="mt-6 md:mt-8 rounded-lg border bg-background p-4 md:p-6 text-center">
-								<p className="text-xs sm:text-sm text-muted-foreground">
+							<Alert className="mt-6 md:mt-8">
+								<RiInformationLine />
+								<AlertTitle>Não é para todo mundo</AlertTitle>
+								<AlertDescription>
 									Se você não se encaixa nisso, provavelmente vai abandonar
-									depois de uma semana. E tudo bem! Existem outras ferramentas
+									depois de uma semana. Tudo certo! Existem outras ferramentas
 									com sincronização automática que podem funcionar melhor pra
 									você.
-								</p>
-							</div>
+								</AlertDescription>
+							</Alert>
 						</AnimateOnScroll>
 					</div>
 				</div>
@@ -880,7 +917,7 @@ export default async function Page() {
 			<section className="py-12 md:py-24">
 				<div className="max-w-8xl mx-auto px-4">
 					<AnimateOnScroll>
-						<div className="mx-auto max-w-3xl text-center px-4 sm:px-0">
+						<div className="mx-auto max-w-3xl rounded-2xl border bg-card px-6 py-12 md:py-16 text-center">
 							<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 md:mb-4">
 								Pronto para testar?
 							</h2>
@@ -895,7 +932,7 @@ export default async function Page() {
 									className="w-full sm:w-auto"
 								>
 									<Button size="lg" className="gap-2 w-full sm:w-auto">
-										<RiGithubFill size={18} />
+										<RiGithubFill className="size-[18px]" />
 										Baixar Projeto
 									</Button>
 								</Link>
@@ -924,7 +961,7 @@ export default async function Page() {
 					<div className="mx-auto max-w-5xl">
 						<div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
 							<div className="sm:col-span-2 md:col-span-1">
-								<Logo variant="compact" />
+								<Logo variant="compact" colorIcon />
 								<p className="text-sm text-muted-foreground mt-3 md:mt-4">
 									Projeto pessoal de gestão financeira. Open source e
 									self-hosted.
@@ -940,7 +977,7 @@ export default async function Page() {
 											target="_blank"
 											className="hover:text-foreground transition-colors flex items-center gap-2"
 										>
-											<RiGithubFill size={16} />
+											<RiGithubFill className="size-4" />
 											GitHub
 										</Link>
 									</li>
@@ -974,15 +1011,9 @@ export default async function Page() {
 											target="_blank"
 											className="hover:text-foreground transition-colors flex items-center gap-2"
 										>
-											<RiGithubFill size={16} />
+											<RiGithubFill className="size-4" />
 											GitHub
 										</Link>
-									</li>
-									<li>
-										<span className="flex items-center gap-2">
-											<RiSmartphoneLine size={16} />
-											App Android
-										</span>
 									</li>
 								</ul>
 							</div>
@@ -994,7 +1025,7 @@ export default async function Page() {
 								sob licença.
 							</p>
 							<div className="flex items-center gap-2">
-								<RiShieldCheckLine size={16} className="text-primary" />
+								<RiShieldCheckLine className="size-4 text-primary" />
 								<span>Seus dados, seu servidor</span>
 							</div>
 						</div>

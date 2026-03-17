@@ -23,9 +23,10 @@ const navLinks = [
 interface MobileNavProps {
 	isPublicDomain: boolean;
 	isLoggedIn: boolean;
+	triggerClassName?: string;
 }
 
-export function MobileNav({ isPublicDomain, isLoggedIn }: MobileNavProps) {
+export function MobileNav({ isPublicDomain, isLoggedIn, triggerClassName }: MobileNavProps) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -35,8 +36,9 @@ export function MobileNav({ isPublicDomain, isLoggedIn }: MobileNavProps) {
 				size="icon"
 				onClick={() => setOpen(true)}
 				aria-label="Abrir menu"
+				className={triggerClassName}
 			>
-				<RiMenuLine size={20} />
+				<RiMenuLine className="size-5" />
 			</Button>
 
 			<Sheet open={open} onOpenChange={setOpen}>
