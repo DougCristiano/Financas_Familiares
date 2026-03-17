@@ -37,6 +37,8 @@ import { getAvatarSrc } from "@/shared/lib/payers/utils";
 import { StatusSelectContent } from "./payer-select-items";
 import type { Payer, PayerFormValues } from "./types";
 
+type PayerCreatePayload = Parameters<typeof createPayerAction>[0];
+
 interface PayerDialogProps {
 	mode: "create" | "update";
 	trigger?: React.ReactNode;
@@ -93,10 +95,11 @@ export function PayerDialog({
 		useFormState<PayerFormValues>(initialState);
 
 	const availableAvatars = useMemo(() => {
-		const set = new Set<string>();
-		avatarOptions.forEach((avatar) => set.add(avatar));
-		set.add(initialState.avatarUrl);
-		set.add(DEFAULT_PAYER_AVATAR);
+		const set = new Set([
+			...avatarOptions,
+			initialState.avatarUrl,
+			DEFAULT_PAYER_AVATAR,
+		]);
 		return Array.from(set).sort((a, b) =>
 			a.localeCompare(b, "pt-BR", { sensitivity: "base" }),
 		);
@@ -109,8 +112,6 @@ export function PayerDialog({
 			setErrorMessage(null);
 		}
 	}, [dialogOpen, initialState, resetForm]);
-
-	type PayerCreatePayload = Parameters<typeof createPayerAction>[0];
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -135,29 +136,10 @@ export function PayerDialog({
 		};
 
 		startTransition(async () => {
-			if (mode === "create") {
-				const result = await createPayerAction(payload);
-
-				if (result.success) {
-					toast.success(result.message);
-					setDialogOpen(false);
-					resetForm(initialState);
-					return;
-				}
-
-				setErrorMessage(result.error);
-				toast.error(result.error);
-				return;
-			}
-
-			if (!payerId) {
-				return;
-			}
-
-			const result = await updatePayerAction({
-				id: payerId,
-				...payload,
-			});
+			const result =
+				mode === "create"
+					? await createPayerAction(payload)
+					: await updatePayerAction({ id: payerId ?? "", ...payload });
 
 			if (result.success) {
 				toast.success(result.message);
@@ -189,7 +171,7 @@ export function PayerDialog({
 				</DialogHeader>
 
 				<form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-					<fieldset className="flex flex-col gap-3">
+					<div className="flex flex-col gap-3">
 						<div className="flex flex-col gap-3">
 							<div className="flex w-full gap-2">
 								<div className="flex flex-col gap-2 w-full">
@@ -244,7 +226,7 @@ export function PayerDialog({
 								</Select>
 							</div>
 
-							<fieldset className="flex flex-col gap-3">
+							<div className="flex flex-col gap-3">
 								<div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/10 p-3">
 									<Checkbox
 										id="payer-auto-send"
@@ -266,9 +248,9 @@ export function PayerDialog({
 										</p>
 									</div>
 								</div>
-							</fieldset>
+							</div>
 
-							<fieldset className="flex flex-col gap-2">
+							<div className="flex flex-col gap-2">
 								<Label>Avatar</Label>
 								<div className="flex flex-wrap gap-3">
 									{availableAvatars.map((avatar) => {
@@ -287,13 +269,13 @@ export function PayerDialog({
 													alt={`Avatar ${avatar}`}
 													width={40}
 													height={40}
-													className="size-12 rounded-full object-cove hover:scale-110 transition-transform duration-200"
+													className="size-12 rounded-full object-cover hover:scale-110 transition-transform duration-200"
 												/>
 											</button>
 										);
 									})}
 								</div>
-							</fieldset>
+							</div>
 
 							<div className="flex flex-col gap-2">
 								<Label htmlFor="payer-note">Anotações</Label>
@@ -305,7 +287,7 @@ export function PayerDialog({
 								/>
 							</div>
 						</div>
-					</fieldset>
+					</div>
 
 					{errorMessage ? (
 						<p className="text-sm text-destructive">{errorMessage}</p>
