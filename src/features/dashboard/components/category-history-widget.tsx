@@ -174,12 +174,11 @@ export function CategoryHistoryWidget({ data }: CategoryHistoryWidgetProps) {
 				{selectedCategoryDetails.length > 0 && (
 					<div className="flex items-start justify-between gap-4 mb-4">
 						<div className="flex flex-wrap gap-2">
-							{selectedCategoryDetails.map((category) => {
+							{selectedCategoryDetails.map((category, colorIndex) => {
 								if (!category) return null;
 								const IconComponent = category.icon
 									? getIconComponent(category.icon)
 									: null;
-								const colorIndex = selectedCategories.indexOf(category.id);
 								const color = CHART_COLORS[colorIndex % CHART_COLORS.length];
 
 								return (

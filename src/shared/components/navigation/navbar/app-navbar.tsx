@@ -4,7 +4,6 @@ import { AnimatedThemeToggler } from "@/shared/components/animated-theme-toggler
 import { Logo } from "@/shared/components/logo";
 import { NotificationBell } from "@/shared/components/navigation/navbar/notification-bell";
 import { RefreshPageButton } from "@/shared/components/refresh-page-button";
-import { DotPattern } from "@/shared/components/ui/dot-pattern";
 import { NavMenu } from "./nav-menu";
 import { NavbarUser } from "./navbar-user";
 
@@ -32,14 +31,6 @@ export function AppNavbar({
 	return (
 		<header className="fixed top-0 left-0 right-0 z-50 flex h-16 shrink-0 items-center bg-primary">
 			<div className="pointer-events-none absolute inset-0 overflow-hidden">
-				<DotPattern
-					width={20}
-					height={20}
-					cx={1.25}
-					cy={1.25}
-					cr={1.25}
-					className="text-black/5 mask-[linear-gradient(to_right,transparent,black_5%,black_55%,transparent)]"
-				/>
 				<div className="absolute inset-0 bg-linear-to-b from-white/8 via-transparent to-black/6" />
 			</div>
 

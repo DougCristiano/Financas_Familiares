@@ -11,11 +11,14 @@ import type { DashboardCardMetrics } from "@/features/dashboard/dashboard-metric
 import MoneyValues from "@/shared/components/money-values";
 import {
 	Card,
-	CardFooter,
+	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
 import { formatPercentage } from "@/shared/utils/percentage";
+import { cn } from "@/shared/utils/ui";
 
 type DashboardMetricsCardsProps = {
 	metrics: DashboardCardMetrics;
@@ -28,35 +31,35 @@ const TREND_THRESHOLD = 0.005;
 const CARDS = [
 	{
 		label: "Receitas",
+		subtitle: "Entradas do período",
 		key: "receitas",
 		icon: RiArrowUpLine,
 		invertTrend: false,
-		cardClass: "",
 		iconClass: "text-success",
 	},
 	{
 		label: "Despesas",
+		subtitle: "Saídas do período",
 		key: "despesas",
 		icon: RiArrowDownLine,
 		invertTrend: true,
-		cardClass: "",
 		iconClass: "text-destructive",
 	},
 	{
 		label: "Balanço",
+		subtitle: "Receitas menos despesas",
 		key: "balanco",
 		icon: RiScalesLine,
 		invertTrend: false,
-		cardClass: "",
-		iconClass: "text-amber-500",
+		iconClass: "text-warning",
 	},
 	{
 		label: "Previsto",
+		subtitle: "Saldo acumulado projetado",
 		key: "previsto",
 		icon: RiCalendarCheckLine,
 		invertTrend: false,
-		cardClass: "border border-dashed",
-		iconClass: "",
+		iconClass: "text-primary",
 	},
 ] as const;
 
@@ -91,8 +94,8 @@ const getPercentChange = (current: number, previous: number): string => {
 		: "—";
 };
 
-const getTrendColor = (trend: Trend, invertTrend: boolean): string => {
-	if (trend === "flat") return "text-muted-foreground";
+const getTrendBadgeClass = (trend: Trend, invertTrend: boolean): string => {
+	if (trend === "flat") return "bg-muted text-muted-foreground";
 	const isPositive = invertTrend ? trend === "down" : trend === "up";
 	return isPositive ? "text-success" : "text-destructive";
 };
@@ -101,36 +104,61 @@ export function DashboardMetricsCards({ metrics }: DashboardMetricsCardsProps) {
 	return (
 		<div className="grid grid-cols-1 gap-3 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{CARDS.map(
-				({ label, key, icon: Icon, invertTrend, cardClass, iconClass }) => {
+				({ label, subtitle, key, icon: Icon, invertTrend, iconClass }) => {
 					const metric = metrics[key];
 					const trend = getTrend(metric.current, metric.previous);
 					const TrendIcon = TREND_ICONS[trend];
-					const trendColor = getTrendColor(trend, invertTrend);
+					const trendBadgeClass = getTrendBadgeClass(trend, invertTrend);
+					const percentChange = getPercentChange(
+						metric.current,
+						metric.previous,
+					);
 
 					return (
-						<Card
-							key={label}
-							className={`@container/card flex flex-col justify-between min-h-34 ${cardClass}`}
-						>
+						<Card key={label} className="gap-2 overflow-hidden">
 							<CardHeader>
-								<CardTitle className="flex items-center gap-1 tracking-tight lowercase">
-									<Icon className={`size-4 ${iconClass}`} />
-									{label}
-								</CardTitle>
-								<div className="flex items-baseline gap-2 mt-auto pt-2">
-									<MoneyValues className="text-2xl" amount={metric.current} />
-									<div className={`flex items-center text-xs ${trendColor}`}>
-										<TrendIcon size={14} />
-										{getPercentChange(metric.current, metric.previous)}
+								<div className="flex items-start justify-between">
+									<div>
+										<CardTitle className="flex items-center gap-1 tracking-tight">
+											<Icon
+												className={cn("size-4", iconClass)}
+												aria-hidden
+											/>
+											{label}
+										</CardTitle>
+										<CardDescription className="mt-1.5 tracking-tight">
+											{subtitle}
+										</CardDescription>
 									</div>
 								</div>
+								<Separator className="mt-1" />
 							</CardHeader>
-							<CardFooter className="text-sm">
-								<div className="flex items-center gap-1 text-xs text-muted-foreground">
-									<span>vs. mês anterior</span>
-									<MoneyValues amount={metric.previous} />
+
+							<CardContent className="flex flex-col gap-3">
+								<div className="flex flex-wrap items-center justify-between gap-2 mt-1">
+									<MoneyValues
+										className="text-[1.55rem] leading-none font-medium"
+										amount={metric.current}
+									/>
+									<div
+										className={cn(
+											"inline-flex items-center gap-1 text-xs font-medium",
+											trendBadgeClass,
+										)}
+									>
+										<TrendIcon className="size-3.5" aria-hidden />
+										<span>{percentChange}</span>
+									</div>
 								</div>
-							</CardFooter>
+
+								<div className="text-xs text-muted-foreground">
+									<MoneyValues
+										className="inline text-xs font-medium text-muted-foreground"
+										amount={metric.previous}
+									/>
+									<span className="ml-1">no mês anterior</span>
+								</div>
+							</CardContent>
 						</Card>
 					);
 				},

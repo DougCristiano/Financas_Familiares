@@ -40,20 +40,20 @@ export function NoteListItem({
 				</div>
 			</div>
 
-			<div className="flex shrink-0 items-center gap-1">
+			<div className="flex shrink-0 items-center">
 				<Button
-					variant="outline"
+					variant="link"
 					size="icon-sm"
-					className="opacity-30 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+					className="transition-opacity text-primary hover:opacity-80"
 					onClick={() => onOpenEdit(note)}
 					aria-label={`Editar anotação ${displayTitle}`}
 				>
 					<RiPencilLine className="size-4" />
 				</Button>
 				<Button
-					variant="outline"
+					variant="link"
 					size="icon-sm"
-					className="opacity-30 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+					className="transition-opacity text-primary hover:opacity-80"
 					onClick={() => onOpenDetails(note)}
 					aria-label={`Ver detalhes da anotação ${displayTitle}`}
 				>

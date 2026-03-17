@@ -12,23 +12,23 @@ export function DashboardMetricsCardsSkeleton() {
 			{Array.from({ length: 4 }).map((_, index) => (
 				<Card
 					key={index}
-					className="@container/card flex flex-col justify-between min-h-32"
+					className="@container/card min-h-36 justify-between gap-0"
 				>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-1">
-							<Skeleton className="size-4 rounded-md bg-foreground/10" />
-							<Skeleton className="h-4 w-20 rounded-md bg-foreground/10" />
+					<CardHeader className="gap-4 pb-3">
+						<CardTitle className="flex items-center gap-2">
+							<Skeleton className="size-8 rounded-md bg-foreground/10" />
+							<Skeleton className="h-4 w-24 rounded-md bg-foreground/10" />
 						</CardTitle>
-						<div className="flex items-baseline gap-2 mt-auto pt-4">
-							<Skeleton className="h-9 w-32 rounded-md bg-foreground/10" />
-							<Skeleton className="h-4 w-12 rounded-md bg-foreground/10" />
+						<div className="flex flex-wrap items-end justify-between gap-3">
+							<Skeleton className="h-10 w-36 rounded-md bg-foreground/10" />
+							<Skeleton className="h-7 w-20 rounded-full bg-foreground/10" />
 						</div>
 					</CardHeader>
 
-					<CardFooter className="text-sm">
-						<div className="flex items-center gap-1.5">
-							<Skeleton className="h-3 w-20 rounded-md bg-foreground/10" />
-							<Skeleton className="h-3 w-16 rounded-md bg-foreground/10" />
+					<CardFooter className="items-start pt-0">
+						<div className="flex flex-col items-start gap-1.5">
+							<Skeleton className="h-3 w-24 rounded-md bg-foreground/10" />
+							<Skeleton className="h-4 w-20 rounded-md bg-foreground/10" />
 						</div>
 					</CardFooter>
 				</Card>

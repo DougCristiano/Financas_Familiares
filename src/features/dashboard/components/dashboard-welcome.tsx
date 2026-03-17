@@ -6,12 +6,12 @@ export function DashboardWelcome({ name }: { name?: string | null }) {
 	const greeting = getGreeting();
 
 	return (
-		<section className="p-2">
+		<section className="py-4">
 			<div className="tracking-tight">
 				<h1 className="text-xl">
-					{greeting}, <span className="text-primary">{displayName}</span>
+					{greeting}, {displayName}
 				</h1>
-				<p className="text-sm mt-1 text-muted-foreground">{formattedDate}</p>
+				<h2 className="text-sm mt-1 text-muted-foreground">{formattedDate}</h2>
 			</div>
 		</section>
 	);

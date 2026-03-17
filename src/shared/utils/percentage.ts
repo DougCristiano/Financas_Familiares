@@ -37,7 +37,6 @@ export function formatPercentageChange(value: number | null): string {
 
 	return formatPercentage(value, {
 		...formatterOptions,
-		absolute: true,
 		signDisplay: value === 0 ? "auto" : "always",
 	});
 }
