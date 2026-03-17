@@ -1,11 +1,8 @@
 "use client";
 
-import type { RemixiconComponentType } from "@remixicon/react";
-import * as RemixIcons from "@remixicon/react";
+import type { ComponentType } from "react";
+import { getIconComponent } from "@/shared/utils/icons";
 import { cn } from "@/shared/utils/ui";
-
-const ICONS = RemixIcons as Record<string, RemixiconComponentType | undefined>;
-const FALLBACK_ICON = ICONS.RiPriceTag3Line;
 
 interface CategoryIconProps {
 	name?: string | null;
@@ -13,8 +10,9 @@ interface CategoryIconProps {
 }
 
 export function CategoryIcon({ name, className }: CategoryIconProps) {
-	const IconComponent =
-		(name ? ICONS[name] : undefined) ?? FALLBACK_ICON ?? null;
+	const IconComponent = (
+		name ? getIconComponent(name) : getIconComponent("RiPriceTag3Line")
+	) as ComponentType<{ className?: string }> | null;
 
 	if (!IconComponent) {
 		return (

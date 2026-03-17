@@ -1,15 +1,9 @@
 "use client";
 
 import { RiMoreLine } from "@remixicon/react";
-import { useState } from "react";
-import { Button } from "@/shared/components/ui/button";
+import { useMemo, useState } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/shared/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -25,6 +19,7 @@ import { getCategoryIconOptions } from "@/shared/lib/categories/icons";
 import { cn } from "@/shared/utils/ui";
 
 import { CategoryIcon } from "./category-icon";
+import { CategoryPickerDialog } from "./category-picker-dialog";
 import { TypeSelectContent } from "./category-select-items";
 import type { CategoryFormValues } from "./types";
 
@@ -33,17 +28,17 @@ interface CategoryFormFieldsProps {
 	onChange: (field: keyof CategoryFormValues, value: string) => void;
 }
 
+const iconOptions = getCategoryIconOptions();
+
 export function CategoryFormFields({
 	values,
 	onChange,
 }: CategoryFormFieldsProps) {
-	const [popoverOpen, setPopoverOpen] = useState(false);
-	const iconOptions = getCategoryIconOptions();
+	const [pickerOpen, setPickerOpen] = useState(false);
 
-	const handleIconSelect = (icon: string) => {
-		onChange("icon", icon);
-		setPopoverOpen(false);
-	};
+	const selectedIconLabel = useMemo(() => {
+		return iconOptions.find((o) => o.value === values.icon)?.label ?? null;
+	}, [values.icon]);
 
 	return (
 		<div className="grid grid-cols-1 gap-4">
@@ -83,45 +78,36 @@ export function CategoryFormFields({
 
 			<div className="flex flex-col gap-2">
 				<Label>Ícone</Label>
-				<div className="flex items-center gap-3">
-					<div className="flex size-12 items-center justify-center rounded-lg border bg-muted/30 text-primary">
+				<button
+					type="button"
+					onClick={() => setPickerOpen(true)}
+					className={cn(
+						"flex w-full items-center gap-2 rounded-md border p-2 text-left transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+					)}
+				>
+					<span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/40 bg-muted/30 text-primary">
 						{values.icon ? (
-							<CategoryIcon name={values.icon} className="size-7" />
+							<CategoryIcon name={values.icon} className="size-5" />
 						) : (
-							<RiMoreLine className="size-6 text-muted-foreground" />
+							<RiMoreLine className="size-4 text-muted-foreground" />
 						)}
-					</div>
-					<Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-						<PopoverTrigger asChild>
-							<Button type="button" variant="outline" className="flex-1">
-								Selecionar ícone
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="w-[480px] p-3" align="start">
-							<div className="grid max-h-96 grid-cols-8 gap-2 overflow-y-auto">
-								{iconOptions.map((option) => (
-									<button
-										key={option.value}
-										type="button"
-										onClick={() => handleIconSelect(option.value)}
-										className={cn(
-											"flex size-12 items-center justify-center rounded-lg border transition-all hover:border-primary hover:bg-primary/5",
-											values.icon === option.value
-												? "border-primary bg-primary/10 text-primary"
-												: "border-border text-muted-foreground hover:text-primary",
-										)}
-										title={option.label}
-									>
-										<CategoryIcon name={option.value} className="size-6" />
-									</button>
-								))}
-							</div>
-						</PopoverContent>
-					</Popover>
-				</div>
-				<p className="text-xs text-muted-foreground">
-					Escolha um ícone que represente melhor esta categoria.
-				</p>
+					</span>
+					<span className="flex min-w-0 flex-1 flex-col">
+						<span className="truncate text-sm font-medium text-foreground">
+							{selectedIconLabel ?? "Selecionar ícone"}
+						</span>
+						<span className="text-xs text-muted-foreground">
+							Clique para trocar o ícone
+						</span>
+					</span>
+				</button>
+
+				<CategoryPickerDialog
+					open={pickerOpen}
+					value={values.icon}
+					onOpenChange={setPickerOpen}
+					onSelect={(icon) => onChange("icon", icon)}
+				/>
 			</div>
 		</div>
 	);
