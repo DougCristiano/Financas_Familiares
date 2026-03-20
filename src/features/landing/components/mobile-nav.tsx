@@ -15,9 +15,10 @@ import {
 const navLinks = [
 	{ href: "#telas", label: "Conheça as telas" },
 	{ href: "#funcionalidades", label: "Funcionalidades" },
-	{ href: "#companion", label: "Companion" },
+	{ href: "#mobile", label: "Mobile" },
 	{ href: "#stack", label: "Stack" },
 	{ href: "#como-usar", label: "Como usar" },
+	{ href: "#para-quem-e", label: "Para quem é?" },
 ];
 
 interface MobileNavProps {
@@ -26,7 +27,11 @@ interface MobileNavProps {
 	triggerClassName?: string;
 }
 
-export function MobileNav({ isPublicDomain, isLoggedIn, triggerClassName }: MobileNavProps) {
+export function MobileNav({
+	isPublicDomain,
+	isLoggedIn,
+	triggerClassName,
+}: MobileNavProps) {
 	const [open, setOpen] = useState(false);
 
 	return (

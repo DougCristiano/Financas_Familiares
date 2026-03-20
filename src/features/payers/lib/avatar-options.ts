@@ -4,12 +4,9 @@ import { DEFAULT_PAYER_AVATAR } from "@/shared/lib/payers/constants";
 
 const AVATAR_DIRECTORY = path.join(process.cwd(), "public", "avatars");
 const AVATAR_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".svg", ".webp"]);
+let avatarOptionsPromise: Promise<string[]> | null = null;
 
-/**
- * Loads available avatar files from the public/avatars directory
- * @returns Array of unique avatar filenames sorted alphabetically
- */
-export async function loadAvatarOptions() {
+async function readAvatarOptions() {
 	try {
 		const files = await readdir(AVATAR_DIRECTORY, { withFileTypes: true });
 
@@ -27,4 +24,13 @@ export async function loadAvatarOptions() {
 	} catch {
 		return [DEFAULT_PAYER_AVATAR];
 	}
+}
+
+/**
+ * Loads available avatar files from the public/avatars directory
+ * @returns Array of unique avatar filenames sorted alphabetically
+ */
+export async function loadAvatarOptions() {
+	avatarOptionsPromise ??= readAvatarOptions();
+	return avatarOptionsPromise;
 }

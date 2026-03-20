@@ -7,11 +7,6 @@ export const america = localFont({
 			weight: "400",
 			style: "normal",
 		},
-		// {
-		// 	path: "./america-medium.woff2",
-		// 	weight: "500",
-		// 	style: "normal",
-		// },
 	],
 	display: "swap",
 	variable: "--font-america",

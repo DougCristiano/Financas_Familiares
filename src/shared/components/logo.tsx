@@ -26,7 +26,10 @@ export function Logo({
 					alt="OpenMonetis"
 					width={32}
 					height={32}
-					className={cn("object-contain", !colorIcon && "brightness-0 saturate-0")}
+					className={cn(
+						"object-contain",
+						!colorIcon && "brightness-0 saturate-0",
+					)}
 					priority
 				/>
 				<Image

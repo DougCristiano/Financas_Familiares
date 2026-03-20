@@ -3,12 +3,9 @@ import path from "node:path";
 
 const LOGOS_DIRECTORY = path.join(process.cwd(), "public", "logos");
 const LOGO_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".svg", ".webp"]);
+let logoOptionsPromise: Promise<string[]> | null = null;
 
-/**
- * Loads available logo files from the public/logos directory
- * @returns Array of logo filenames sorted alphabetically
- */
-export async function loadLogoOptions() {
+async function readLogoOptions() {
 	try {
 		const files = await readdir(LOGOS_DIRECTORY, { withFileTypes: true });
 
@@ -20,4 +17,9 @@ export async function loadLogoOptions() {
 	} catch {
 		return [];
 	}
+}
+
+export async function loadLogoOptions() {
+	logoOptionsPromise ??= readLogoOptions();
+	return logoOptionsPromise;
 }

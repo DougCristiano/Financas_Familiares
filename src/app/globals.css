@@ -51,7 +51,6 @@
   --chart-9: var(--color-cyan-500);
   --chart-10: var(--color-lime-500);
 
-  /* Data palette — análoga quente (hue 0–120), família do primary */
   --data-1:  oklch(58% 0.22 18);  /* vermelho-tijolo */
   --data-2:  oklch(64% 0.22 30);  /* vermelho-laranja */
   --data-3:  oklch(69% 0.21 42);  /* laranja (≈ primary) */
@@ -93,23 +92,23 @@
 }
 
 .dark {
-  --background: oklch(22% 0.004 55);
+  --background: oklch(18% 0.004 55);
   --foreground: oklch(93% 0.008 80);
-  --card: oklch(25.5% 0.004 55);
+  --card: oklch(21.5% 0.004 55);
   --card-foreground: var(--foreground);
-  --popover: oklch(28% 0.004 55);
+  --popover: oklch(24% 0.004 55);
   --popover-foreground: var(--foreground);
 
   --primary:  oklch(72.069% 0.18335 44.069);
   --primary-foreground: oklch(16% 0.004 60);
 
-  --secondary: oklch(29% 0.004 55);
+  --secondary: oklch(25% 0.004 55);
   --secondary-foreground: var(--foreground);
 
-  --muted: oklch(32% 0.0035 55);
+  --muted: oklch(28% 0.0035 55);
   --muted-foreground: oklch(73% 0.006 75);
 
-  --accent: oklch(33% 0.005 55);
+  --accent: oklch(29% 0.005 55);
   --accent-foreground: var(--foreground);
 
   --success: oklch(62% 0.16 150);
@@ -121,7 +120,7 @@
   --destructive: oklch(62% 0.2 28);
   --destructive-foreground: oklch(98% 0.005 30);
 
-  --border: oklch(35% 0.004 55);
+  --border: oklch(31% 0.004 55);
   --input: var(--border);
   --ring: var(--primary);
 
@@ -136,8 +135,6 @@
   --chart-9: var(--color-cyan-500);
   --chart-10: var(--color-lime-500);
 
-  /* Data palette — dark mode (ligeiramente mais vivos) */
-  /* Data palette dark — ligeiramente mais vivos para contrastar no fundo escuro */
   --data-1:  oklch(66% 0.22 18);
   --data-2:  oklch(72% 0.22 30);
   --data-3:  oklch(76% 0.21 42);
@@ -149,13 +146,13 @@
   --data-9:  oklch(69% 0.17 120);
   --data-10: oklch(63% 0.15 10);
 
-  --sidebar: oklch(19.5% 0.004 55);
+  --sidebar: oklch(15.5% 0.004 55);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(30% 0.004 55);
+  --sidebar-accent: oklch(26% 0.004 55);
   --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: oklch(34% 0.004 55);
+  --sidebar-border: oklch(30% 0.004 55);
   --sidebar-ring: var(--primary);
 
   --radius: 0.625rem;
