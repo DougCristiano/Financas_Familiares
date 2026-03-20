@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiTokens, inboxItems } from "@/db/schema";
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
 			where: and(
 				eq(apiTokens.tokenHash, tokenHash),
 				isNull(apiTokens.revokedAt),
+				or(isNull(apiTokens.expiresAt), gt(apiTokens.expiresAt, new Date())),
 			),
 		});
 
@@ -111,10 +112,11 @@ export async function POST(request: Request) {
 					success: true,
 				});
 			} catch (error) {
+				console.error("[API] Error processing batch item:", error);
 				results.push({
 					clientId: item.clientId,
 					success: false,
-					error: error instanceof Error ? error.message : "Erro desconhecido",
+					error: "Erro ao processar notificação",
 				});
 			}
 		}

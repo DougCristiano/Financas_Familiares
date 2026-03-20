@@ -1,7 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { cards, categories, financialAccounts, inboxItems } from "@/db/schema";
 import type {
 	InboxItem,
+	InboxPaginationState,
+	InboxStatus,
+	InboxStatusCounts,
 	SelectOption,
 } from "@/features/inbox/components/types";
 import {
@@ -16,15 +19,88 @@ import { db } from "@/shared/lib/db";
 
 export async function fetchInboxItems(
 	userId: string,
-	status: "pending" | "processed" | "discarded" = "pending",
+	status: InboxStatus = "pending",
 ): Promise<InboxItem[]> {
 	const items = await db
 		.select()
 		.from(inboxItems)
 		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)))
-		.orderBy(desc(inboxItems.createdAt));
+		.orderBy(
+			desc(inboxItems.notificationTimestamp),
+			desc(inboxItems.createdAt),
+		);
 
 	return items;
+}
+
+export async function fetchInboxItemsPage(
+	userId: string,
+	status: InboxStatus,
+	{
+		page,
+		pageSize,
+	}: {
+		page: number;
+		pageSize: number;
+	},
+): Promise<{
+	items: InboxItem[];
+	pagination: InboxPaginationState;
+}> {
+	const [countRow] = await db
+		.select({ total: count() })
+		.from(inboxItems)
+		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)));
+
+	const totalItems = Number(countRow?.total ?? 0);
+	const totalPages = Math.max(Math.ceil(totalItems / pageSize), 1);
+	const currentPage = Math.min(page, totalPages);
+	const offset = (currentPage - 1) * pageSize;
+
+	const items = await db
+		.select()
+		.from(inboxItems)
+		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)))
+		.orderBy(desc(inboxItems.notificationTimestamp), desc(inboxItems.createdAt))
+		.limit(pageSize)
+		.offset(offset);
+
+	return {
+		items,
+		pagination: {
+			page: currentPage,
+			pageSize,
+			totalItems,
+			totalPages,
+		},
+	};
+}
+
+export async function fetchInboxStatusCounts(
+	userId: string,
+): Promise<InboxStatusCounts> {
+	const rows = await db
+		.select({
+			status: inboxItems.status,
+			total: count(),
+		})
+		.from(inboxItems)
+		.where(eq(inboxItems.userId, userId))
+		.groupBy(inboxItems.status);
+
+	const counts: InboxStatusCounts = {
+		pending: 0,
+		processed: 0,
+		discarded: 0,
+	};
+
+	for (const row of rows) {
+		if (row.status in counts) {
+			counts[row.status as InboxStatus] = Number(row.total ?? 0);
+		}
+	}
+
+	return counts;
 }
 
 export async function fetchInboxItemById(
@@ -112,14 +188,14 @@ export async function fetchAppLogoMap(
 }
 
 export async function fetchPendingInboxCount(userId: string): Promise<number> {
-	const items = await db
-		.select({ id: inboxItems.id })
+	const [result] = await db
+		.select({ total: count() })
 		.from(inboxItems)
 		.where(
 			and(eq(inboxItems.userId, userId), eq(inboxItems.status, "pending")),
 		);
 
-	return items.length;
+	return Number(result?.total ?? 0);
 }
 
 /**

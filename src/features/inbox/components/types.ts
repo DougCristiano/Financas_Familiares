@@ -1,5 +1,7 @@
 import type { SelectOption as LancamentoSelectOption } from "@/features/transactions/components/types";
 
+export type InboxStatus = "pending" | "processed" | "discarded";
+
 export interface InboxItem {
 	id: string;
 	sourceApp: string;
@@ -16,6 +18,15 @@ export interface InboxItem {
 	createdAt: Date;
 	updatedAt: Date;
 }
+
+export type InboxStatusCounts = Record<InboxStatus, number>;
+
+export type InboxPaginationState = {
+	page: number;
+	pageSize: number;
+	totalItems: number;
+	totalPages: number;
+};
 
 // Re-export the lancamentos SelectOption for use in inbox components
 export type SelectOption = LancamentoSelectOption;

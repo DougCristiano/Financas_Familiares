@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { apiTokens } from "@/db/schema";
 import {
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
 				eq(apiTokens.id, payload.tokenId),
 				eq(apiTokens.userId, payload.sub),
 				isNull(apiTokens.revokedAt),
+				gt(apiTokens.expiresAt, new Date()),
 			),
 		});
 
@@ -65,8 +66,9 @@ export async function POST(request: Request) {
 				tokenHash: hashToken(result.accessToken),
 				lastUsedAt: new Date(),
 				lastUsedIp:
-					request.headers.get("x-forwarded-for") ||
-					request.headers.get("x-real-ip"),
+					request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+					request.headers.get("x-real-ip") ||
+					null,
 				expiresAt: result.expiresAt,
 			})
 			.where(eq(apiTokens.id, payload.tokenId));

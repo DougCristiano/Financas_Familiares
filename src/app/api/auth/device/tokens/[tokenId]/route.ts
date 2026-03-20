@@ -39,7 +39,9 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 		await db
 			.update(apiTokens)
 			.set({ revokedAt: new Date() })
-			.where(eq(apiTokens.id, tokenId));
+			.where(
+				and(eq(apiTokens.id, tokenId), eq(apiTokens.userId, session.user.id)),
+			);
 
 		return NextResponse.json({
 			message: "Token revogado com sucesso",

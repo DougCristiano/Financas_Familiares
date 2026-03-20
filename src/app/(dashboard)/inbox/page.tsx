@@ -1,29 +1,55 @@
 import { InboxPage } from "@/features/inbox/components/inbox-page";
 import {
+	type ResolvedInboxSearchParams,
+	resolveInboxPagination,
+	resolveInboxStatus,
+} from "@/features/inbox/page-helpers";
+import {
 	fetchAppLogoMap,
 	fetchInboxDialogData,
-	fetchInboxItems,
+	fetchInboxItemsPage,
+	fetchInboxStatusCounts,
 } from "@/features/inbox/queries";
 import { getUserId } from "@/shared/lib/auth/server";
 
-export default async function Page() {
-	const userId = await getUserId();
+type PageSearchParams = Promise<ResolvedInboxSearchParams>;
 
-	const [pendingItems, processedItems, discardedItems, dialogData, appLogoMap] =
-		await Promise.all([
-			fetchInboxItems(userId, "pending"),
-			fetchInboxItems(userId, "processed"),
-			fetchInboxItems(userId, "discarded"),
-			fetchInboxDialogData(userId),
-			fetchAppLogoMap(userId),
-		]);
+type PageProps = {
+	searchParams?: PageSearchParams;
+};
+
+const EMPTY_DIALOG_DATA = {
+	payerOptions: [],
+	splitPayerOptions: [],
+	defaultPayerId: null,
+	accountOptions: [],
+	cardOptions: [],
+	categoryOptions: [],
+	estabelecimentos: [],
+};
+
+export default async function Page({ searchParams }: PageProps) {
+	const userId = await getUserId();
+	const resolvedSearchParams = searchParams ? await searchParams : undefined;
+	const activeStatus = resolveInboxStatus(resolvedSearchParams);
+	const paginationInput = resolveInboxPagination(resolvedSearchParams);
+
+	const [itemsPage, counts, dialogData, appLogoMap] = await Promise.all([
+		fetchInboxItemsPage(userId, activeStatus, paginationInput),
+		fetchInboxStatusCounts(userId),
+		activeStatus === "pending"
+			? fetchInboxDialogData(userId)
+			: Promise.resolve(EMPTY_DIALOG_DATA),
+		fetchAppLogoMap(userId),
+	]);
 
 	return (
 		<main className="flex flex-col items-start gap-6">
 			<InboxPage
-				pendingItems={pendingItems}
-				processedItems={processedItems}
-				discardedItems={discardedItems}
+				activeStatus={activeStatus}
+				items={itemsPage.items}
+				counts={counts}
+				pagination={itemsPage.pagination}
 				payerOptions={dialogData.payerOptions}
 				splitPayerOptions={dialogData.splitPayerOptions}
 				defaultPayerId={dialogData.defaultPayerId}

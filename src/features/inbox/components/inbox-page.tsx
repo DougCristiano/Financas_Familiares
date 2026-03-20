@@ -1,7 +1,15 @@
 "use client";
 
-import { RiAtLine, RiDeleteBinLine } from "@remixicon/react";
-import { useMemo, useState } from "react";
+import {
+	RiArrowLeftDoubleLine,
+	RiArrowLeftSLine,
+	RiArrowRightDoubleLine,
+	RiArrowRightSLine,
+	RiAtLine,
+	RiDeleteBinLine,
+} from "@remixicon/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
 	bulkDeleteInboxItemsAction,
@@ -12,11 +20,22 @@ import {
 	markInboxAsProcessedAction,
 	restoreDiscardedInboxItemAction,
 } from "@/features/inbox/actions";
+import {
+	INBOX_DEFAULT_PAGE_SIZE,
+	INBOX_PAGE_SIZE_OPTIONS,
+} from "@/features/inbox/page-helpers";
 import { TransactionDialog } from "@/features/transactions/components/dialogs/transaction-dialog/transaction-dialog";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
 import { EmptyState } from "@/shared/components/empty-state";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/shared/components/ui/select";
 import {
 	Tabs,
 	TabsContent,
@@ -25,12 +44,19 @@ import {
 } from "@/shared/components/ui/tabs";
 import { InboxCard } from "./inbox-card";
 import { InboxDetailsDialog } from "./inbox-details-dialog";
-import type { InboxItem, SelectOption } from "./types";
+import type {
+	InboxItem,
+	InboxPaginationState,
+	InboxStatus,
+	InboxStatusCounts,
+	SelectOption,
+} from "./types";
 
 interface InboxPageProps {
-	pendingItems: InboxItem[];
-	processedItems: InboxItem[];
-	discardedItems: InboxItem[];
+	activeStatus: InboxStatus;
+	items: InboxItem[];
+	counts: InboxStatusCounts;
+	pagination: InboxPaginationState;
 	payerOptions: SelectOption[];
 	splitPayerOptions: SelectOption[];
 	defaultPayerId: string | null;
@@ -42,9 +68,10 @@ interface InboxPageProps {
 }
 
 export function InboxPage({
-	pendingItems,
-	processedItems,
-	discardedItems,
+	activeStatus,
+	items,
+	counts,
+	pagination,
 	payerOptions,
 	splitPayerOptions,
 	defaultPayerId,
@@ -54,6 +81,10 @@ export function InboxPage({
 	estabelecimentos,
 	appLogoMap,
 }: InboxPageProps) {
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [isPending, startTransition] = useTransition();
 	const [processOpen, setProcessOpen] = useState(false);
 	const [itemToProcess, setItemToProcess] = useState<InboxItem | null>(null);
 
@@ -74,46 +105,11 @@ export function InboxPage({
 		"processed" | "discarded"
 	>("processed");
 
-	const [selectedPendingIds, setSelectedPendingIds] = useState<string[]>([]);
-	const [selectedProcessedIds, setSelectedProcessedIds] = useState<string[]>(
-		[],
-	);
-	const [selectedDiscardedIds, setSelectedDiscardedIds] = useState<string[]>(
-		[],
-	);
+	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
 	const [selectionBulkOpen, setSelectionBulkOpen] = useState(false);
-	const [selectionBulkStatus, setSelectionBulkStatus] = useState<
-		"pending" | "processed" | "discarded"
-	>("pending");
-
-	const sortedPending = useMemo(
-		() =>
-			[...pendingItems].sort(
-				(a, b) =>
-					new Date(b.notificationTimestamp).getTime() -
-					new Date(a.notificationTimestamp).getTime(),
-			),
-		[pendingItems],
-	);
-	const sortedProcessed = useMemo(
-		() =>
-			[...processedItems].sort(
-				(a, b) =>
-					new Date(b.notificationTimestamp).getTime() -
-					new Date(a.notificationTimestamp).getTime(),
-			),
-		[processedItems],
-	);
-	const sortedDiscarded = useMemo(
-		() =>
-			[...discardedItems].sort(
-				(a, b) =>
-					new Date(b.notificationTimestamp).getTime() -
-					new Date(a.notificationTimestamp).getTime(),
-			),
-		[discardedItems],
-	);
+	const [selectionBulkStatus, setSelectionBulkStatus] =
+		useState<InboxStatus>("pending");
 
 	const handleProcessOpenChange = (open: boolean) => {
 		setProcessOpen(open);
@@ -223,40 +219,72 @@ export function InboxPage({
 		throw new Error(result.error);
 	};
 
-	const toggleSelection = (
-		ids: string[],
-		setIds: (v: string[]) => void,
-		id: string,
+	useEffect(() => {
+		const visibleIds = new Set(items.map((item) => item.id));
+		setSelectedIds((current) => current.filter((id) => visibleIds.has(id)));
+	}, [items]);
+
+	const toggleSelection = (id: string) => {
+		setSelectedIds((current) =>
+			current.includes(id)
+				? current.filter((value) => value !== id)
+				: [...current, id],
+		);
+	};
+
+	const allSelected = items.length > 0 && selectedIds.length === items.length;
+
+	const toggleSelectAll = () => {
+		if (allSelected) {
+			setSelectedIds([]);
+			return;
+		}
+
+		setSelectedIds(items.map((item) => item.id));
+	};
+
+	const updateUrl = (
+		nextStatus: InboxStatus,
+		nextPage: number,
+		nextPageSize: number,
 	) => {
-		setIds(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+		const nextParams = new URLSearchParams(searchParams.toString());
+
+		if (nextStatus === "pending") {
+			nextParams.delete("status");
+		} else {
+			nextParams.set("status", nextStatus);
+		}
+
+		if (nextPage <= 1) {
+			nextParams.delete("page");
+		} else {
+			nextParams.set("page", nextPage.toString());
+		}
+
+		if (nextPageSize === INBOX_DEFAULT_PAGE_SIZE) {
+			nextParams.delete("pageSize");
+		} else {
+			nextParams.set("pageSize", nextPageSize.toString());
+		}
+
+		startTransition(() => {
+			const target = nextParams.toString()
+				? `${pathname}?${nextParams.toString()}`
+				: pathname;
+			router.replace(target, { scroll: false });
+		});
 	};
 
-	const allPendingSelected =
-		sortedPending.length > 0 &&
-		selectedPendingIds.length === sortedPending.length;
-	const allProcessedSelected =
-		sortedProcessed.length > 0 &&
-		selectedProcessedIds.length === sortedProcessed.length;
-	const allDiscardedSelected =
-		sortedDiscarded.length > 0 &&
-		selectedDiscardedIds.length === sortedDiscarded.length;
-
-	const toggleSelectAllPending = () => {
-		if (allPendingSelected) setSelectedPendingIds([]);
-		else setSelectedPendingIds(sortedPending.map((item) => item.id));
-	};
-	const toggleSelectAllProcessed = () => {
-		if (allProcessedSelected) setSelectedProcessedIds([]);
-		else setSelectedProcessedIds(sortedProcessed.map((item) => item.id));
-	};
-	const toggleSelectAllDiscarded = () => {
-		if (allDiscardedSelected) setSelectedDiscardedIds([]);
-		else setSelectedDiscardedIds(sortedDiscarded.map((item) => item.id));
+	const handleTabChange = (nextStatus: string) => {
+		updateUrl(nextStatus as InboxStatus, 1, pagination.pageSize);
 	};
 
-	const handleSelectionBulkRequest = (
-		status: "pending" | "processed" | "discarded",
-	) => {
+	const handleSelectionBulkRequest = (status: InboxStatus) => {
+		if (selectedIds.length === 0) {
+			return;
+		}
+
 		setSelectionBulkStatus(status);
 		setSelectionBulkOpen(true);
 	};
@@ -264,27 +292,22 @@ export function InboxPage({
 	const handleSelectionBulkConfirm = async () => {
 		if (selectionBulkStatus === "pending") {
 			const result = await bulkDiscardInboxItemsAction({
-				inboxItemIds: selectedPendingIds,
+				inboxItemIds: selectedIds,
 			});
 			if (result.success) {
 				toast.success(result.message);
-				setSelectedPendingIds([]);
+				setSelectedIds([]);
 				return;
 			}
 			toast.error(result.error);
 			throw new Error(result.error);
 		} else {
-			const ids =
-				selectionBulkStatus === "processed"
-					? selectedProcessedIds
-					: selectedDiscardedIds;
 			const result = await bulkDeleteSelectedInboxItemsAction({
-				inboxItemIds: ids,
+				inboxItemIds: selectedIds,
 			});
 			if (result.success) {
 				toast.success(result.message);
-				if (selectionBulkStatus === "processed") setSelectedProcessedIds([]);
-				else setSelectedDiscardedIds([]);
+				setSelectedIds([]);
 				return;
 			}
 			toast.error(result.error);
@@ -328,6 +351,9 @@ export function InboxPage({
 			toast.error(result.error);
 		}
 	};
+
+	const canPreviousPage = pagination.page > 1;
+	const canNextPage = pagination.page < pagination.totalPages;
 
 	// Prepare default values from inbox item
 	const getDateString = (
@@ -375,12 +401,7 @@ export function InboxPage({
 		</Card>
 	);
 
-	const renderGrid = (
-		list: InboxItem[],
-		readonly?: boolean,
-		selectedIds?: string[],
-		onToggle?: (id: string) => void,
-	) =>
+	const renderGrid = (list: InboxItem[], readonly?: boolean) =>
 		list.length === 0 ? (
 			renderEmptyState(
 				readonly
@@ -400,8 +421,8 @@ export function InboxPage({
 						onViewDetails={readonly ? undefined : handleDetailsRequest}
 						onDelete={readonly ? handleDeleteRequest : undefined}
 						onRestoreToPending={readonly ? handleRestoreRequest : undefined}
-						selected={selectedIds?.includes(item.id)}
-						onSelectToggle={onToggle}
+						selected={selectedIds.includes(item.id)}
+						onSelectToggle={toggleSelection}
 					/>
 				))}
 			</div>
@@ -409,79 +430,72 @@ export function InboxPage({
 
 	return (
 		<>
-			<Tabs defaultValue="pending" className="w-full">
+			<Tabs
+				value={activeStatus}
+				onValueChange={handleTabChange}
+				className="w-full"
+			>
 				<TabsList className="grid h-auto w-full grid-cols-3 sm:inline-flex sm:h-9 sm:grid-cols-none">
 					<TabsTrigger
 						value="pending"
+						disabled={isPending}
 						className="h-11 min-w-0 flex-col gap-0 px-1 text-sm leading-tight sm:h-9 sm:flex-row sm:gap-1 sm:px-4"
 					>
 						<span>Pendentes</span>
-						<span>({pendingItems.length})</span>
+						<span>({counts.pending})</span>
 					</TabsTrigger>
 					<TabsTrigger
 						value="processed"
+						disabled={isPending}
 						className="h-11 min-w-0 flex-col gap-0 px-1 text-sm leading-tight sm:h-9 sm:flex-row sm:gap-1 sm:px-4"
 					>
 						<span>Processados</span>
-						<span>({processedItems.length})</span>
+						<span>({counts.processed})</span>
 					</TabsTrigger>
 					<TabsTrigger
 						value="discarded"
+						disabled={isPending}
 						className="h-11 min-w-0 flex-col gap-0 px-1 text-sm leading-tight sm:h-9 sm:flex-row sm:gap-1 sm:px-4"
 					>
 						<span>Descartados</span>
-						<span>({discardedItems.length})</span>
+						<span>({counts.discarded})</span>
 					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="pending" className="mt-4">
-					{sortedPending.length > 0 && (
+					{activeStatus === "pending" && items.length > 0 && (
 						<div className="mb-4 flex items-center justify-end gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={toggleSelectAllPending}
-							>
-								{allPendingSelected
-									? "Desselecionar todos"
-									: "Selecionar todos"}
+							<Button variant="outline" size="sm" onClick={toggleSelectAll}>
+								{allSelected ? "Cancelar seleção" : "Selecionar página"}
 							</Button>
-							{selectedPendingIds.length > 0 && (
+							{selectedIds.length > 0 && (
 								<Button
 									variant="destructive"
 									size="sm"
 									onClick={() => handleSelectionBulkRequest("pending")}
 								>
 									<RiDeleteBinLine className="mr-1.5 size-4" />
-									Descartar selecionados ({selectedPendingIds.length})
+									Descartar selecionados ({selectedIds.length})
 								</Button>
 							)}
 						</div>
 					)}
-					{renderGrid(sortedPending, false, selectedPendingIds, (id) =>
-						toggleSelection(selectedPendingIds, setSelectedPendingIds, id),
-					)}
+					{activeStatus === "pending" ? renderGrid(items, false) : null}
 				</TabsContent>
 				<TabsContent value="processed" className="mt-4">
-					{sortedProcessed.length > 0 && (
+					{activeStatus === "processed" && items.length > 0 && (
 						<div className="mb-4 flex items-center justify-end gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={toggleSelectAllProcessed}
-							>
-								{allProcessedSelected
-									? "Desselecionar todos"
-									: "Selecionar todos"}
+							<Button variant="outline" size="sm" onClick={toggleSelectAll}>
+								{allSelected ? "Cancelar seleção" : "Selecionar página"}
 							</Button>
-							{selectedProcessedIds.length > 0 && (
+							{selectedIds.length > 0 && (
 								<Button
 									variant="destructive"
 									size="sm"
 									onClick={() => handleSelectionBulkRequest("processed")}
 								>
 									<RiDeleteBinLine className="mr-1.5 size-4" />
-									Excluir selecionados ({selectedProcessedIds.length})
+									Excluir selecionados ({selectedIds.length})
 								</Button>
 							)}
 							<Button
@@ -494,30 +508,22 @@ export function InboxPage({
 							</Button>
 						</div>
 					)}
-					{renderGrid(sortedProcessed, true, selectedProcessedIds, (id) =>
-						toggleSelection(selectedProcessedIds, setSelectedProcessedIds, id),
-					)}
+					{activeStatus === "processed" ? renderGrid(items, true) : null}
 				</TabsContent>
 				<TabsContent value="discarded" className="mt-4">
-					{sortedDiscarded.length > 0 && (
+					{activeStatus === "discarded" && items.length > 0 && (
 						<div className="mb-4 flex items-center justify-end gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={toggleSelectAllDiscarded}
-							>
-								{allDiscardedSelected
-									? "Desselecionar todos"
-									: "Selecionar todos"}
+							<Button variant="outline" size="sm" onClick={toggleSelectAll}>
+								{allSelected ? "Cancelar seleção" : "Selecionar página"}
 							</Button>
-							{selectedDiscardedIds.length > 0 && (
+							{selectedIds.length > 0 && (
 								<Button
 									variant="destructive"
 									size="sm"
 									onClick={() => handleSelectionBulkRequest("discarded")}
 								>
 									<RiDeleteBinLine className="mr-1.5 size-4" />
-									Excluir selecionados ({selectedDiscardedIds.length})
+									Excluir selecionados ({selectedIds.length})
 								</Button>
 							)}
 							<Button
@@ -530,11 +536,98 @@ export function InboxPage({
 							</Button>
 						</div>
 					)}
-					{renderGrid(sortedDiscarded, true, selectedDiscardedIds, (id) =>
-						toggleSelection(selectedDiscardedIds, setSelectedDiscardedIds, id),
-					)}
+					{activeStatus === "discarded" ? renderGrid(items, true) : null}
 				</TabsContent>
 			</Tabs>
+
+			{pagination.totalItems > 0 ? (
+				<div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div className="flex items-center gap-2">
+						<span className="text-sm text-muted-foreground">
+							{pagination.totalItems} notificações
+						</span>
+						<Select
+							disabled={isPending}
+							value={pagination.pageSize.toString()}
+							onValueChange={(value) => {
+								updateUrl(activeStatus, 1, Number(value));
+							}}
+						>
+							<SelectTrigger className="w-max">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{INBOX_PAGE_SIZE_OPTIONS.map((option) => (
+									<SelectItem key={option} value={option.toString()}>
+										{option} itens
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center gap-2">
+						<span className="text-sm text-muted-foreground">
+							Página {pagination.page} de {pagination.totalPages}
+						</span>
+						<div className="flex items-center gap-1">
+							<Button
+								variant="outline"
+								size="icon-sm"
+								onClick={() => updateUrl(activeStatus, 1, pagination.pageSize)}
+								disabled={!canPreviousPage || isPending}
+								aria-label="Primeira página"
+							>
+								<RiArrowLeftDoubleLine className="size-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="icon-sm"
+								onClick={() =>
+									updateUrl(
+										activeStatus,
+										pagination.page - 1,
+										pagination.pageSize,
+									)
+								}
+								disabled={!canPreviousPage || isPending}
+								aria-label="Página anterior"
+							>
+								<RiArrowLeftSLine className="size-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="icon-sm"
+								onClick={() =>
+									updateUrl(
+										activeStatus,
+										pagination.page + 1,
+										pagination.pageSize,
+									)
+								}
+								disabled={!canNextPage || isPending}
+								aria-label="Próxima página"
+							>
+								<RiArrowRightSLine className="size-4" />
+							</Button>
+							<Button
+								variant="outline"
+								size="icon-sm"
+								onClick={() =>
+									updateUrl(
+										activeStatus,
+										pagination.totalPages,
+										pagination.pageSize,
+									)
+								}
+								disabled={!canNextPage || isPending}
+								aria-label="Última página"
+							>
+								<RiArrowRightDoubleLine className="size-4" />
+							</Button>
+						</div>
+					</div>
+				</div>
+			) : null}
 
 			<TransactionDialog
 				mode="create"
@@ -617,8 +710,8 @@ export function InboxPage({
 				}
 				description={
 					selectionBulkStatus === "pending"
-						? `${selectedPendingIds.length} item(s) serão descartados.`
-						: `${selectionBulkStatus === "processed" ? selectedProcessedIds.length : selectedDiscardedIds.length} item(s) serão excluídos permanentemente.`
+						? `${selectedIds.length} item(s) serão descartados.`
+						: `${selectedIds.length} item(s) serão excluídos permanentemente.`
 				}
 				confirmLabel={
 					selectionBulkStatus === "pending" ? "Descartar" : "Excluir"

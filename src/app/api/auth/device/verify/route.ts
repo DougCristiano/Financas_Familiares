@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { apiTokens } from "@/db/schema";
 import { extractBearerToken, hashToken } from "@/shared/lib/auth/api-token";
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 			where: and(
 				eq(apiTokens.tokenHash, tokenHash),
 				isNull(apiTokens.revokedAt),
+				gt(apiTokens.expiresAt, new Date()),
 			),
 		});
 

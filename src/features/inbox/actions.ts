@@ -39,8 +39,8 @@ const bulkDeleteSelectedInboxSchema = z.object({
 	inboxItemIds: z.array(z.string().uuid()).min(1, "Selecione ao menos um item"),
 });
 
-function revalidateInbox() {
-	revalidateForEntity("inbox");
+function revalidateInbox(userId: string) {
+	revalidateForEntity("inbox", userId);
 }
 
 /**
@@ -85,7 +85,7 @@ export async function markInboxAsProcessedAction(
 				),
 			);
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		return { success: true, message: "Item processado com sucesso!" };
 	} catch (error) {
@@ -132,7 +132,7 @@ export async function discardInboxItemAction(
 				),
 			);
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		return { success: true, message: "Item descartado." };
 	} catch (error) {
@@ -163,7 +163,7 @@ export async function bulkDiscardInboxItemsAction(
 				),
 			);
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		return {
 			success: true,
@@ -214,7 +214,7 @@ export async function restoreDiscardedInboxItemAction(
 				),
 			);
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		return { success: true, message: "Item voltou para pendentes." };
 	} catch (error) {
@@ -260,7 +260,7 @@ export async function deleteInboxItemAction(
 				),
 			);
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		return { success: true, message: "Item excluído." };
 	} catch (error) {
@@ -286,7 +286,7 @@ export async function bulkDeleteSelectedInboxItemsAction(
 			)
 			.returning({ id: inboxItems.id });
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		const count = result.length;
 		return {
@@ -312,7 +312,7 @@ export async function bulkDeleteInboxItemsAction(
 			)
 			.returning({ id: inboxItems.id });
 
-		revalidateInbox();
+		revalidateInbox(user.id);
 
 		const count = result.length;
 		return {
