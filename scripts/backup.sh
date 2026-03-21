@@ -48,9 +48,7 @@ RETENTION_REMOTE_DAYS=30
 # ============================================================
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
-LOG_PREFIX="[$(date '+%Y-%m-%d %H:%M:%S')]"
-
-log() { echo "$LOG_PREFIX $*"; }
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
 mkdir -p "$BACKUP_DIR"
 
@@ -69,9 +67,6 @@ if [[ "$DB_MODE" == "remote" ]]; then
   pg_dump --no-owner --no-privileges \
     "$REMOTE_DB_URL" | gzip > "$SQL_FILE"
 
-  pg_dump --data-only --schema=public --no-owner --no-privileges \
-    "$REMOTE_DB_URL" | gzip > "$DATA_FILE"
-
 elif [[ "$DB_MODE" == "docker" ]]; then
   docker exec "$DOCKER_CONTAINER" pg_dump \
     -U "$DOCKER_DB_USER" -Fc "$DOCKER_DB_NAME" > "$DUMP_FILE"
@@ -79,14 +74,14 @@ elif [[ "$DB_MODE" == "docker" ]]; then
   docker exec "$DOCKER_CONTAINER" pg_dump \
     -U "$DOCKER_DB_USER" "$DOCKER_DB_NAME" | gzip > "$SQL_FILE"
 
-  docker exec "$DOCKER_CONTAINER" pg_dump \
-    --data-only --schema=public \
-    -U "$DOCKER_DB_USER" "$DOCKER_DB_NAME" | gzip > "$DATA_FILE"
-
 else
   log "ERRO: DB_MODE inválido ('$DB_MODE'). Use 'remote' ou 'docker'."
   exit 1
 fi
+
+# Extrai dados puros do dump custom (sem nova conexão ao banco)
+pg_restore --data-only --schema=public --no-owner --no-privileges \
+  "$DUMP_FILE" | gzip > "$DATA_FILE"
 
 log "Dump concluído: $(du -sh "$DUMP_FILE" | cut -f1) (.dump) | $(du -sh "$SQL_FILE" | cut -f1) (.sql.gz) | $(du -sh "$DATA_FILE" | cut -f1) (.data.sql.gz)"
 
@@ -95,7 +90,7 @@ if ! command -v rclone &>/dev/null; then
   log "AVISO: rclone não encontrado. Pulando upload."
 else
   rclone copy "$BACKUP_DIR" "$GDRIVE_REMOTE" \
-    --include "openmonetis_*"
+    --include "openmonetis_${TIMESTAMP}*"
   log "Upload concluído → $GDRIVE_REMOTE"
 
   # Limpeza remota
