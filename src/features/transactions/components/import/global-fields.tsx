@@ -33,7 +33,8 @@ export function decodeAccountCard(value: string): {
 	id: string;
 } | null {
 	if (value.startsWith("card:")) return { type: "card", id: value.slice(5) };
-	if (value.startsWith("account:")) return { type: "account", id: value.slice(8) };
+	if (value.startsWith("account:"))
+		return { type: "account", id: value.slice(8) };
 	return null;
 }
 
@@ -65,7 +66,9 @@ export function GlobalFields({
 	onBulkCategoryChange,
 }: GlobalFieldsProps) {
 	const isCard = accountCardValue?.startsWith("card:") ?? false;
-	const expenseCategories = categoryOptions.filter((o) => o.group === "despesa");
+	const expenseCategories = categoryOptions.filter(
+		(o) => o.group === "despesa",
+	);
 	const incomeCategories = categoryOptions.filter((o) => o.group === "receita");
 
 	return (
@@ -131,7 +134,10 @@ export function GlobalFields({
 						<SelectContent>
 							{payerOptions.map((opt) => (
 								<SelectItem key={opt.value} value={opt.value}>
-									<PayerSelectContent label={opt.label} avatarUrl={opt.avatarUrl} />
+									<PayerSelectContent
+										label={opt.label}
+										avatarUrl={opt.avatarUrl}
+									/>
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -150,7 +156,10 @@ export function GlobalFields({
 									<SelectLabel>Despesa</SelectLabel>
 									{expenseCategories.map((opt) => (
 										<SelectItem key={opt.value} value={opt.value}>
-											<CategorySelectContent label={opt.label} icon={opt.icon} />
+											<CategorySelectContent
+												label={opt.label}
+												icon={opt.icon}
+											/>
 										</SelectItem>
 									))}
 								</SelectGroup>
@@ -163,7 +172,10 @@ export function GlobalFields({
 									<SelectLabel>Receita</SelectLabel>
 									{incomeCategories.map((opt) => (
 										<SelectItem key={opt.value} value={opt.value}>
-											<CategorySelectContent label={opt.label} icon={opt.icon} />
+											<CategorySelectContent
+												label={opt.label}
+												icon={opt.icon}
+											/>
 										</SelectItem>
 									))}
 								</SelectGroup>
@@ -172,17 +184,17 @@ export function GlobalFields({
 					</Select>
 				</div>
 
-			{isCard && (
-				<div className="flex min-w-44 flex-col gap-1.5">
-					<Label>Fatura</Label>
-					<PeriodPicker
-						value={invoicePeriod ?? ""}
-						onChange={(v) => onInvoicePeriodChange(v || null)}
-						placeholder="Selecionar fatura…"
-					/>
-				</div>
-			)}
+				{isCard && (
+					<div className="flex min-w-44 flex-col gap-1.5">
+						<Label>Fatura</Label>
+						<PeriodPicker
+							value={invoicePeriod ?? ""}
+							onChange={(v) => onInvoicePeriodChange(v || null)}
+							placeholder="Selecionar fatura…"
+						/>
+					</div>
+				)}
+			</div>
 		</div>
-	</div>
 	);
 }

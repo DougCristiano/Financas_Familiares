@@ -48,21 +48,20 @@ const accountBaseSchema = z.object({
 		.string({ message: "Selecione um logo." })
 		.trim()
 		.min(1, "Selecione um logo."),
-	initialBalance: z
-		.union([
-			z.number(),
-			z
-				.string()
-				.trim()
-				.transform((value) =>
-					value.length === 0 ? "0" : value.replace(",", "."),
-				)
-				.refine(
-					(value) => !Number.isNaN(Number.parseFloat(value)),
-					"Informe um saldo inicial válido.",
-				)
-				.transform((value) => Number.parseFloat(value)),
-		]),
+	initialBalance: z.union([
+		z.number(),
+		z
+			.string()
+			.trim()
+			.transform((value) =>
+				value.length === 0 ? "0" : value.replace(",", "."),
+			)
+			.refine(
+				(value) => !Number.isNaN(Number.parseFloat(value)),
+				"Informe um saldo inicial válido.",
+			)
+			.transform((value) => Number.parseFloat(value)),
+	]),
 	excludeFromBalance: z
 		.union([z.boolean(), z.string()])
 		.transform((value) => value === true || value === "true"),

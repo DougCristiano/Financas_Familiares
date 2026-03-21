@@ -6,7 +6,6 @@ import { normalizeDescriptionKey } from "@/features/transactions/lib/import-util
 import { getUserId } from "@/shared/lib/auth/server";
 import { db } from "@/shared/lib/db";
 
-
 // Retorna um map de descriptionKey → categoryId para as descrições fornecidas
 export async function fetchCategoryMappings(
 	descriptions: string[],
@@ -53,7 +52,10 @@ export async function saveCategoryMappings(
 		.insert(importCategoryMappings)
 		.values(toUpsert)
 		.onConflictDoUpdate({
-			target: [importCategoryMappings.userId, importCategoryMappings.descriptionKey],
+			target: [
+				importCategoryMappings.userId,
+				importCategoryMappings.descriptionKey,
+			],
 			set: {
 				categoryId: sql`excluded.category_id`,
 				updatedAt: sql`excluded.updated_at`,

@@ -1,5 +1,8 @@
 import * as XLSX from "xlsx";
-import type { ImportStatement, ImportedTransaction } from "@/shared/lib/import/types";
+import type {
+	ImportedTransaction,
+	ImportStatement,
+} from "@/shared/lib/import/types";
 
 function parseDateValue(value: unknown): string | null {
 	if (value == null || value === "") return null;

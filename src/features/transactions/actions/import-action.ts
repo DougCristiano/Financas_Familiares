@@ -29,7 +29,11 @@ const importSchema = z.object({
 	accountId: uuidSchema("FinancialAccount").nullable().optional(),
 	cardId: uuidSchema("Cartão").nullable().optional(),
 	paymentMethod: z.string().min(1),
-	invoicePeriod: z.string().regex(/^\d{4}-\d{2}$/, "Período inválido.").nullable().optional(),
+	invoicePeriod: z
+		.string()
+		.regex(/^\d{4}-\d{2}$/, "Período inválido.")
+		.nullable()
+		.optional(),
 });
 
 export type ImportRow = z.infer<typeof importRowSchema>;
@@ -51,10 +55,7 @@ export async function checkDuplicateFitIds(
 		.select({ ofxFitId: transactions.ofxFitId })
 		.from(transactions)
 		.where(
-			and(
-				eq(transactions.userId, userId),
-				inArray(transactions.ofxFitId, ids),
-			),
+			and(eq(transactions.userId, userId), inArray(transactions.ofxFitId, ids)),
 		);
 
 	return rows.map((r) => r.ofxFitId).filter((id): id is string => id !== null);
@@ -67,10 +68,14 @@ export async function importTransactionsAction(
 	const parsed = importSchema.safeParse(input);
 
 	if (!parsed.success) {
-		return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+		return {
+			success: false,
+			error: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+		};
 	}
 
-	const { rows, payerId, accountId, cardId, paymentMethod, invoicePeriod } = parsed.data;
+	const { rows, payerId, accountId, cardId, paymentMethod, invoicePeriod } =
+		parsed.data;
 
 	// Valida ownership
 	const [payerOk, accountOk, cardOk] = await Promise.all([
@@ -94,14 +99,19 @@ export async function importTransactionsAction(
 
 	const records = rows.map((row) => {
 		const purchaseDate = parseLocalDateString(row.date);
-		const period = invoicePeriod ?? `${purchaseDate.getFullYear()}-${String(purchaseDate.getMonth() + 1).padStart(2, "0")}`;
+		const period =
+			invoicePeriod ??
+			`${purchaseDate.getFullYear()}-${String(purchaseDate.getMonth() + 1).padStart(2, "0")}`;
 
 		return {
 			name: row.description,
 			transactionType: row.transactionType === "income" ? "Receita" : "Despesa",
 			condition: "À vista" as const,
 			paymentMethod,
-			amount: (row.transactionType === "expense" ? -row.amount : row.amount).toFixed(2),
+			amount: (row.transactionType === "expense"
+				? -row.amount
+				: row.amount
+			).toFixed(2),
 			purchaseDate,
 			period,
 			isSettled,
@@ -143,10 +153,7 @@ export async function deleteTransactionByFitId(
 	await db
 		.delete(transactions)
 		.where(
-			and(
-				eq(transactions.userId, userId),
-				eq(transactions.ofxFitId, fitId),
-			),
+			and(eq(transactions.userId, userId), eq(transactions.ofxFitId, fitId)),
 		);
 
 	await revalidateForEntity("transactions", userId);

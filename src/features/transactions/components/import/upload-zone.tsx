@@ -37,7 +37,9 @@ export function UploadZone({ onParsed }: UploadZoneProps) {
 					}
 					onParsed(statement);
 				} catch {
-					setError("Não foi possível ler o arquivo. Verifique se é um OFX válido.");
+					setError(
+						"Não foi possível ler o arquivo. Verifique se é um OFX válido.",
+					);
 				}
 			};
 			reader.readAsText(file, "windows-1252");
@@ -119,11 +121,7 @@ export function UploadZone({ onParsed }: UploadZoneProps) {
 			/>
 
 			<div className="flex items-center justify-between">
-				{error ? (
-					<p className="text-destructive text-sm">{error}</p>
-				) : (
-					<span />
-				)}
+				{error ? <p className="text-destructive text-sm">{error}</p> : <span />}
 				<button
 					type="button"
 					onClick={handleDownloadTemplate}

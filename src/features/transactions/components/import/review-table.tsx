@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef } from "react";
 import { CategorySelectContent } from "@/features/transactions/components/select-items";
 import type { SelectOption } from "@/features/transactions/components/types";
 import MoneyValues from "@/shared/components/money-values";
@@ -91,9 +91,7 @@ export function ReviewTable({
 									onCheckedChange={(v) => onToggleAll(!!v)}
 									aria-label="Selecionar todas"
 									data-state={
-										!allSelected && someSelected
-											? "indeterminate"
-											: undefined
+										!allSelected && someSelected ? "indeterminate" : undefined
 									}
 								/>
 							</TableHead>
@@ -114,7 +112,10 @@ export function ReviewTable({
 							</TableRow>
 						)}
 						{virtualRows.map((virtualRow) => {
-							const row = rows[virtualRow.index]!;
+							const row = rows[virtualRow.index];
+							if (!row) {
+								return null;
+							}
 							const index = virtualRow.index;
 							return (
 								<TableRow
@@ -199,9 +200,7 @@ export function ReviewTable({
 									<TableCell>
 										<TransactionTypeBadge
 											kind={
-												row.transactionType === "income"
-													? "Receita"
-													: "Despesa"
+												row.transactionType === "income" ? "Receita" : "Despesa"
 											}
 										/>
 									</TableCell>

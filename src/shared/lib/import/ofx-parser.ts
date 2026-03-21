@@ -1,4 +1,4 @@
-import type { ImportStatement, ImportedTransaction } from "./types";
+import type { ImportedTransaction, ImportStatement } from "./types";
 
 // Extrai o valor de uma tag leaf do OFX SGML: <TAG>valor
 function getField(block: string, tag: string): string | null {

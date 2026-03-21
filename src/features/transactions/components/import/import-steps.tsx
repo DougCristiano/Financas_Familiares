@@ -34,7 +34,9 @@ export function ImportSteps({ current }: ImportStepsProps) {
 									isCompleted &&
 										"border-primary bg-primary text-primary-foreground",
 									isActive && "border-primary text-primary",
-									!isCompleted && !isActive && "border-muted-foreground/30 text-muted-foreground",
+									!isCompleted &&
+										!isActive &&
+										"border-muted-foreground/30 text-muted-foreground",
 								)}
 							>
 								{isCompleted ? (

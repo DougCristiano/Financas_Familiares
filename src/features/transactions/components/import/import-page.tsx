@@ -1,13 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+	useTransition,
+} from "react";
 import { toast } from "sonner";
 import {
 	fetchCategoryMappings,
 	saveCategoryMappings,
 } from "@/features/transactions/actions/category-memory-action";
-import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
 import {
 	checkDuplicateFitIds,
 	deleteTransactionByFitId,
@@ -27,6 +32,7 @@ import {
 } from "@/features/transactions/components/import/review-table";
 import { UploadZone } from "@/features/transactions/components/import/upload-zone";
 import type { SelectOption } from "@/features/transactions/components/types";
+import { normalizeDescriptionKey } from "@/features/transactions/lib/import-utils";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Card,
@@ -82,7 +88,8 @@ export function ImportPage({
 					...t,
 					isDuplicate: t.externalId ? duplicates.has(t.externalId) : false,
 					selected: t.externalId ? !duplicates.has(t.externalId) : true,
-					categoryId: categoryMappings[normalizeDescriptionKey(t.description)] ?? null,
+					categoryId:
+						categoryMappings[normalizeDescriptionKey(t.description)] ?? null,
 				})),
 			);
 		} finally {
@@ -167,7 +174,9 @@ export function ImportPage({
 	const handleImport = () => {
 		if (!statement || !canImport) return;
 
-		const decoded = decodeAccountCard(accountCardValue!);
+		const decoded = accountCardValue
+			? decodeAccountCard(accountCardValue)
+			: null;
 		const cardId = decoded?.type === "card" ? decoded.id : null;
 		const accountId = decoded?.type === "account" ? decoded.id : null;
 		const paymentMethod =
@@ -197,7 +206,10 @@ export function ImportPage({
 
 			// Salva mapeamentos description → category (fire-and-forget)
 			saveCategoryMappings(
-				selectedRows.map((r) => ({ description: r.description, categoryId: r.categoryId })),
+				selectedRows.map((r) => ({
+					description: r.description,
+					categoryId: r.categoryId,
+				})),
 			);
 
 			const { importBatchId } = result;
@@ -236,7 +248,8 @@ export function ImportPage({
 					<div>
 						<CardTitle>Importar extrato</CardTitle>
 						<CardDescription>
-							Importe transações a partir de um arquivo .ofx ou planilha .xlsx exportado pelo seu banco.
+							Importe transações a partir de um arquivo .ofx ou planilha .xlsx
+							exportado pelo seu banco.
 						</CardDescription>
 					</div>
 					<ImportSteps current={currentStep} />
