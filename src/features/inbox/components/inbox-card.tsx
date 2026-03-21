@@ -28,14 +28,7 @@ import {
 import { resolveLogoSrc } from "@/shared/lib/logo";
 import type { InboxItem } from "./types";
 
-// O timestamp vem do app Android em horário local mas salvo como UTC.
-// Adicionamos o offset de Brasília para corrigir o cálculo de "há X tempo".
-const BRASILIA_OFFSET_MS = 3 * 60 * 60 * 1000;
 const DEFAULT_INBOX_APP_LOGO = "/avatars/default_icon.png";
-
-function adjustToBrasilia(date: Date): Date {
-	return new Date(date.getTime() + BRASILIA_OFFSET_MS);
-}
 
 function findMatchingLogo(
 	sourceAppName: string | null,
@@ -88,17 +81,14 @@ export function InboxCard({
 
 	const amount = item.parsedAmount ? parseFloat(item.parsedAmount) : null;
 
-	const rawDate = new Date(item.notificationTimestamp);
-	const notificationDate = adjustToBrasilia(rawDate);
+	const createdAtDate = new Date(item.createdAt);
 
-	const timeAgo = formatDistanceToNow(notificationDate, {
+	const timeAgo = formatDistanceToNow(createdAtDate, {
 		addSuffix: true,
 		locale: ptBR,
 	});
 
-	const fullDate = format(notificationDate, "EEE, d 'de' MMM yyyy 'às' HH:mm", {
-		locale: ptBR,
-	});
+	const fullDate = format(createdAtDate, "PPpp", { locale: ptBR });
 
 	const statusDate =
 		item.status === "processed"
