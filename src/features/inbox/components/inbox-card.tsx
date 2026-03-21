@@ -20,12 +20,18 @@ import {
 	CardTitle,
 } from "@/shared/components/ui/card";
 import { Checkbox } from "@/shared/components/ui/checkbox";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 import { resolveLogoSrc } from "@/shared/lib/logo";
 import type { InboxItem } from "./types";
 
 // O timestamp vem do app Android em horário local mas salvo como UTC.
 // Adicionamos o offset de Brasília para corrigir o cálculo de "há X tempo".
 const BRASILIA_OFFSET_MS = 3 * 60 * 60 * 1000;
+const DEFAULT_INBOX_APP_LOGO = "/avatars/default_icon.png";
 
 function adjustToBrasilia(date: Date): Date {
 	return new Date(date.getTime() + BRASILIA_OFFSET_MS);
@@ -78,6 +84,7 @@ export function InboxCard({
 	const matchedLogo = appLogoMap
 		? findMatchingLogo(item.sourceAppName, appLogoMap)
 		: null;
+	const displayLogo = matchedLogo ?? DEFAULT_INBOX_APP_LOGO;
 
 	const amount = item.parsedAmount ? parseFloat(item.parsedAmount) : null;
 
@@ -86,6 +93,10 @@ export function InboxCard({
 
 	const timeAgo = formatDistanceToNow(notificationDate, {
 		addSuffix: true,
+		locale: ptBR,
+	});
+
+	const fullDate = format(notificationDate, "EEE, d 'de' MMM yyyy 'às' HH:mm", {
 		locale: ptBR,
 	});
 
@@ -107,21 +118,32 @@ export function InboxCard({
 			<CardHeader className="pt-4">
 				<div className="flex items-center justify-between gap-2">
 					<CardTitle className="flex min-w-0 items-center gap-1.5 text-sm">
-						{matchedLogo && (
-							<Image
-								src={matchedLogo}
-								alt=""
-								width={24}
-								height={24}
-								className="shrink-0 rounded-full"
+						{onSelectToggle && (
+							<Checkbox
+								checked={!!selected}
+								onCheckedChange={() => onSelectToggle(item.id)}
+								aria-label="Selecionar item"
+								className="shrink-0"
 							/>
 						)}
+						<Image
+							src={displayLogo}
+							alt=""
+							width={32}
+							height={32}
+							className="shrink-0 rounded-full"
+						/>
 						<span className="truncate">
 							{item.sourceAppName || item.sourceApp}
 						</span>
-						<span className="shrink-0 text-xs font-normal text-muted-foreground">
-							{timeAgo}
-						</span>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className="shrink-0 cursor-default text-xs font-normal text-muted-foreground underline decoration-dotted underline-offset-2">
+									{timeAgo}
+								</span>
+							</TooltipTrigger>
+							<TooltipContent>{fullDate}</TooltipContent>
+						</Tooltip>
 					</CardTitle>
 					{amount !== null && (
 						<MoneyValues amount={amount} className="shrink-0 text-sm" />
@@ -174,13 +196,6 @@ export function InboxCard({
 								<RiDeleteBinLine className="size-4" />
 							</Button>
 						)}
-						{onSelectToggle && (
-							<Checkbox
-								checked={!!selected}
-								onCheckedChange={() => onSelectToggle(item.id)}
-								aria-label="Selecionar item"
-							/>
-						)}
 					</div>
 				</CardFooter>
 			) : (
@@ -213,13 +228,6 @@ export function InboxCard({
 					>
 						<RiDeleteBinLine className="size-4" />
 					</Button>
-					{onSelectToggle && (
-						<Checkbox
-							checked={!!selected}
-							onCheckedChange={() => onSelectToggle(item.id)}
-							aria-label="Selecionar item"
-						/>
-					)}
 				</CardFooter>
 			)}
 		</Card>

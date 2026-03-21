@@ -39,18 +39,26 @@ export async function fetchInboxItemsPage(
 	{
 		page,
 		pageSize,
+		sourceApp,
 	}: {
 		page: number;
 		pageSize: number;
+		sourceApp?: string | null;
 	},
 ): Promise<{
 	items: InboxItem[];
 	pagination: InboxPaginationState;
 }> {
+	const where = and(
+		eq(inboxItems.userId, userId),
+		eq(inboxItems.status, status),
+		sourceApp ? eq(inboxItems.sourceAppName, sourceApp) : undefined,
+	);
+
 	const [countRow] = await db
 		.select({ total: count() })
 		.from(inboxItems)
-		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)));
+		.where(where);
 
 	const totalItems = Number(countRow?.total ?? 0);
 	const totalPages = Math.max(Math.ceil(totalItems / pageSize), 1);
@@ -60,7 +68,7 @@ export async function fetchInboxItemsPage(
 	const items = await db
 		.select()
 		.from(inboxItems)
-		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)))
+		.where(where)
 		.orderBy(desc(inboxItems.notificationTimestamp), desc(inboxItems.createdAt))
 		.limit(pageSize)
 		.offset(offset);
@@ -74,6 +82,22 @@ export async function fetchInboxItemsPage(
 			totalPages,
 		},
 	};
+}
+
+export async function fetchInboxSourceApps(
+	userId: string,
+	status: InboxStatus,
+): Promise<string[]> {
+	const rows = await db
+		.select({ name: inboxItems.sourceAppName })
+		.from(inboxItems)
+		.where(and(eq(inboxItems.userId, userId), eq(inboxItems.status, status)));
+
+	const seen = new Set<string>();
+	for (const row of rows) {
+		if (row.name) seen.add(row.name);
+	}
+	return [...seen].sort();
 }
 
 export async function fetchInboxStatusCounts(

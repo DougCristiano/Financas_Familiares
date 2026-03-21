@@ -52,7 +52,14 @@ export function InboxDetailsDialog({
 						<div className="grid gap-2 text-sm">
 							<div className="flex justify-between">
 								<span className="text-muted-foreground">App</span>
-								<span>{item.sourceAppName || item.sourceApp}</span>
+								<div className="flex flex-col items-end gap-0.5">
+									<span>{item.sourceAppName || item.sourceApp}</span>
+									{item.sourceAppName && (
+										<span className="font-mono text-xs text-muted-foreground">
+											{item.sourceApp}
+										</span>
+									)}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -109,6 +116,11 @@ export function InboxDetailsDialog({
 				</div>
 
 				<DialogFooter>
+					<DialogClose asChild>
+						<Button type="button" variant="outline">
+							Fechar
+						</Button>
+					</DialogClose>
 					{isPending && onProcess && (
 						<Button
 							type="button"
@@ -120,11 +132,6 @@ export function InboxDetailsDialog({
 							Processar
 						</Button>
 					)}
-					<DialogClose asChild>
-						<Button type="button" variant="outline">
-							Fechar
-						</Button>
-					</DialogClose>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

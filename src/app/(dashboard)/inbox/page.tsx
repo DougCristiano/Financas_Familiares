@@ -1,6 +1,7 @@
 import { InboxPage } from "@/features/inbox/components/inbox-page";
 import {
 	type ResolvedInboxSearchParams,
+	resolveInboxApp,
 	resolveInboxPagination,
 	resolveInboxStatus,
 } from "@/features/inbox/page-helpers";
@@ -8,6 +9,7 @@ import {
 	fetchAppLogoMap,
 	fetchInboxDialogData,
 	fetchInboxItemsPage,
+	fetchInboxSourceApps,
 	fetchInboxStatusCounts,
 } from "@/features/inbox/queries";
 import { getUserId } from "@/shared/lib/auth/server";
@@ -32,21 +34,31 @@ export default async function Page({ searchParams }: PageProps) {
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const activeStatus = resolveInboxStatus(resolvedSearchParams);
+	const activeApp = resolveInboxApp(resolvedSearchParams);
 	const paginationInput = resolveInboxPagination(resolvedSearchParams);
 
-	const [itemsPage, counts, dialogData, appLogoMap] = await Promise.all([
-		fetchInboxItemsPage(userId, activeStatus, paginationInput),
-		fetchInboxStatusCounts(userId),
-		activeStatus === "pending"
-			? fetchInboxDialogData(userId)
-			: Promise.resolve(EMPTY_DIALOG_DATA),
-		fetchAppLogoMap(userId),
-	]);
+	const [itemsPage, counts, sourceApps, dialogData, appLogoMap] =
+		await Promise.all([
+			fetchInboxItemsPage(userId, activeStatus, {
+				...paginationInput,
+				sourceApp: activeApp,
+			}),
+			fetchInboxStatusCounts(userId),
+			fetchInboxSourceApps(userId, activeStatus).catch(() => [] as string[]),
+			activeStatus === "pending"
+				? fetchInboxDialogData(userId)
+				: Promise.resolve(EMPTY_DIALOG_DATA),
+			fetchAppLogoMap(userId),
+		]);
+
+	const normalizedSourceApps = Array.isArray(sourceApps) ? sourceApps : [];
 
 	return (
 		<main className="flex flex-col items-start gap-6">
 			<InboxPage
 				activeStatus={activeStatus}
+				activeApp={activeApp}
+				sourceApps={normalizedSourceApps}
 				items={itemsPage.items}
 				counts={counts}
 				pagination={itemsPage.pagination}

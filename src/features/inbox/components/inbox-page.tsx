@@ -6,8 +6,12 @@ import {
 	RiArrowRightDoubleLine,
 	RiArrowRightSLine,
 	RiAtLine,
+	RiCalendarEventLine,
 	RiDeleteBinLine,
 } from "@remixicon/react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -42,6 +46,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/shared/components/ui/tabs";
+import { resolveLogoSrc } from "@/shared/lib/logo";
 import { InboxCard } from "./inbox-card";
 import { InboxDetailsDialog } from "./inbox-details-dialog";
 import type {
@@ -52,8 +57,71 @@ import type {
 	SelectOption,
 } from "./types";
 
+const BRASILIA_OFFSET_MS = 3 * 60 * 60 * 1000;
+const DEFAULT_INBOX_APP_LOGO = "/avatars/default_icon.png";
+
+function getDateKey(date: Date): string {
+	const adjusted = new Date(date.getTime() + BRASILIA_OFFSET_MS);
+	return adjusted.toISOString().slice(0, 10);
+}
+
+function getGroupLabel(dateKey: string): string {
+	const now = new Date();
+	const todayKey = getDateKey(now);
+	const yesterdayKey = getDateKey(
+		new Date(now.getTime() - 24 * 60 * 60 * 1000),
+	);
+	if (dateKey === todayKey) return "Hoje";
+	if (dateKey === yesterdayKey) return "Ontem";
+	const [year, month, day] = dateKey.split("-").map(Number);
+	return format(new Date(year, month - 1, day), "d 'de' MMMM", {
+		locale: ptBR,
+	});
+}
+
+function groupItemsByDay(
+	items: InboxItem[],
+): { label: string; items: InboxItem[] }[] {
+	const groups = new Map<string, InboxItem[]>();
+	for (const item of items) {
+		const key = getDateKey(new Date(item.notificationTimestamp));
+		const group = groups.get(key);
+		if (group) {
+			group.push(item);
+		} else {
+			groups.set(key, [item]);
+		}
+	}
+	const sortedKeys = [...groups.keys()].sort((a, b) => b.localeCompare(a));
+	return sortedKeys.map((key) => ({
+		label: getGroupLabel(key),
+		items: groups.get(key) ?? [],
+	}));
+}
+
+function findMatchingLogo(
+	sourceAppName: string | null,
+	appLogoMap: Record<string, string>,
+): string | null {
+	if (!sourceAppName) return null;
+
+	const appName = sourceAppName.toLowerCase();
+
+	if (appLogoMap[appName]) return resolveLogoSrc(appLogoMap[appName]);
+
+	for (const [name, logo] of Object.entries(appLogoMap)) {
+		if (name.includes(appName) || appName.includes(name)) {
+			return resolveLogoSrc(logo);
+		}
+	}
+
+	return null;
+}
+
 interface InboxPageProps {
 	activeStatus: InboxStatus;
+	activeApp: string | null;
+	sourceApps: string[];
 	items: InboxItem[];
 	counts: InboxStatusCounts;
 	pagination: InboxPaginationState;
@@ -69,6 +137,8 @@ interface InboxPageProps {
 
 export function InboxPage({
 	activeStatus,
+	activeApp,
+	sourceApps = [],
 	items,
 	counts,
 	pagination,
@@ -110,6 +180,38 @@ export function InboxPage({
 	const [selectionBulkOpen, setSelectionBulkOpen] = useState(false);
 	const [selectionBulkStatus, setSelectionBulkStatus] =
 		useState<InboxStatus>("pending");
+
+	const normalizedSourceApps = useMemo(() => {
+		if (!Array.isArray(sourceApps)) {
+			return [];
+		}
+
+		const uniqueApps = new Set<string>();
+		for (const app of sourceApps) {
+			if (typeof app !== "string") {
+				continue;
+			}
+
+			const trimmedApp = app.trim();
+			if (!trimmedApp) {
+				continue;
+			}
+
+			uniqueApps.add(trimmedApp);
+		}
+
+		return [...uniqueApps].sort((left, right) =>
+			left.localeCompare(right, "pt-BR"),
+		);
+	}, [sourceApps]);
+
+	const appFilterOptions =
+		activeApp && !normalizedSourceApps.includes(activeApp)
+			? [activeApp, ...normalizedSourceApps]
+			: normalizedSourceApps;
+
+	const getAppLogo = (appName: string | null) =>
+		findMatchingLogo(appName, appLogoMap) ?? DEFAULT_INBOX_APP_LOGO;
 
 	const handleProcessOpenChange = (open: boolean) => {
 		setProcessOpen(open);
@@ -239,7 +341,6 @@ export function InboxPage({
 			setSelectedIds([]);
 			return;
 		}
-
 		setSelectedIds(items.map((item) => item.id));
 	};
 
@@ -276,8 +377,42 @@ export function InboxPage({
 		});
 	};
 
+	const handleAppChange = (nextApp: string) => {
+		const nextParams = new URLSearchParams(searchParams.toString());
+		if (nextApp === "all") {
+			nextParams.delete("app");
+		} else {
+			nextParams.set("app", nextApp);
+		}
+		nextParams.delete("page");
+		startTransition(() => {
+			const target = nextParams.toString()
+				? `${pathname}?${nextParams.toString()}`
+				: pathname;
+			router.replace(target, { scroll: false });
+		});
+	};
+
 	const handleTabChange = (nextStatus: string) => {
-		updateUrl(nextStatus as InboxStatus, 1, pagination.pageSize);
+		const nextParams = new URLSearchParams(searchParams.toString());
+		nextParams.delete("app");
+		if (nextStatus === "pending") {
+			nextParams.delete("status");
+		} else {
+			nextParams.set("status", nextStatus);
+		}
+		nextParams.delete("page");
+		if (pagination.pageSize === INBOX_DEFAULT_PAGE_SIZE) {
+			nextParams.delete("pageSize");
+		} else {
+			nextParams.set("pageSize", pagination.pageSize.toString());
+		}
+		startTransition(() => {
+			const target = nextParams.toString()
+				? `${pathname}?${nextParams.toString()}`
+				: pathname;
+			router.replace(target, { scroll: false });
+		});
 	};
 
 	const handleSelectionBulkRequest = (status: InboxStatus) => {
@@ -401,32 +536,105 @@ export function InboxPage({
 		</Card>
 	);
 
-	const renderGrid = (list: InboxItem[], readonly?: boolean) =>
-		list.length === 0 ? (
-			renderEmptyState(
+	const renderGroupedGrid = (list: InboxItem[], readonly?: boolean) => {
+		if (list.length === 0) {
+			if (activeApp) {
+				return renderEmptyState("Nenhuma notificação deste app");
+			}
+			return renderEmptyState(
 				readonly
 					? "Nenhuma notificação nesta aba"
 					: "Nenhum pré-lançamento pendente",
-			)
-		) : (
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-				{list.map((item) => (
-					<InboxCard
-						key={item.id}
-						item={item}
-						readonly={readonly}
-						appLogoMap={appLogoMap}
-						onProcess={readonly ? undefined : handleProcessRequest}
-						onDiscard={readonly ? undefined : handleDiscardRequest}
-						onViewDetails={readonly ? undefined : handleDetailsRequest}
-						onDelete={readonly ? handleDeleteRequest : undefined}
-						onRestoreToPending={readonly ? handleRestoreRequest : undefined}
-						selected={selectedIds.includes(item.id)}
-						onSelectToggle={toggleSelection}
-					/>
+			);
+		}
+
+		const groups = groupItemsByDay(list);
+
+		return (
+			<div className="space-y-6">
+				{groups.map((group) => (
+					<div key={group.label}>
+						<div className="mb-3 flex items-center gap-1 text-muted-foreground">
+							<RiCalendarEventLine className="size-3.5 shrink-0" />
+							<p className="text-sm font-medium">{group.label}</p>
+						</div>
+						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+							{group.items.map((item) => (
+								<InboxCard
+									key={item.id}
+									item={item}
+									readonly={readonly}
+									appLogoMap={appLogoMap}
+									onProcess={readonly ? undefined : handleProcessRequest}
+									onDiscard={readonly ? undefined : handleDiscardRequest}
+									onViewDetails={readonly ? undefined : handleDetailsRequest}
+									onDelete={readonly ? handleDeleteRequest : undefined}
+									onRestoreToPending={
+										readonly ? handleRestoreRequest : undefined
+									}
+									selected={selectedIds.includes(item.id)}
+									onSelectToggle={toggleSelection}
+								/>
+							))}
+						</div>
+					</div>
 				))}
 			</div>
 		);
+	};
+
+	const renderAppFilter = () => {
+		if (appFilterOptions.length === 0) {
+			return null;
+		}
+
+		return (
+			<Select value={activeApp ?? "all"} onValueChange={handleAppChange}>
+				<SelectTrigger className="w-[190px]">
+					<SelectValue>
+						<span className="flex min-w-0 items-center gap-2">
+							<Image
+								src={activeApp ? getAppLogo(activeApp) : DEFAULT_INBOX_APP_LOGO}
+								alt=""
+								width={20}
+								height={20}
+								className="shrink-0 rounded-full"
+							/>
+							<span className="truncate">{activeApp ?? "Todos"}</span>
+						</span>
+					</SelectValue>
+				</SelectTrigger>
+				<SelectContent>
+					<SelectItem value="all">
+						<span className="flex items-center gap-2">
+							<Image
+								src={DEFAULT_INBOX_APP_LOGO}
+								alt=""
+								width={20}
+								height={20}
+								className="shrink-0 rounded-full"
+							/>
+							<span>Todos</span>
+						</span>
+					</SelectItem>
+					{appFilterOptions.map((app) => (
+						<SelectItem key={app} value={app}>
+							<span className="flex min-w-0 items-center gap-2">
+								<Image
+									src={getAppLogo(app)}
+									alt=""
+									width={20}
+									height={20}
+									className="shrink-0 rounded-full"
+								/>
+								<span className="truncate">{app}</span>
+							</span>
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		);
+	};
 
 	return (
 		<>
@@ -463,80 +671,110 @@ export function InboxPage({
 				</TabsList>
 
 				<TabsContent value="pending" className="mt-4">
-					{activeStatus === "pending" && items.length > 0 && (
-						<div className="mb-4 flex items-center justify-end gap-2">
-							<Button variant="outline" size="sm" onClick={toggleSelectAll}>
-								{allSelected ? "Cancelar seleção" : "Selecionar página"}
-							</Button>
-							{selectedIds.length > 0 && (
-								<Button
-									variant="destructive"
-									size="sm"
-									onClick={() => handleSelectionBulkRequest("pending")}
-								>
-									<RiDeleteBinLine className="mr-1.5 size-4" />
-									Descartar selecionados ({selectedIds.length})
-								</Button>
-							)}
-						</div>
-					)}
-					{activeStatus === "pending" ? renderGrid(items, false) : null}
+					{activeStatus === "pending" &&
+						(appFilterOptions.length > 0 || items.length > 0) && (
+							<div className="mb-4 flex flex-wrap items-center gap-2">
+								{renderAppFilter()}
+								{items.length > 0 ? (
+									<div className="ml-auto flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={toggleSelectAll}
+										>
+											{allSelected ? "Cancelar seleção" : "Selecionar página"}
+										</Button>
+										{selectedIds.length > 0 && (
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() => handleSelectionBulkRequest("pending")}
+											>
+												<RiDeleteBinLine className="mr-1.5 size-4" />
+												Descartar selecionados ({selectedIds.length})
+											</Button>
+										)}
+									</div>
+								) : null}
+							</div>
+						)}
+					{activeStatus === "pending" ? renderGroupedGrid(items, false) : null}
 				</TabsContent>
 				<TabsContent value="processed" className="mt-4">
-					{activeStatus === "processed" && items.length > 0 && (
-						<div className="mb-4 flex items-center justify-end gap-2">
-							<Button variant="outline" size="sm" onClick={toggleSelectAll}>
-								{allSelected ? "Cancelar seleção" : "Selecionar página"}
-							</Button>
-							{selectedIds.length > 0 && (
-								<Button
-									variant="destructive"
-									size="sm"
-									onClick={() => handleSelectionBulkRequest("processed")}
-								>
-									<RiDeleteBinLine className="mr-1.5 size-4" />
-									Excluir selecionados ({selectedIds.length})
-								</Button>
-							)}
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handleBulkDeleteRequest("processed")}
-							>
-								<RiDeleteBinLine className="mr-1.5 size-4" />
-								Limpar processados
-							</Button>
-						</div>
-					)}
-					{activeStatus === "processed" ? renderGrid(items, true) : null}
+					{activeStatus === "processed" &&
+						(appFilterOptions.length > 0 || items.length > 0) && (
+							<div className="mb-4 flex flex-wrap items-center gap-2">
+								{renderAppFilter()}
+								{items.length > 0 ? (
+									<div className="ml-auto flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={toggleSelectAll}
+										>
+											{allSelected ? "Cancelar seleção" : "Selecionar página"}
+										</Button>
+										{selectedIds.length > 0 && (
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() => handleSelectionBulkRequest("processed")}
+											>
+												<RiDeleteBinLine className="mr-1.5 size-4" />
+												Excluir selecionados ({selectedIds.length})
+											</Button>
+										)}
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => handleBulkDeleteRequest("processed")}
+										>
+											<RiDeleteBinLine className="mr-1.5 size-4" />
+											Limpar processados
+										</Button>
+									</div>
+								) : null}
+							</div>
+						)}
+					{activeStatus === "processed" ? renderGroupedGrid(items, true) : null}
 				</TabsContent>
 				<TabsContent value="discarded" className="mt-4">
-					{activeStatus === "discarded" && items.length > 0 && (
-						<div className="mb-4 flex items-center justify-end gap-2">
-							<Button variant="outline" size="sm" onClick={toggleSelectAll}>
-								{allSelected ? "Cancelar seleção" : "Selecionar página"}
-							</Button>
-							{selectedIds.length > 0 && (
-								<Button
-									variant="destructive"
-									size="sm"
-									onClick={() => handleSelectionBulkRequest("discarded")}
-								>
-									<RiDeleteBinLine className="mr-1.5 size-4" />
-									Excluir selecionados ({selectedIds.length})
-								</Button>
-							)}
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handleBulkDeleteRequest("discarded")}
-							>
-								<RiDeleteBinLine className="mr-1.5 size-4" />
-								Limpar descartados
-							</Button>
-						</div>
-					)}
-					{activeStatus === "discarded" ? renderGrid(items, true) : null}
+					{activeStatus === "discarded" &&
+						(appFilterOptions.length > 0 || items.length > 0) && (
+							<div className="mb-4 flex flex-wrap items-center gap-2">
+								{renderAppFilter()}
+								{items.length > 0 ? (
+									<div className="ml-auto flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={toggleSelectAll}
+										>
+											{allSelected ? "Cancelar seleção" : "Selecionar página"}
+										</Button>
+										{selectedIds.length > 0 && (
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() => handleSelectionBulkRequest("discarded")}
+											>
+												<RiDeleteBinLine className="mr-1.5 size-4" />
+												Excluir selecionados ({selectedIds.length})
+											</Button>
+										)}
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => handleBulkDeleteRequest("discarded")}
+										>
+											<RiDeleteBinLine className="mr-1.5 size-4" />
+											Limpar descartados
+										</Button>
+									</div>
+								) : null}
+							</div>
+						)}
+					{activeStatus === "discarded" ? renderGroupedGrid(items, true) : null}
 				</TabsContent>
 			</Tabs>
 

@@ -31,6 +31,10 @@ export const resolveInboxStatus = (
 		: "pending";
 };
 
+export const resolveInboxApp = (
+	params: ResolvedInboxSearchParams,
+): string | null => getSingleParam(params, "app");
+
 export const resolveInboxPagination = (
 	params: ResolvedInboxSearchParams,
 ): Pick<InboxPaginationState, "page" | "pageSize"> => {
