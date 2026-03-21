@@ -52,13 +52,13 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 **1. Não há versão hospedada online** — Este projeto é self-hosted. Você precisa rodar no seu próprio computador ou servidor.
 
-**2. Não há Open Finance** — Você precisa registrar manualmente suas transações.
+**2. Não há Open Finance** — Não há conexão automática com bancos. Você pode registrar transações manualmente ou importar extratos nos formatos OFX e XLS/XLSX.
 
 **3. Requer disciplina** — O OpenMonetis funciona melhor para quem tem disciplina de registrar os gastos regularmente, quer controle total sobre seus dados e gosta de entender exatamente onde o dinheiro está indo.
 
 ### Funcionalidades
 
-💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas e transferências. Categorização, extratos detalhados e importação em massa.
+💰 **Contas e transações** — Contas bancárias, cartões, dinheiro. Receitas, despesas e transferências. Categorização, extratos detalhados e importação de extratos OFX e XLS/XLSX com detecção automática de categoria.
 
 📊 **Dashboard e relatórios** — Widgets interativos de métricas, gráficos de evolução, comparativos por categoria, tendências, uso de cartões, top estabelecimentos. Exportação em PDF e Excel.
 
@@ -190,6 +190,12 @@ pnpm db:generate      # Gerar migrations
 pnpm db:migrate       # Executar migrations
 pnpm db:push          # Push schema direto (dev)
 pnpm db:studio        # Drizzle Studio (UI visual)
+```
+
+### Utilitários
+
+```bash
+pnpm backup           # Backup do banco (requer scripts/backup.sh configurado)
 ```
 
 ### Docker
