@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
+import { version as APP_VERSION } from "@/package.json";
 import { db } from "@/shared/lib/db";
-
-const APP_VERSION = "1.0.0";
 
 /**
  * Health check endpoint para Docker, monitoring e OpenMonetis Companion

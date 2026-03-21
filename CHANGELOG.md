@@ -5,6 +5,16 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.0.1] - 2026-03-21
+
+### Corrigido
+
+- Inbox: filtro por app em `/inbox` agora monta a lista completa de apps da aba a partir de todos os itens do status atual, sem depender apenas da página carregada, e o SSR deixa de quebrar quando `sourceApps` vier inconsistente
+- Inbox: notificações de cartões/apps sem logo cadastrado agora exibem `default_icon.png` como fallback visual nos cards
+- Inbox: select de apps em `/inbox` agora exibe os logos dos apps/cartões, com fallback para `default_icon.png` quando não houver logo mapeado
+- Inbox: cabeçalhos de data entre grupos de cards agora exibem ícone e tipografia um pouco maior para melhorar a leitura
+- Versionamento: `/api/health` passa a reportar a versão atual do `package.json`, evitando divergência entre healthcheck, UI e release publicada
+
 ## [2.0.0] - 2026-03-21
 
 ### Adicionado
