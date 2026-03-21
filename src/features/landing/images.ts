@@ -37,6 +37,10 @@ export const landingImages = {
 			light: "/images/preview-pre-lancamentos-light.webp",
 			dark: "/images/preview-pre-lancamentos-dark.webp",
 		},
+		importacao: {
+			light: "/images/preview-importacao-light.webp",
+			dark: "/images/preview-importacao-dark.webp",
+		},
 		/** Ainda sem print próprio — usando lançamentos como placeholder */
 		orcamentos: {
 			light: "/images/preview-orcamentos-light.webp",

@@ -6,6 +6,7 @@ import {
 	RiBankCard2Line,
 	RiBarChart2Line,
 	RiCalendarEventLine,
+	RiFileDownloadLine,
 	RiSecurePaymentLine,
 } from "@remixicon/react";
 import Image from "next/image";
@@ -31,6 +32,12 @@ const sections = [
 		label: "Pré-lançamentos",
 		icon: RiAtLine,
 		...screenshots.preLancamentos,
+	},
+	{
+		value: "importacao",
+		label: "Importação",
+		icon: RiFileDownloadLine,
+		...screenshots.importacao,
 	},
 	{
 		value: "orcamentos",
