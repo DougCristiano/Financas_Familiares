@@ -9,7 +9,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ### Adicionado
 
-- Infraestrutura: script `scripts/backup.sh` para backup automático do banco PostgreSQL com upload para Google Drive via `rclone`, agendado diariamente às 00:01; disponível via `pnpm backup`
+- Infraestrutura: script `scripts/backup.sh` para backup automático do banco PostgreSQL; configuração de destino (rclone, cron, retenção) feita separadamente
 - Importação de extratos OFX e XLS/XLSX com tela de revisão, detecção automática de categoria por histórico de uso, deduplicação por FITID e acesso direto pela tabela de transações
 
 ### Alterado
