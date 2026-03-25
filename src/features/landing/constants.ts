@@ -7,6 +7,7 @@ import {
 	RiDatabase2Line,
 	RiDeviceLine,
 	RiDownloadCloudLine,
+	RiErrorWarningLine,
 	RiEyeOffLine,
 	RiFileTextLine,
 	RiFlashlightLine,
@@ -259,6 +260,20 @@ export const whoIsItForItems: FeatureItem[] = [
 		description:
 			"Você vai precisar configurar as coisas, conectar suas contas e ajustar o sistema para o seu jeito de usar.",
 		colorVar: "var(--data-4)",
+	},
+	{
+		icon: RiShieldCheckLine,
+		title: "Não é para qualquer um",
+		description:
+			"Não é uma empresa, não é um SaaS, não é uma plataforma. É um projeto pessoal.",
+		colorVar: "var(--data-1)",
+	},
+	{
+		icon: RiErrorWarningLine,
+		title: "Não sou responsável por nada",
+		description:
+			"Não sou responsável por nada que aconteça com você ou com seus dados.",
+		colorVar: "var(--data-9)",
 	},
 ];
 
