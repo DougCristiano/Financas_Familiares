@@ -4,11 +4,11 @@ name: openmonetis
 # MODOS DE USO:
 # 1. Banco LOCAL (PostgreSQL em container):
 #    - Configure DATABASE_URL com host "db" no .env
-#    - Execute: docker compose up --build
+#    - Execute: docker compose up
 #
-# 2. Banco REMOTO (ex: Supabase):
+# 2. Banco REMOTO (ex: Supabase, Neon, etc):
 #    - Configure DATABASE_URL com a URL do banco remoto no .env
-#    - Execute: docker compose up app --build (apenas o serviço app)
+#    - Execute: docker compose up app (apenas o serviço app)
 #
 # 3. Para parar todos os serviços:
 #    - Execute: docker compose down
@@ -29,22 +29,21 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-openmonetis}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openmonetis_dev_password}
       POSTGRES_DB: ${POSTGRES_DB:-openmonetis_db}
-      # Garante que os dados ficam no volume montado (evita perda após down/up)
       PGDATA: /var/lib/postgresql/data
-      # Configurações de performance
       POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
 
     ports:
-      # Mapeia porta 5432 do container para 5432 do host
-      # Útil para conectar com ferramentas externas (ex: DBeaver, pgAdmin)
       - "${DB_PORT:-5432}:5432"
 
     volumes:
-      # Volume nomeado para persistência de dados
-      # Os dados sobrevivem ao restart do container
       - postgres_data:/var/lib/postgresql/data
-      # Script de inicialização (cria extensão pgcrypto automaticamente)
-      - ./scripts/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    # Cria extensão pgcrypto inline (necessária para gen_random_bytes no schema)
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo 'CREATE EXTENSION IF NOT EXISTS pgcrypto;' > /docker-entrypoint-initdb.d/init.sql
+        exec docker-entrypoint.sh postgres
 
     healthcheck:
       test:
@@ -57,80 +56,65 @@ services:
       retries: 5
       start_period: 10s
 
-    networks:
-      - openmonetis_network
-
-    # Descomentar para ativar logs de queries (debug)
-    # command: ["postgres", "-c", "log_statement=all"]
+    # Para ativar logs de queries (debug), adicione ao command acima:
+    # exec docker-entrypoint.sh postgres -c log_statement=all
 
   # ============================================
   # Serviço: Aplicação Next.js
   # ============================================
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: felipegcoutinho/openmonetis:latest
 
     container_name: openmonetis_app
     restart: unless-stopped
 
     ports:
-      # Mapeia porta 3000 do container para 3000 do host
       - "${APP_PORT:-3000}:3000"
 
     environment:
-      # Variáveis de ambiente da aplicação
       NODE_ENV: production
 
-      # DATABASE_URL do .env
-      # Banco local: use host "db" (serviço Docker)
-      # Banco remoto: use a URL completa do provider
+      # Banco local: use host "db" | Banco remoto: URL completa do provider
       DATABASE_URL: ${DATABASE_URL}
 
-      # Outras variáveis de ambiente necessárias
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
 
-      # Configurações de email (se usar)
+      # Email (opcional)
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
 
-      # Configurações de OAuth (se usar)
+      # OAuth (opcional)
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
 
-      # Configurações de AI providers (se usar)
+      # AI providers (opcional)
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
 
     # Só depende do 'db' se estiver usando banco local
-    # Para banco remoto, comente a linha abaixo ou suba apenas: docker compose up app
+    # Para banco remoto, comente as linhas abaixo
     depends_on:
       db:
         condition: service_healthy
 
-    networks:
-      - openmonetis_network
-
     # Script de inicialização: roda migrations antes de iniciar o app
-    # ATENÇÃO: Em produção, considere rodar migrations separadamente por segurança
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        echo "🚀 Aguardando banco de dados..."
+        echo "Aguardando banco de dados..."
         sleep 5
 
-        echo "📦 Rodando migrations..."
-        pnpm db:push || echo "⚠️  Migrations falharam ou já estão atualizadas"
+        echo "Rodando migrations..."
+        pnpm db:push || echo "Migrations falharam ou já estão atualizadas"
 
-        echo "✅ Iniciando aplicação Next.js..."
+        echo "Iniciando aplicação Next.js..."
         node server.js
 
-    # Healthcheck da aplicação
     healthcheck:
       test:
         [
@@ -151,13 +135,4 @@ services:
 # ============================================
 volumes:
   postgres_data:
-    name: openmonetis_postgres_data
     driver: local
-
-# ============================================
-# Networks
-# ============================================
-networks:
-  openmonetis_network:
-    name: openmonetis_network
-    driver: bridge
