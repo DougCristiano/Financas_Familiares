@@ -116,8 +116,9 @@ export function TransactionDialog({
 				},
 			);
 
-			// Derive credit card period on open when cardId is pre-filled
+			// Derive credit card period on open when cardId is pre-filled (create only)
 			if (
+				mode !== "update" &&
 				initial.paymentMethod === "Cartão de crédito" &&
 				initial.cardId &&
 				initial.purchaseDate
