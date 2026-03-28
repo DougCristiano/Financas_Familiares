@@ -73,7 +73,7 @@ export function PasskeysForm() {
 				const { data, error: fetchError } =
 					await authClient.passkey.listUserPasskeys();
 				if (fetchError) {
-					setError(fetchError.message || "Erro ao carregar passkeys.");
+					setError((fetchError.message as string) || "Erro ao carregar passkeys.");
 					return;
 				}
 				setPasskeys(
@@ -111,7 +111,7 @@ export function PasskeysForm() {
 				name: addName.trim() || undefined,
 			});
 			if (addError) {
-				setError(addError.message || "Erro ao registrar passkey.");
+				setError((addError.message as string) || "Erro ao registrar passkey.");
 				return;
 			}
 			setAddName("");
@@ -134,7 +134,7 @@ export function PasskeysForm() {
 				name: editName.trim(),
 			});
 			if (renameError) {
-				setError(renameError.message || "Erro ao renomear passkey.");
+				setError((renameError.message as string) || "Erro ao renomear passkey.");
 				return;
 			}
 			setEditingId(null);
@@ -156,7 +156,7 @@ export function PasskeysForm() {
 				id: deleteId,
 			});
 			if (deleteError) {
-				setError(deleteError.message || "Erro ao remover passkey.");
+				setError((deleteError.message as string) || "Erro ao remover passkey.");
 				return;
 			}
 			setDeleteId(null);
