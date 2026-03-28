@@ -7,6 +7,21 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-03-28
+
+### Adicionado
+
+- Lançamentos: suporte a anexos em transações com upload direto para storage compatível com S3, persistência em tabelas dedicadas (`anexos` e `lancamento_anexos`) e ações de visualizar/remover no detalhe do lançamento
+- Infraestrutura: novo workflow `.github/workflows/release.yml` para criar tag e GitHub Release automaticamente a partir da versão do `package.json` e da entrada correspondente no `CHANGELOG.md`
+
+### Alterado
+
+- Anexos: upload agora exige token assinado por arquivo, valida propriedade da transação também na leitura/remoção e confere tamanho/tipo do objeto no storage antes de persistir o vínculo no banco
+
+### Corrigido
+
+- Lançamentos: criação de transações no cartão de crédito agora bloqueia períodos cujas faturas já estão pagas, evitando divergência no relatório de análise de parcelas
+
 ## [2.0.3] - 2026-03-26
 
 ### Corrigido
