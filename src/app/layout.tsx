@@ -1,5 +1,3 @@
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/shared/components/providers/theme-provider";
 import { Toaster } from "@/shared/components/ui/sonner";
@@ -28,14 +26,18 @@ export default function RootLayout({
 		>
 			<head>
 				<meta name="apple-mobile-web-app-title" content="OpenMonetis" />
+				<script
+					defer
+					src="https://umami.felipecoutinho.com/script.js"
+					data-website-id="ea438854-a014-42ea-b416-0a8321471f0f"
+					data-domains="openmonetis.com"
+				/>
 			</head>
 			<body className="subpixel-antialiased" suppressHydrationWarning>
 				<ThemeProvider attribute="class" defaultTheme="light">
 					{children}
 					<Toaster position="top-right" />
 				</ThemeProvider>
-				<Analytics />
-				<SpeedInsights />
 			</body>
 		</html>
 	);
