@@ -1,4 +1,4 @@
-import { RiArrowRightSLine } from "@remixicon/react";
+import { RiAndroidLine, RiArrowRightSLine } from "@remixicon/react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -11,6 +11,7 @@ import { UpdateNameForm } from "@/features/settings/components/update-name-form"
 import { UpdatePasswordForm } from "@/features/settings/components/update-password-form";
 import { fetchSettingsPageData } from "@/features/settings/queries";
 import { Card } from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
 import {
 	Tabs,
 	TabsContent,
@@ -64,12 +65,13 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-lg font-bold mb-1">Preferências</h2>
-								<p className="text-sm text-muted-foreground mb-4">
+								<h2 className="text-xl font-bold mb-1">Preferências</h2>
+								<p className="text-sm text-muted-foreground">
 									Personalize sua experiência no OpenMonetis ajustando as
 									configurações de acordo com suas necessidades.
 								</p>
 							</div>
+							<Separator />
 							<PreferencesForm
 								statementNoteAsColumn={
 									userPreferences?.statementNoteAsColumn ?? false
@@ -77,25 +79,46 @@ export default async function Page() {
 								transactionsColumnOrder={
 									userPreferences?.transactionsColumnOrder ?? null
 								}
+								attachmentMaxSizeMb={userPreferences?.attachmentMaxSizeMb ?? 50}
 							/>
 						</div>
 					</Card>
 				</TabsContent>
 
 				<TabsContent value="companion" className="mt-4">
-					<CompanionTab tokens={userApiTokens} />
+					<Card className="p-6">
+						<div className="space-y-4">
+							<div>
+								<div className="flex items-center gap-2 mb-1">
+									<h2 className="text-xl font-bold">OpenMonetis Companion</h2>
+									<span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success dark:bg-success/10">
+										<RiAndroidLine className="h-3 w-3" />
+										Android
+									</span>
+								</div>
+								<p className="text-sm text-muted-foreground">
+									Capture notificações de transações dos seus apps de banco
+									(Nubank, Itaú, Bradesco, Inter, C6 e outros) e envie para sua
+									caixa de entrada.
+								</p>
+							</div>
+							<Separator />
+							<CompanionTab tokens={userApiTokens} />
+						</div>
+					</Card>
 				</TabsContent>
 
 				<TabsContent value="nome" className="mt-4">
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-lg font-bold mb-1">Alterar nome</h2>
-								<p className="text-sm text-muted-foreground mb-4">
+								<h2 className="text-xl font-bold mb-1">Alterar nome</h2>
+								<p className="text-sm text-muted-foreground">
 									Atualize como seu nome aparece no OpenMonetis. Esse nome pode
 									ser exibido em diferentes seções do app e em comunicações.
 								</p>
 							</div>
+							<Separator />
 							<UpdateNameForm currentName={userName} />
 						</div>
 					</Card>
@@ -105,12 +128,13 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-lg font-bold mb-1">Alterar senha</h2>
-								<p className="text-sm text-muted-foreground mb-4">
+								<h2 className="text-xl font-bold mb-1">Alterar senha</h2>
+								<p className="text-sm text-muted-foreground">
 									Defina uma nova senha para sua conta. Guarde-a em local
 									seguro.
 								</p>
 							</div>
+							<Separator />
 							<UpdatePasswordForm authProvider={authProvider} />
 						</div>
 					</Card>
@@ -120,12 +144,13 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-lg font-bold mb-1">Passkeys</h2>
-								<p className="text-sm text-muted-foreground mb-4">
+								<h2 className="text-xl font-bold mb-1">Passkeys</h2>
+								<p className="text-sm text-muted-foreground">
 									Passkeys permitem login sem senha, usando biometria (Face ID,
 									Touch ID, Windows Hello) ou chaves de segurança.
 								</p>
 							</div>
+							<Separator />
 							<PasskeysForm />
 						</div>
 					</Card>
@@ -135,13 +160,14 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-lg font-bold mb-1">Alterar e-mail</h2>
-								<p className="text-sm text-muted-foreground mb-4">
+								<h2 className="text-xl font-bold mb-1">Alterar e-mail</h2>
+								<p className="text-sm text-muted-foreground">
 									Atualize o e-mail associado à sua conta. Você precisará
 									confirmar os links enviados para o novo e também para o e-mail
 									atual (quando aplicável) para concluir a alteração.
 								</p>
 							</div>
+							<Separator />
 							<UpdateEmailForm
 								currentEmail={userEmail}
 								authProvider={authProvider}
@@ -154,14 +180,15 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-lg font-bold mb-1 text-destructive">
+								<h2 className="text-xl font-bold mb-1 text-destructive">
 									Ações perigosas
 								</h2>
-								<p className="text-sm text-muted-foreground mb-4">
+								<p className="text-sm text-muted-foreground">
 									Você pode zerar os dados do OpenMonetis e manter seu acesso,
 									ou excluir sua conta inteira de forma irreversível.
 								</p>
 							</div>
+							<Separator />
 							<DeleteAccountForm />
 						</div>
 					</Card>
