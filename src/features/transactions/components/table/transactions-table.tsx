@@ -220,111 +220,117 @@ const buildColumns = ({
 									<span className="text-primary">{dueDateLabel}</span>
 								) : null}
 							</span>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="line-clamp-2 max-w-[180px] font-bold truncate">
+							<span className="flex items-center gap-1">
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<span className="line-clamp-2 max-w-[180px] font-bold truncate">
+											{name}
+										</span>
+									</TooltipTrigger>
+									<TooltipContent side="top" className="max-w-xs">
 										{name}
-									</span>
-								</TooltipTrigger>
-								<TooltipContent side="top" className="max-w-xs">
-									{name}
-								</TooltipContent>
-							</Tooltip>
+									</TooltipContent>
+								</Tooltip>
+
+								{isDivided && (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex rounded-full p-1">
+												<RiGroupLine
+													size={14}
+													className="text-muted-foreground"
+													aria-hidden
+												/>
+												<span className="sr-only">
+													Dividido entre pagadores
+												</span>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent side="top">
+											Dividido entre pagadores
+										</TooltipContent>
+									</Tooltip>
+								)}
+
+								{isLastInstallment ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex">
+												<Image
+													src="/icons/party.svg"
+													alt="Última parcela"
+													width={16}
+													height={16}
+													className="h-4 w-4"
+												/>
+												<span className="sr-only">Última parcela</span>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent side="top">Última parcela!</TooltipContent>
+									</Tooltip>
+								) : null}
+
+								{installmentBadge ? (
+									<Badge variant="outline" className="px-2 text-xs">
+										{installmentBadge}
+									</Badge>
+								) : null}
+
+								{isAnticipated && (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex rounded-full p-1">
+												<RiTimeLine
+													size={14}
+													className="text-muted-foreground"
+													aria-hidden
+												/>
+												<span className="sr-only">Parcela antecipada</span>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent side="top">
+											Parcela antecipada
+										</TooltipContent>
+									</Tooltip>
+								)}
+
+								{!noteAsColumn && hasNote ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex rounded-full p-1 hover:bg-accent transition-colors duration-300">
+												<RiChat1Line
+													className="h-4 w-4 text-muted-foreground"
+													aria-hidden
+												/>
+												<span className="sr-only">Ver anotação</span>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent
+											side="top"
+											align="start"
+											className="max-w-xs whitespace-pre-line"
+										>
+											{note}
+										</TooltipContent>
+									</Tooltip>
+								) : null}
+
+								{hasAttachments ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex rounded-full p-1">
+												<RiAttachment2
+													className="h-4 w-4 text-muted-foreground"
+													aria-hidden
+												/>
+												<span className="sr-only">Possui anexos</span>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent side="top">Possui anexos</TooltipContent>
+									</Tooltip>
+								) : null}
+							</span>
 						</span>
-
-						{isDivided && (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="inline-flex rounded-full p-1">
-										<RiGroupLine
-											size={14}
-											className="text-muted-foreground"
-											aria-hidden
-										/>
-										<span className="sr-only">Dividido entre pagadores</span>
-									</span>
-								</TooltipTrigger>
-								<TooltipContent side="top">
-									Dividido entre pagadores
-								</TooltipContent>
-							</Tooltip>
-						)}
-
-						{isLastInstallment ? (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="inline-flex">
-										<Image
-											src="/icons/party.svg"
-											alt="Última parcela"
-											width={16}
-											height={16}
-											className="h-4 w-4"
-										/>
-										<span className="sr-only">Última parcela</span>
-									</span>
-								</TooltipTrigger>
-								<TooltipContent side="top">Última parcela!</TooltipContent>
-							</Tooltip>
-						) : null}
-
-						{installmentBadge ? (
-							<Badge variant="outline" className="px-2 text-xs">
-								{installmentBadge}
-							</Badge>
-						) : null}
-
-						{isAnticipated && (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="inline-flex rounded-full p-1">
-										<RiTimeLine
-											size={14}
-											className="text-muted-foreground"
-											aria-hidden
-										/>
-										<span className="sr-only">Parcela antecipada</span>
-									</span>
-								</TooltipTrigger>
-								<TooltipContent side="top">Parcela antecipada</TooltipContent>
-							</Tooltip>
-						)}
-
-						{!noteAsColumn && hasNote ? (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="inline-flex rounded-full p-1 hover:bg-accent transition-colors duration-300">
-										<RiChat1Line
-											className="h-4 w-4 text-muted-foreground"
-											aria-hidden
-										/>
-										<span className="sr-only">Ver anotação</span>
-									</span>
-								</TooltipTrigger>
-								<TooltipContent
-									side="top"
-									align="start"
-									className="max-w-xs whitespace-pre-line"
-								>
-									{note}
-								</TooltipContent>
-							</Tooltip>
-						) : null}
-
-						{hasAttachments ? (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="inline-flex rounded-full p-1">
-										<RiAttachment2
-											className="h-4 w-4 text-muted-foreground"
-											aria-hidden
-										/>
-										<span className="sr-only">Possui anexos</span>
-									</span>
-								</TooltipTrigger>
-								<TooltipContent side="top">Possui anexos</TooltipContent>
-							</Tooltip>
-						) : null}
 					</span>
 				);
 			},

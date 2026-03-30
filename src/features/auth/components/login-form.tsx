@@ -125,7 +125,9 @@ export function LoginForm({ className, ...props }: DivProps) {
 		});
 
 		if (passkeyError) {
-			setError((passkeyError.message as string) || "Erro ao entrar com passkey.");
+			setError(
+				(passkeyError.message as string) || "Erro ao entrar com passkey.",
+			);
 			setLoadingPasskey(false);
 		}
 	}

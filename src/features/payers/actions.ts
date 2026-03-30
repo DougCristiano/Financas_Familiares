@@ -41,7 +41,7 @@ const baseSchema = z.object({
 		.string()
 		.trim()
 		.email("Informe um e-mail válido.")
-		.optional()
+		.nullish()
 		.transform((value) => normalizeOptionalString(value)),
 	status: statusEnum,
 	note: noteSchema,

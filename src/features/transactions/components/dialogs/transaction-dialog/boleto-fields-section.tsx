@@ -27,7 +27,7 @@ export function BoletoFieldsSection({
 				/>
 			</div>
 			{showPaymentDate ? (
-				<div className="space-y-2 w-full md:w-1/2">
+				<div className="space-y-1 w-full md:w-1/2">
 					<Label htmlFor="boletoPaymentDate">Pagamento do boleto</Label>
 					<DatePicker
 						id="boletoPaymentDate"

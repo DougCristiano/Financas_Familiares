@@ -77,7 +77,5 @@ function LogoContent() {
 	const { state } = useSidebar();
 	const isCollapsed = state === "collapsed";
 
-	return (
-		<Logo variant={isCollapsed ? "small" : "full"} />
-	);
+	return <Logo variant={isCollapsed ? "small" : "full"} />;
 }
