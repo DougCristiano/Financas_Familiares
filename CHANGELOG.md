@@ -7,6 +7,22 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-03-30
+
+### Adicionado
+
+- Preferências: nova configuração de tamanho máximo por arquivo de anexo (5, 10, 25, 50 ou 100 MB), persistida no banco e respeitada em todos os pontos de upload
+- Lançamentos: novo escopo `"period"` na ação em lote, que aplica a alteração a todos os lançamentos do período sem sobrescrever o pagador individual de cada um
+### Corrigido
+
+- Lançamentos: ao editar um lançamento de série, uploads e remoções de anexo agora aguardam a escolha de escopo da ação em lote antes de serem executados, evitando que o anexo fosse aplicado no lançamento errado
+- Lançamentos: ação em lote com escopo `"period"` não sobrescreve mais o `payerId` individual de cada lançamento ao alterar o pagador
+
+### Alterado
+
+- Configurações: redesign visual da página com separadores entre seções e títulos maiores
+- Configurações: seção "Extrato e lançamentos" renomeada para "Lançamentos"
+
 ## [2.1.1] - 2026-03-29
 
 ### Adicionado
