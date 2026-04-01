@@ -171,12 +171,12 @@ export function InvoiceSummaryCard({
 									/>
 								</div>
 							) : cardBrand ? (
-								<span className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-semibold text-muted-foreground">
+								<span className="flex size-10 shrink-0 items-center justify-center rounded-full border bg-background text-xs font-medium text-muted-foreground">
 									{cardBrand.slice(0, 2).toUpperCase()}
 								</span>
 							) : null}
 							<div className="min-w-0">
-								<h2 className="truncate text-sm font-semibold text-foreground">
+								<h2 className="truncate text-sm font-medium text-foreground">
 									{cardName}
 								</h2>
 								<p className="text-xs text-muted-foreground">
@@ -195,14 +195,14 @@ export function InvoiceSummaryCard({
 						<MoneyValues
 							amount={totalAmount}
 							className={cn(
-								"text-3xl leading-none font-semibold tracking-tight sm:text-[2rem]",
+								"text-3xl leading-none font-medium tracking-tight sm:text-[2rem]",
 								isPaid ? "text-success" : "text-foreground",
 							)}
 						/>
 						<div className="flex items-center gap-2">
 							<Badge
 								variant={INVOICE_STATUS_BADGE_VARIANT[invoiceStatus]}
-								className="text-[11px]"
+								className="text-xs"
 							>
 								{INVOICE_STATUS_LABEL[invoiceStatus]}
 							</Badge>
@@ -218,20 +218,20 @@ export function InvoiceSummaryCard({
 					{/* Linha 3 — metadados do cartão */}
 					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 						<MetaItem label="Vencimento">
-							<span className="text-sm font-semibold text-foreground">
+							<span className="text-sm font-medium text-foreground">
 								Dia {formatDay(dueDay)}
 							</span>
 						</MetaItem>
 
 						<MetaItem label="Fechamento">
-							<span className="text-sm font-semibold text-foreground">
+							<span className="text-sm font-medium text-foreground">
 								Dia {formatDay(closingDay)}
 							</span>
 						</MetaItem>
 
 						{typeof limitAmount === "number" ? (
 							<MetaItem label="Limite">
-								<span className="text-sm font-semibold text-foreground">
+								<span className="text-sm font-medium text-foreground">
 									{formatCurrency(limitAmount)}
 								</span>
 							</MetaItem>
@@ -249,7 +249,7 @@ export function InvoiceSummaryCard({
 											className="h-4 w-auto shrink-0"
 										/>
 									) : null}
-									<span className="text-sm font-semibold text-foreground truncate">
+									<span className="text-sm font-medium text-foreground truncate">
 										{cardBrand}
 									</span>
 								</div>

@@ -136,7 +136,7 @@ export function CardItem({
 
 						<div className="min-w-0">
 							<div className="flex items-center gap-1.5">
-								<h3 className="truncate text-sm font-semibold text-foreground sm:text-base">
+								<h3 className="truncate text-sm font-medium text-foreground sm:text-base">
 									{name}
 								</h3>
 								{note ? (
@@ -188,13 +188,13 @@ export function CardItem({
 				<div className="flex items-center justify-between border-y py-3 text-xs font-medium text-muted-foreground sm:text-sm">
 					<span>
 						Fecha dia{" "}
-						<span className="font-semibold text-foreground">
+						<span className="font-medium text-foreground">
 							{formatDay(closingDay)}
 						</span>
 					</span>
 					<span>
 						Vence dia{" "}
-						<span className="font-semibold text-foreground">
+						<span className="font-medium text-foreground">
 							{formatDay(dueDay)}
 						</span>
 					</span>
@@ -206,7 +206,7 @@ export function CardItem({
 					<>
 						<div className="grid grid-cols-3 gap-4">
 							<div className="flex flex-col items-start gap-1">
-								<p className="text-sm font-semibold text-foreground">
+								<p className="text-sm font-medium text-foreground">
 									<MoneyValues amount={metrics[0].value} />
 								</p>
 								<span className="text-xs font-medium text-muted-foreground">
@@ -215,7 +215,7 @@ export function CardItem({
 							</div>
 
 							<div className="flex flex-col items-center gap-1">
-								<p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+								<p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
 									<span className="size-2 rounded-full bg-primary" />
 									<MoneyValues amount={metrics[1].value} />
 								</p>
@@ -225,7 +225,7 @@ export function CardItem({
 							</div>
 
 							<div className="flex flex-col items-end gap-1">
-								<p className="text-sm font-semibold text-foreground">
+								<p className="text-sm font-medium text-foreground">
 									<MoneyValues amount={metrics[2].value} />
 								</p>
 								<span className="text-xs font-medium text-muted-foreground">

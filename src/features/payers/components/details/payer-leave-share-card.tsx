@@ -53,7 +53,7 @@ export function PayerLeaveShareCard({
 	return (
 		<Card className="border">
 			<CardHeader>
-				<CardTitle className="text-base font-semibold">
+				<CardTitle className="text-base font-medium">
 					Acesso Compartilhado
 				</CardTitle>
 				<p className="text-sm text-muted-foreground">
@@ -63,7 +63,7 @@ export function PayerLeaveShareCard({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="flex flex-col gap-2 rounded-lg border border-dashed p-4 text-sm">
-					<span className="text-xs font-semibold uppercase text-muted-foreground/80">
+					<span className="text-xs font-medium uppercase text-muted-foreground/80">
 						Informações do compartilhamento
 					</span>
 					<div className="flex flex-col gap-1">

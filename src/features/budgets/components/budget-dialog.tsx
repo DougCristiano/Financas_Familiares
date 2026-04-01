@@ -244,7 +244,7 @@ export function BudgetDialog({
 								<div className="space-y-3 rounded-md border p-3">
 									<div className="flex items-center justify-between text-sm">
 										<span className="text-muted-foreground">Limite atual</span>
-										<span className="font-semibold text-foreground">
+										<span className="font-medium text-foreground">
 											{formatCurrency(sliderValue)}
 										</span>
 									</div>

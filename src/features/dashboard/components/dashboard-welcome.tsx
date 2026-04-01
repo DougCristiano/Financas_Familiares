@@ -8,7 +8,7 @@ export function DashboardWelcome({ name }: { name?: string | null }) {
 	return (
 		<section className="py-4">
 			<div className="tracking-tight">
-				<h1 className="text-xl">
+				<h1 className="text-xl font-medium">
 					{greeting}, {displayName}
 				</h1>
 				<h2 className="text-sm mt-1 text-muted-foreground">{formattedDate}</h2>

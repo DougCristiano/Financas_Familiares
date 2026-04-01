@@ -53,7 +53,7 @@ export function MobileLink({
 			<span className="flex-1 flex flex-col gap-0.5">
 				<span>{children}</span>
 				{description && (
-					<span className="text-[11px] text-muted-foreground leading-snug">
+					<span className="text-xs text-muted-foreground leading-snug">
 						{description}
 					</span>
 				)}
@@ -69,7 +69,7 @@ export function MobileLink({
 
 export function MobileSectionLabel({ label }: { label: string }) {
 	return (
-		<p className="mt-3 mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+		<p className="mt-3 mb-1 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
 			{label}
 		</p>
 	);

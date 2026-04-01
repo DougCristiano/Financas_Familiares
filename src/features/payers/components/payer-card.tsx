@@ -42,7 +42,7 @@ export function PayerCard({ payer, onEdit, onRemove }: PayerCardProps) {
 
 				{/* Nome e badges */}
 				<div className="flex items-center gap-1.5">
-					<h3 className="text-base font-semibold text-foreground">
+					<h3 className="text-base font-medium text-foreground">
 						{payer.name}
 					</h3>
 					{isAdmin ? (

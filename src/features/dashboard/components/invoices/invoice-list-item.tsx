@@ -100,7 +100,7 @@ export function InvoiceListItem({ invoice, onPay }: InvoiceListItemProps) {
 													)}
 												</p>
 											</div>
-											<div className="text-sm font-semibold text-foreground">
+											<div className="text-sm font-medium text-foreground">
 												<MoneyValues amount={share.amount} />
 											</div>
 										</li>

@@ -123,7 +123,7 @@ function MonthCal({
 	return (
 		<>
 			<div className="flex justify-center pt-1 relative items-center">
-				<div className="text-sm font-bold">
+				<div className="text-sm font-medium">
 					{callbacks?.yearLabel ? callbacks?.yearLabel(menuYear) : menuYear}
 				</div>
 				<div className="space-x-1 flex items-center">

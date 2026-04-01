@@ -33,7 +33,7 @@ export function NoteListItem({
 						{getNoteTasksSummary(note)}
 					</Badge>
 					{createdAtLabel ? (
-						<p className="truncate text-[11px] text-muted-foreground">
+						<p className="truncate text-xs text-muted-foreground">
 							{createdAtLabel}
 						</p>
 					) : null}

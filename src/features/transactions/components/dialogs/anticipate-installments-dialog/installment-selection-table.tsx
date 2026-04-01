@@ -116,7 +116,7 @@ export function InstallmentSelectionTable({
 								<TableCell className="text-muted-foreground">
 									{formatDate(inst.dueDate)}
 								</TableCell>
-								<TableCell className="text-right font-semibold tabular-nums">
+								<TableCell className="text-right font-medium tabular-nums">
 									<MoneyValues amount={Number(inst.amount)} />
 								</TableCell>
 							</TableRow>
@@ -134,7 +134,7 @@ export function InstallmentSelectionTable({
 								? "parcela selecionada"
 								: "parcelas selecionadas"}
 						</span>
-						<span className="font-semibold">
+						<span className="font-medium">
 							Total:{" "}
 							<MoneyValues
 								amount={installments

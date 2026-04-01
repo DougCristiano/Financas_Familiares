@@ -348,7 +348,7 @@ export function PasskeysForm() {
 									) : (
 										<>
 											<div className="flex items-center gap-2">
-												<span className="text-sm font-bold truncate">
+												<span className="text-sm font-medium truncate">
 													{pk.name || "Passkey sem nome"}
 												</span>
 												<Button

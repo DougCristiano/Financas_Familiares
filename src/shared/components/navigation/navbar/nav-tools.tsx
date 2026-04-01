@@ -47,7 +47,7 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 					{privacyMode && (
 						<Badge
 							variant="secondary"
-							className="text-[10px] px-1.5 py-0 h-4 text-success"
+							className="text-xs px-1.5 py-0 h-4 text-success"
 						>
 							Ativo
 						</Badge>
@@ -100,7 +100,7 @@ export function MobileTools({ onClose, onOpenCalculator }: MobileToolsProps) {
 				{privacyMode && (
 					<Badge
 						variant="secondary"
-						className="text-[10px] px-1.5 py-0 h-4 text-success"
+						className="text-xs px-1.5 py-0 h-4 text-success"
 					>
 						Ativo
 					</Badge>

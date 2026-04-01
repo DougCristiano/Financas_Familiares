@@ -104,7 +104,7 @@ export function EstabelecimentoInput({
 										className="cursor-pointer"
 									>
 										<span
-											className={`truncate flex-1 ${value === item ? "font-semibold" : ""}`}
+											className={`truncate flex-1 ${value === item ? "font-medium" : ""}`}
 										>
 											{item}
 										</span>

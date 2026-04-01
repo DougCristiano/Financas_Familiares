@@ -3,7 +3,7 @@
 import {
 	RiDownloadLine,
 	RiFileExcelLine,
-	RiFilePdfLine,
+	RiFilePdf2Line,
 	RiFileTextLine,
 } from "@remixicon/react";
 import { useState } from "react";
@@ -363,7 +363,7 @@ export function TransactionsExport({
 					Exportar como Excel (.xlsx)
 				</DropdownMenuItem>
 				<DropdownMenuItem onClick={exportToPDF} disabled={isExporting}>
-					<RiFilePdfLine className="mr-2 h-4 w-4" />
+					<RiFilePdf2Line className="mr-2 h-4 w-4" />
 					Exportar como PDF
 				</DropdownMenuItem>
 			</DropdownMenuContent>

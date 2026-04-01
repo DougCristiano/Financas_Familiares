@@ -68,7 +68,7 @@ export function AccountStatementCard({
 								</div>
 							) : null}
 							<div className="min-w-0">
-								<h2 className="truncate text-sm font-semibold text-foreground">
+								<h2 className="truncate text-sm font-medium text-foreground">
 									{accountName}
 								</h2>
 								<p className="text-xs text-muted-foreground">
@@ -86,12 +86,12 @@ export function AccountStatementCard({
 						</p>
 						<MoneyValues
 							amount={currentBalance}
-							className="text-3xl leading-none font-semibold tracking-tight sm:text-[2rem]"
+							className="text-3xl leading-none font-medium tracking-tight sm:text-[2rem]"
 						/>
 						<div className="flex items-center gap-2">
 							<Badge
 								variant={getAccountStatusBadgeVariant(status)}
-								className="text-[11px]"
+								className="text-xs"
 							>
 								{status}
 							</Badge>
@@ -107,7 +107,7 @@ export function AccountStatementCard({
 							label="Saldo inicial"
 							tooltip="Saldo inicial cadastrado na conta somado aos lançamentos pagos anteriores a este mês."
 						>
-							<span className="text-sm font-semibold text-foreground">
+							<span className="text-sm font-medium text-foreground">
 								{formatCurrency(openingBalance)}
 							</span>
 						</MetaItem>
@@ -116,7 +116,7 @@ export function AccountStatementCard({
 							label="Entradas"
 							tooltip="Total de receitas deste mês classificadas como pagas para esta conta."
 						>
-							<span className="text-sm font-semibold text-success">
+							<span className="text-sm font-medium text-success">
 								{formatCurrency(totalIncomes)}
 							</span>
 						</MetaItem>
@@ -125,7 +125,7 @@ export function AccountStatementCard({
 							label="Saídas"
 							tooltip="Total de despesas pagas neste mês (considerando divisão entre pagadores)."
 						>
-							<span className="text-sm font-semibold text-destructive">
+							<span className="text-sm font-medium text-destructive">
 								{formatCurrency(totalExpenses)}
 							</span>
 						</MetaItem>
@@ -136,7 +136,7 @@ export function AccountStatementCard({
 						>
 							<span
 								className={cn(
-									"text-sm font-semibold",
+									"text-sm font-medium",
 									resultado >= 0 ? "text-success" : "text-destructive",
 								)}
 							>

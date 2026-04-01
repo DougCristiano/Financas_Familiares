@@ -110,10 +110,10 @@ export function InvoicePaymentDialog({
 										fallbackClassName="text-xs"
 									/>
 									<div className="min-w-0">
-										<p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+										<p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
 											Cartão
 										</p>
-										<p className="truncate text-base font-semibold text-foreground">
+										<p className="truncate text-base font-medium text-foreground">
 											{invoice.cardName}
 										</p>
 									</div>
@@ -124,26 +124,26 @@ export function InvoicePaymentDialog({
 									<div className="rounded-xl border p-3">
 										<div className="mb-1.5 flex items-center gap-1.5 text-muted-foreground">
 											<RiMoneyDollarCircleLine className="size-3.5" />
-											<span className="text-[11px] font-semibold uppercase tracking-wide">
+											<span className="text-xs font-medium uppercase tracking-wide">
 												Total da fatura
 											</span>
 										</div>
 										<MoneyValues
 											amount={Math.abs(invoice.totalAmount)}
-											className="text-lg font-bold"
+											className="text-lg font-medium"
 										/>
 									</div>
 
 									<div className="rounded-xl border p-3">
 										<div className="mb-1.5 flex items-center gap-1.5 text-muted-foreground">
 											<RiCalendarLine className="size-3.5" />
-											<span className="text-[11px] font-semibold uppercase tracking-wide">
+											<span className="text-xs font-medium uppercase tracking-wide">
 												{invoice.paymentStatus === INVOICE_PAYMENT_STATUS.PAID
 													? "Pago em"
 													: "Vencimento"}
 											</span>
 										</div>
-										<p className="text-sm font-semibold text-foreground">
+										<p className="text-sm font-medium text-foreground">
 											{invoice.paymentStatus === INVOICE_PAYMENT_STATUS.PAID
 												? (paymentInfo?.label ?? "—")
 												: (dueInfo?.label ?? "—")}

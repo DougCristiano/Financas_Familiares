@@ -343,10 +343,10 @@ export function CategoryBreakdownWidgetView({
 										<div className="rounded-lg border bg-background p-2 shadow-sm">
 											<div className="grid gap-2">
 												<div className="flex flex-col">
-													<span className="text-[0.70rem] uppercase text-muted-foreground">
+													<span className="text-xs uppercase text-muted-foreground">
 														{entry.name}
 													</span>
-													<span className="font-bold text-foreground">
+													<span className="font-medium text-foreground">
 														{formatCurrency(entry.value)}
 													</span>
 													<span className="text-xs text-muted-foreground">

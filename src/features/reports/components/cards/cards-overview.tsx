@@ -67,11 +67,11 @@ export function CardsOverview({ data }: CardsOverviewProps) {
 							<p className="text-xs text-muted-foreground">{card.title}</p>
 							{card.isMoney ? (
 								<MoneyValues
-									className="text-2xl font-semibold"
+									className="text-2xl font-medium"
 									amount={card.value}
 								/>
 							) : (
-								<p className="text-2xl font-semibold">
+								<p className="text-2xl font-medium">
 									{formatPercentage(card.value, {
 										maximumFractionDigits: 0,
 										minimumFractionDigits: 0,
@@ -83,7 +83,7 @@ export function CardsOverview({ data }: CardsOverviewProps) {
 				))}
 			</div>
 
-			<p className="text-base font-bold ml-2 py-2">Meus cartões</p>
+			<p className="text-base font-medium ml-2 py-2">Meus cartões</p>
 
 			{/* Cards list */}
 			<div className="grid gap-2 grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
@@ -116,7 +116,7 @@ export function CardsOverview({ data }: CardsOverviewProps) {
 								</div>
 								<div className="min-w-0 flex-1 space-y-1">
 									<div className="flex items-center gap-2">
-										<span className="text-base font-bold truncate">
+										<span className="text-base font-medium truncate">
 											{card.name}
 										</span>
 										{brandAsset && (

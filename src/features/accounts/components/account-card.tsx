@@ -88,9 +88,7 @@ export function AccountCard({
 							{icon}
 						</div>
 					) : null}
-					<h2 className="text-lg font-semibold text-foreground">
-						{accountName}
-					</h2>
+					<h2 className="text-lg font-medium text-foreground">{accountName}</h2>
 
 					{(excludeFromBalance || excludeInitialBalanceFromIncome) && (
 						<Tooltip>

@@ -97,7 +97,7 @@ export function BillPaymentDialog({
 									<p className="mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
 										Boleto
 									</p>
-									<p className="text-base font-semibold text-foreground">
+									<p className="text-base font-medium text-foreground">
 										{bill.name}
 									</p>
 								</div>
@@ -107,24 +107,24 @@ export function BillPaymentDialog({
 									<div className="rounded-xl border p-3">
 										<div className="mb-1.5 flex items-center gap-1.5 text-muted-foreground">
 											<RiMoneyDollarCircleLine className="size-3.5" />
-											<span className="text-[11px] font-semibold uppercase tracking-wide">
+											<span className="text-xs font-medium uppercase tracking-wide">
 												Valor
 											</span>
 										</div>
 										<MoneyValues
 											amount={bill.amount}
-											className="text-lg font-bold"
+											className="text-lg font-medium"
 										/>
 									</div>
 
 									<div className="rounded-xl border p-3">
 										<div className="mb-1.5 flex items-center gap-1.5 text-muted-foreground">
 											<RiCalendarLine className="size-3.5" />
-											<span className="text-[11px] font-semibold uppercase tracking-wide">
+											<span className="text-xs font-medium uppercase tracking-wide">
 												Vencimento
 											</span>
 										</div>
-										<p className="text-sm font-semibold text-foreground">
+										<p className="text-sm font-medium text-foreground">
 											{dueLabel?.replace("Vencimento: ", "") ?? "—"}
 										</p>
 									</div>

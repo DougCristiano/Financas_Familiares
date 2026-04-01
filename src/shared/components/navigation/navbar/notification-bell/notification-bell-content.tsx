@@ -91,7 +91,7 @@ function SectionLabel({
 	return (
 		<div className="flex items-center gap-1.5 p-2 first:pt-1">
 			<span className="text-muted-foreground">{icon}</span>
-			<span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+			<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				{title}
 			</span>
 		</div>

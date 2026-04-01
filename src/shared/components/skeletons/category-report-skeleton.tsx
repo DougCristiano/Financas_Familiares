@@ -172,7 +172,7 @@ function CategoryReportTableSkeleton() {
 				<TableFooter>
 					<TableRow>
 						{/* Total label */}
-						<TableCell className="font-bold">
+						<TableCell className="font-medium">
 							<Skeleton className="h-5 w-16 rounded-md bg-foreground/10" />
 						</TableCell>
 						{/* Period totals */}

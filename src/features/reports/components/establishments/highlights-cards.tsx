@@ -18,8 +18,8 @@ export function HighlightsCards({ summary }: HighlightsCardsProps) {
 							<RiTrophyLine className="size-5" />
 						</div>
 						<div className="min-w-0 flex-1">
-							<p className="text-xs font-bold">Mais Frequente</p>
-							<p className="font-bold text-2xl truncate">
+							<p className="text-xs font-medium">Mais Frequente</p>
+							<p className="font-medium text-2xl truncate">
 								{summary.mostFrequent || "—"}
 							</p>
 						</div>
@@ -34,8 +34,8 @@ export function HighlightsCards({ summary }: HighlightsCardsProps) {
 							<RiFireLine className="size-5" />
 						</div>
 						<div className="min-w-0 flex-1">
-							<p className="text-xs font-bold">Maior Gasto Total</p>
-							<p className="font-bold text-2xl truncate">
+							<p className="text-xs font-medium">Maior Gasto Total</p>
+							<p className="font-medium text-2xl truncate">
 								{summary.highestSpending || "—"}
 							</p>
 						</div>

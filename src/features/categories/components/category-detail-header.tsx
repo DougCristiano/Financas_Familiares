@@ -80,7 +80,7 @@ export function CategoryDetailHeader({
 						size="lg"
 					/>
 					<div className="space-y-2">
-						<h1 className="text-xl font-semibold leading-tight">
+						<h1 className="text-xl font-medium leading-tight">
 							{category.name}
 						</h1>
 						<div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -99,7 +99,7 @@ export function CategoryDetailHeader({
 						<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
 							Total em {currentPeriodLabel}
 						</p>
-						<p className="mt-1 text-2xl font-semibold">
+						<p className="mt-1 text-2xl font-medium">
 							{currencyFormatter.format(currentTotal)}
 						</p>
 					</div>
@@ -117,7 +117,7 @@ export function CategoryDetailHeader({
 						</p>
 						<div
 							className={cn(
-								"mt-1 flex items-center gap-1 text-xl font-semibold",
+								"mt-1 flex items-center gap-1 text-xl font-medium",
 								variationColor,
 							)}
 						>

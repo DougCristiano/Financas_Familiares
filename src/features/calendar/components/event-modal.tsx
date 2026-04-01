@@ -61,7 +61,7 @@ const renderLancamento = (
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex flex-col gap-1">
 					<span
-						className={`text-sm font-semibold leading-tight ${
+						className={`text-sm font-medium leading-tight ${
 							isPagamentoFatura && "text-success"
 						}`}
 					>
@@ -74,7 +74,7 @@ const renderLancamento = (
 				</div>
 				<span
 					className={cn(
-						"text-sm font-semibold whitespace-nowrap",
+						"text-sm font-medium whitespace-nowrap",
 						isReceita ? "text-success" : "text-foreground",
 					)}
 				>
@@ -103,7 +103,7 @@ const renderBoleto = (event: Extract<CalendarEvent, { type: "boleto" }>) => {
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex flex-col gap-1">
 					<div className="flex gap-1 items-center">
-						<span className="text-sm font-semibold leading-tight">
+						<span className="text-sm font-medium leading-tight">
 							{event.transaction.name}
 						</span>
 
@@ -116,7 +116,7 @@ const renderBoleto = (event: Extract<CalendarEvent, { type: "boleto" }>) => {
 
 					<Badge variant={"outline"}>{isPaid ? "Pago" : "Pendente"}</Badge>
 				</div>
-				<span className="font-semibold">
+				<span className="font-medium">
 					<MoneyValues amount={event.transaction.amount} />
 				</span>
 			</div>
@@ -129,7 +129,7 @@ const renderCard = (event: Extract<CalendarEvent, { type: "card" }>) => (
 		<div className="flex items-start justify-between gap-3">
 			<div className="flex flex-col gap-1">
 				<div className="flex gap-1 items-center">
-					<span className="text-sm font-semibold leading-tight">
+					<span className="text-sm font-medium leading-tight">
 						Vencimento Invoice - {event.card.name}
 					</span>
 				</div>
@@ -137,7 +137,7 @@ const renderCard = (event: Extract<CalendarEvent, { type: "card" }>) => (
 				<Badge variant={"outline"}>{event.card.status ?? "Invoice"}</Badge>
 			</div>
 			{event.card.totalDue !== null ? (
-				<span className="font-semibold">
+				<span className="font-medium">
 					<MoneyValues amount={event.card.totalDue} />
 				</span>
 			) : null}

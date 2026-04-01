@@ -43,7 +43,7 @@ export function PayerCardUsageCard({ items }: PagadorCardUsageCardProps) {
 											className="h-full w-full object-contain"
 										/>
 									) : (
-										<span className="text-sm font-semibold uppercase text-muted-foreground">
+										<span className="text-sm font-medium uppercase text-muted-foreground">
 											{initials}
 										</span>
 									)}

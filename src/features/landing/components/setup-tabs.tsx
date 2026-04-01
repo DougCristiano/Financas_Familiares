@@ -99,11 +99,11 @@ function StepCard({
 		<Card className="border">
 			<CardContent>
 				<div className="flex gap-3 md:gap-4">
-					<div className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-sm md:text-base">
+					<div className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium text-sm md:text-base">
 						{step}
 					</div>
 					<div className="min-w-0">
-						<h3 className="font-semibold mb-1.5 md:mb-2">{title}</h3>
+						<h3 className="font-medium mb-1.5 md:mb-2">{title}</h3>
 						{children}
 					</div>
 				</div>

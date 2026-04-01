@@ -55,7 +55,7 @@ function AreaTooltip({
 
 	return (
 		<div className="min-w-[210px] rounded-lg border border-border/50 bg-background px-3 py-2.5 shadow-xl">
-			<p className="mb-2.5 border-b border-border/50 pb-1.5 text-xs font-semibold text-foreground">
+			<p className="mb-2.5 border-b border-border/50 pb-1.5 text-xs font-medium text-foreground">
 				{label}
 			</p>
 			<div className="space-y-1.5">
@@ -73,7 +73,7 @@ function AreaTooltip({
 								{entry.name}
 							</span>
 						</div>
-						<span className="shrink-0 text-xs font-semibold tabular-nums text-foreground">
+						<span className="shrink-0 text-xs font-medium tabular-nums text-foreground">
 							{currencyFormatter.format(Number(entry.value))}
 						</span>
 					</div>

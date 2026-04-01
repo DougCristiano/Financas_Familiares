@@ -67,11 +67,11 @@ function CategoryCard({ category, periods, periodCount }: CategoryCardProps) {
 						</div>
 					);
 				})}
-				<div className="flex items-center justify-between font-semibold text-info">
+				<div className="flex items-center justify-between font-medium text-info">
 					<span>Média mensal</span>
 					<span>{formatCurrency(averageMonthlyTotal)}</span>
 				</div>
-				<div className="flex items-center justify-between pt-2 font-semibold">
+				<div className="flex items-center justify-between pt-2 font-medium">
 					<span>Total</span>
 					<span>{formatCurrency(category.total)}</span>
 				</div>
@@ -111,7 +111,7 @@ function Section({
 					<span className="text-sm text-muted-foreground">
 						{formatCurrency(total)}
 					</span>
-					<span className="text-xs font-semibold text-info">
+					<span className="text-xs font-medium text-info">
 						Média: {formatCurrency(averageMonthlyTotal)}
 					</span>
 				</div>

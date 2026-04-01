@@ -337,7 +337,7 @@ export function DashboardGridEditable({
 										<div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] rounded-lg border-2 border-dashed border-primary/50 flex items-center justify-center">
 											<div className="flex flex-col items-center gap-2">
 												<RiDragMove2Line className="size-8 text-primary" />
-												<span className="text-xs font-bold">
+												<span className="text-xs font-medium">
 													Arraste para mover
 												</span>
 												<Button

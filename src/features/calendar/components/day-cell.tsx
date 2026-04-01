@@ -110,9 +110,7 @@ const DayEventPreview = ({ event }: { event: CalendarEvent }) => {
 				<span className="truncate">{label}</span>
 			</div>
 			{complement ? (
-				<span
-					className={cn("shrink-0 font-semibold", style.accent ?? "text-xs")}
-				>
+				<span className={cn("shrink-0 font-medium", style.accent ?? "text-xs")}>
 					{complement}
 				</span>
 			) : null}
@@ -153,7 +151,7 @@ export function DayCell({ day, onSelect, onCreate }: DayCellProps) {
 			<div className="flex items-start justify-between gap-2">
 				<span
 					className={cn(
-						"text-sm font-semibold leading-none",
+						"text-sm font-medium leading-none",
 						day.isToday
 							? "text-primary-foreground bg-primary size-5 rounded-full flex items-center justify-center"
 							: "text-foreground/90",

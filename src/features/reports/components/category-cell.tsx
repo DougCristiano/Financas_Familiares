@@ -63,7 +63,7 @@ export function CategoryCell({
 					<div className="font-medium">{formatCurrency(value)}</div>
 					{!isFirstMonth && absoluteChange !== null && (
 						<>
-							<div className="font-bold">
+							<div className="font-medium">
 								Mês anterior: {formatCurrency(previousValue)}
 							</div>
 							<div

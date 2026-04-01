@@ -61,7 +61,7 @@ export function CardTopExpenses({ data }: CardTopExpensesProps) {
 								<div className="flex min-w-0 flex-1 items-center gap-2">
 									{/* Rank number */}
 									<div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
-										<span className="text-sm font-semibold text-muted-foreground">
+										<span className="text-sm font-medium text-muted-foreground">
 											{index + 1}
 										</span>
 									</div>

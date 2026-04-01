@@ -46,7 +46,7 @@ export function InvoiceLogo({
 			) : (
 				<span
 					className={cn(
-						"text-sm font-semibold uppercase text-muted-foreground",
+						"text-sm font-medium uppercase text-muted-foreground",
 						tone === "accent" && "text-primary",
 						fallbackClassName,
 					)}

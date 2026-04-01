@@ -277,7 +277,7 @@ export function SignupForm({ className, ...props }: DivProps) {
 							</a>
 						</FieldDescription>
 
-						<FieldDescription className="text-center text-[13px] text-muted-foreground">
+						<FieldDescription className="text-center text-sm text-muted-foreground">
 							<a href="/" className={authLinkClassName}>
 								Voltar para a página inicial
 							</a>

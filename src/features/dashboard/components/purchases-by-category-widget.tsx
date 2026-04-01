@@ -130,7 +130,7 @@ export function PurchasesByCategoryWidget({
 					<SelectContent>
 						{Object.entries(categoriesByType).map(([type, categories]) => (
 							<div key={type}>
-								<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+								<div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
 									{CATEGORY_TYPE_LABEL[
 										type as keyof typeof CATEGORY_TYPE_LABEL
 									] ?? type}

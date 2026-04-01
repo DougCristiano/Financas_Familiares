@@ -118,7 +118,7 @@ export function PayerHeaderCard({
 
 					<div className="flex flex-1 flex-col gap-2">
 						<div className="flex flex-wrap items-center gap-2">
-							<CardTitle className="text-xl font-semibold text-foreground">
+							<CardTitle className="text-xl font-medium text-foreground">
 								{payer.name}
 							</CardTitle>
 							{isAdmin ? (
@@ -197,11 +197,11 @@ export function PayerHeaderCard({
 							<DialogTitle>Confirmar envio do resumo</DialogTitle>
 							<DialogDescription>
 								Resumo de{" "}
-								<span className="font-semibold text-foreground">
+								<span className="font-medium text-foreground">
 									{summary.periodLabel}
 								</span>{" "}
 								para{" "}
-								<span className="font-semibold text-foreground">
+								<span className="font-medium text-foreground">
 									{payer.email}
 								</span>
 							</DialogDescription>
@@ -218,7 +218,7 @@ export function PayerHeaderCard({
 											<p className="text-sm font-medium text-muted-foreground">
 												Total de Despesas
 											</p>
-											<p className="text-2xl font-bold text-foreground">
+											<p className="text-2xl font-medium text-foreground">
 												{formatCurrency(summary.totalExpenses)}
 											</p>
 										</div>
@@ -235,11 +235,11 @@ export function PayerHeaderCard({
 								<div className="rounded-lg border p-3">
 									<div className="mb-2 flex items-center gap-2 text-muted-foreground">
 										<RiBankCard2Line className="size-4" />
-										<span className="text-xs font-semibold uppercase">
+										<span className="text-xs font-medium uppercase">
 											Cartões
 										</span>
 									</div>
-									<p className="text-lg font-bold text-foreground">
+									<p className="text-lg font-medium text-foreground">
 										{formatCurrency(summary.paymentSplits.card)}
 									</p>
 								</div>
@@ -247,11 +247,11 @@ export function PayerHeaderCard({
 								<div className="rounded-lg border p-3">
 									<div className="mb-2 flex items-center gap-2 text-muted-foreground">
 										<RiBillLine className="size-4" />
-										<span className="text-xs font-semibold uppercase">
+										<span className="text-xs font-medium uppercase">
 											Boletos
 										</span>
 									</div>
-									<p className="text-lg font-bold text-foreground">
+									<p className="text-lg font-medium text-foreground">
 										{formatCurrency(summary.paymentSplits.boleto)}
 									</p>
 								</div>
@@ -259,11 +259,11 @@ export function PayerHeaderCard({
 								<div className="rounded-lg border p-3">
 									<div className="mb-2 flex items-center gap-2 text-muted-foreground">
 										<RiExchangeDollarLine className="size-4" />
-										<span className="text-xs font-semibold uppercase">
+										<span className="text-xs font-medium uppercase">
 											Pix/Débito
 										</span>
 									</div>
-									<p className="text-lg font-bold text-foreground">
+									<p className="text-lg font-medium text-foreground">
 										{formatCurrency(summary.paymentSplits.instant)}
 									</p>
 								</div>
@@ -274,7 +274,7 @@ export function PayerHeaderCard({
 									<div className="rounded-lg border p-3">
 										<div className="mb-2 flex items-center gap-2">
 											<RiBankCard2Line className="size-4 text-muted-foreground" />
-											<span className="text-xs font-semibold uppercase text-muted-foreground">
+											<span className="text-xs font-medium uppercase text-muted-foreground">
 												Cartões Utilizados
 											</span>
 										</div>
@@ -299,14 +299,14 @@ export function PayerHeaderCard({
 									<div className="rounded-lg border p-3">
 										<div className="mb-2 flex items-center gap-2">
 											<RiBillLine className="size-4 text-muted-foreground" />
-											<span className="text-xs font-semibold uppercase text-muted-foreground">
+											<span className="text-xs font-medium uppercase text-muted-foreground">
 												Status de Boletos
 											</span>
 										</div>
 										<div className="grid gap-2 sm:grid-cols-2">
 											<div>
 												<p className="text-xs text-muted-foreground">Pagos</p>
-												<p className="text-sm font-semibold text-success">
+												<p className="text-sm font-medium text-success">
 													{formatCurrency(summary.boletoStats.paidAmount)}{" "}
 													<span className="text-xs font-normal">
 														({summary.boletoStats.paidCount})
@@ -317,7 +317,7 @@ export function PayerHeaderCard({
 												<p className="text-xs text-muted-foreground">
 													Pendentes
 												</p>
-												<p className="text-sm font-semibold text-warning">
+												<p className="text-sm font-medium text-warning">
 													{formatCurrency(summary.boletoStats.pendingAmount)}{" "}
 													<span className="text-xs font-normal">
 														({summary.boletoStats.pendingCount})

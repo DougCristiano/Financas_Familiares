@@ -110,7 +110,7 @@ export function AnticipationCard({
 								? "Valor Final"
 								: "Valor Total"}
 						</dt>
-						<dd className="mt-1 text-lg font-semibold tabular-nums text-primary">
+						<dd className="mt-1 text-lg font-medium tabular-nums text-primary">
 							<MoneyValues
 								amount={
 									Number(anticipation.totalAmount) < 0

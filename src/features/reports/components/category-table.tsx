@@ -72,18 +72,18 @@ export function CategoryTable({
 			<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead className="w-[240px] min-w-[240px] font-bold">
+						<TableHead className="w-[240px] min-w-[240px] font-medium">
 							Categoria
 						</TableHead>
 						{periods.map((period) => (
 							<TableHead
 								key={period}
-								className="text-right min-w-[120px] font-bold"
+								className="text-right min-w-[120px] font-medium"
 							>
 								{formatPeriodLabel(period)}
 							</TableHead>
 						))}
-						<TableHead className="text-right min-w-[140px] font-bold">
+						<TableHead className="text-right min-w-[140px] font-medium">
 							<div className="flex items-center justify-end gap-1">
 								Média
 								<Tooltip>
@@ -100,7 +100,7 @@ export function CategoryTable({
 								</Tooltip>
 							</div>
 						</TableHead>
-						<TableHead className="text-right min-w-[120px] font-bold">
+						<TableHead className="text-right min-w-[120px] font-medium">
 							Total
 						</TableHead>
 					</TableRow>
@@ -149,7 +149,7 @@ export function CategoryTable({
 										</TableCell>
 									);
 								})}
-								<TableCell className="text-right font-semibold text-info">
+								<TableCell className="text-right font-medium text-info">
 									{(() => {
 										const nonZeroCount = periods.filter(
 											(p) => (category.monthlyData.get(p)?.amount ?? 0) > 0,
@@ -159,7 +159,7 @@ export function CategoryTable({
 										);
 									})()}
 								</TableCell>
-								<TableCell className="text-right font-semibold">
+								<TableCell className="text-right font-medium">
 									{formatCurrency(category.total)}
 								</TableCell>
 							</TableRow>
@@ -169,19 +169,19 @@ export function CategoryTable({
 
 				<TableFooter>
 					<TableRow>
-						<TableCell className="font-bold">Total</TableCell>
+						<TableCell className="font-medium">Total</TableCell>
 						{periods.map((period) => {
 							const periodTotal = sectionTotals.totalsMap.get(period) ?? 0;
 							return (
-								<TableCell key={period} className="text-right font-semibold">
+								<TableCell key={period} className="text-right font-medium">
 									{formatCurrency(periodTotal)}
 								</TableCell>
 							);
 						})}
-						<TableCell className="text-right font-semibold text-info">
+						<TableCell className="text-right font-medium text-info">
 							{formatCurrency(sectionTotals.averageMonthlyTotal)}
 						</TableCell>
-						<TableCell className="text-right font-semibold">
+						<TableCell className="text-right font-medium">
 							{formatCurrency(sectionTotals.grandTotal)}
 						</TableCell>
 					</TableRow>

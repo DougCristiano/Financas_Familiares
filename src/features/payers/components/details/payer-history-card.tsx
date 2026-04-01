@@ -50,7 +50,7 @@ const ValueLabel = (props: LabelProps) => {
 			y={labelY}
 			fill="currentColor"
 			textAnchor="middle"
-			className="text-[11px] font-semibold text-muted-foreground"
+			className="text-xs font-medium text-muted-foreground"
 		>
 			{amount}
 		</text>
@@ -63,7 +63,7 @@ export function PayerHistoryCard({ data }: PagadorHistoryCardProps) {
 	return (
 		<Card className="border">
 			<CardHeader className="gap-1.5 pb-3">
-				<CardTitle className="text-lg font-semibold">
+				<CardTitle className="text-lg font-medium">
 					Evolução (últimos 6 meses)
 				</CardTitle>
 				<p className="text-xs text-muted-foreground">

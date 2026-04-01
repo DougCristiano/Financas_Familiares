@@ -31,7 +31,7 @@ export function PagadorInfoCard({ payer }: PayerInfoCardProps) {
 	return (
 		<Card className="border gap-4">
 			<CardHeader className="gap-1.5">
-				<CardTitle className="text-lg font-semibold">
+				<CardTitle className="text-lg font-medium">
 					Detalhes do pagador
 				</CardTitle>
 				<CardDescription>
@@ -79,7 +79,7 @@ export function PagadorInfoCard({ payer }: PayerInfoCardProps) {
 					<InfoItem
 						label="Aviso"
 						value={
-							<span className="text-[13px] text-warning">
+							<span className="text-sm text-warning">
 								Cadastre um e-mail para permitir o envio automático.
 							</span>
 						}
@@ -118,7 +118,7 @@ type InfoItemProps = {
 function InfoItem({ label, value, className }: InfoItemProps) {
 	return (
 		<div className={cn("space-y-1", className)}>
-			<span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
+			<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
 				{label}
 			</span>
 			<div className="text-base text-foreground">{value}</div>

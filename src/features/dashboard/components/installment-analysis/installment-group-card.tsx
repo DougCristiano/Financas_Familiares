@@ -95,7 +95,7 @@ export function InstallmentGroupCard({
 									<span className="text-xs text-muted-foreground">Total:</span>
 									<MoneyValues
 										amount={totalAmount}
-										className="text-base font-bold"
+										className="text-base font-medium"
 									/>
 								</div>
 								<div className="flex items-center gap-1">

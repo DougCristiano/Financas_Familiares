@@ -28,7 +28,7 @@ export function NotificationBellHeader({
 }: NotificationBellHeaderProps) {
 	return (
 		<div className="border-b px-3 py-2.5">
-			<div className="flex items-center justify-between gap-2 text-sm font-semibold">
+			<div className="flex items-center justify-between gap-2 text-sm font-medium">
 				<span>Notificações</span>
 				{hasAnySourceItems ? (
 					<Badge variant="outline" className="text-xs font-medium">

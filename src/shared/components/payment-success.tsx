@@ -89,7 +89,7 @@ export function PaymentSuccess({
 			</div>
 
 			<div className="space-y-2">
-				<DialogTitle className="text-xl font-bold">{title}</DialogTitle>
+				<DialogTitle className="text-xl font-medium">{title}</DialogTitle>
 				<DialogDescription className="text-sm leading-relaxed">
 					{description}
 				</DialogDescription>

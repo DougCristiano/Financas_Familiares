@@ -134,12 +134,12 @@ export function DashboardMetricsCards({ metrics }: DashboardMetricsCardsProps) {
 							<CardContent className="flex flex-col gap-3">
 								<div className="flex flex-wrap items-center justify-between gap-2 mt-1">
 									<MoneyValues
-										className="text-[1.55rem] leading-none font-medium"
+										className="text-2xl leading-none"
 										amount={metric.current}
 									/>
 									<div
 										className={cn(
-											"inline-flex items-center gap-1 text-xs font-medium",
+											"inline-flex items-center gap-1 text-xs ",
 											trendBadgeClass,
 										)}
 									>
@@ -150,7 +150,7 @@ export function DashboardMetricsCards({ metrics }: DashboardMetricsCardsProps) {
 
 								<div className="text-xs text-muted-foreground">
 									<MoneyValues
-										className="inline text-xs font-medium text-muted-foreground"
+										className="inline text-xs  text-muted-foreground"
 										amount={metric.previous}
 									/>
 									<span className="ml-1">no mês anterior</span>

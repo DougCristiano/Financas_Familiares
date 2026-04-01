@@ -84,9 +84,7 @@ export function PayerSharingCard({
 	return (
 		<Card className="border">
 			<CardHeader>
-				<CardTitle className="text-lg font-semibold">
-					Compartilhamentos
-				</CardTitle>
+				<CardTitle className="text-lg font-medium">Compartilhamentos</CardTitle>
 				<p className="text-sm text-muted-foreground">
 					Compartilhe o código abaixo com outra pessoa. Ela poderá adicioná-lo
 					na página de pagadores usando a opção Adicionar por código para ter
@@ -95,7 +93,7 @@ export function PayerSharingCard({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="flex flex-col gap-2 rounded-lg border border-dashed p-4 text-sm">
-					<span className="text-xs font-semibold uppercase text-muted-foreground/80">
+					<span className="text-xs font-medium uppercase text-muted-foreground/80">
 						Código de compartilhamento
 					</span>
 					<div className="flex flex-wrap items-center gap-2">

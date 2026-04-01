@@ -58,11 +58,11 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
 								</p>
 								{card.isMoney ? (
 									<MoneyValues
-										className="text-2xl font-semibold"
+										className="text-2xl font-medium"
 										amount={card.value}
 									/>
 								) : (
-									<p className="text-2xl font-semibold">{card.value}</p>
+									<p className="text-2xl font-medium">{card.value}</p>
 								)}
 								<p className="text-xs text-muted-foreground">
 									{card.description}

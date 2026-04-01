@@ -223,7 +223,7 @@ const buildColumns = ({
 							<span className="flex items-center gap-1">
 								<Tooltip>
 									<TooltipTrigger asChild>
-										<span className="line-clamp-2 max-w-[180px] font-bold truncate">
+										<span className="line-clamp-2 max-w-[180px] font-medium truncate">
 											{name}
 										</span>
 									</TooltipTrigger>

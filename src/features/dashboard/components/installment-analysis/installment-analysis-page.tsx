@@ -137,7 +137,7 @@ export function InstallmentAnalysisPage({
 					</p>
 					<MoneyValues
 						amount={grandTotal}
-						className="text-3xl font-bold text-primary"
+						className="text-3xl font-medium text-primary"
 					/>
 					<p className="text-sm text-muted-foreground">
 						{selectedCount} {selectedCount === 1 ? "parcela" : "parcelas"}{" "}
