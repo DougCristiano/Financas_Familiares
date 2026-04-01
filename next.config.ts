@@ -6,9 +6,7 @@ dotenv.config();
 
 const nextConfig: NextConfig = {
 	output: "standalone",
-	experimental: {
-		turbopackFileSystemCacheForDev: true,
-	},
+	cacheComponents: true,
 	reactCompiler: true,
 	images: {
 		remotePatterns: [new URL("https://lh3.googleusercontent.com/**")],

@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { EstablishmentsList } from "@/features/reports/components/establishments/establishments-list";
 import { HighlightsCards } from "@/features/reports/components/establishments/highlights-cards";
 import { PeriodFilterButtons } from "@/features/reports/components/establishments/period-filter";
@@ -36,6 +37,7 @@ const validatePeriodFilter = (value: string | null): PeriodFilter => {
 export default async function TopEstabelecimentosPage({
 	searchParams,
 }: PageProps) {
+	await connection();
 	const user = await getUser();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");

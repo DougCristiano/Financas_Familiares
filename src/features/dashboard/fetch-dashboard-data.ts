@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { fetchDashboardAccounts } from "./accounts-queries";
 import { fetchDashboardCategoryOverview } from "./category-overview-queries";
 import { fetchDashboardCurrentPeriodOverview } from "./current-period-overview-queries";
@@ -51,18 +51,14 @@ async function fetchDashboardDataInternal(userId: string, period: string) {
 
 /**
  * Cached dashboard data fetcher.
- * Uses unstable_cache with tags for revalidation on mutations.
+ * Uses "use cache" with tags for revalidation on mutations.
  * Cache is keyed by userId + period, and invalidated via user-scoped tags.
  */
-export function fetchDashboardData(userId: string, period: string) {
-	return unstable_cache(
-		() => fetchDashboardDataInternal(userId, period),
-		[`dashboard-${userId}-${period}`],
-		{
-			tags: [`dashboard-${userId}`],
-			revalidate: 60,
-		},
-	)();
+export async function fetchDashboardData(userId: string, period: string) {
+	"use cache";
+	cacheTag(`dashboard-${userId}`);
+	cacheLife({ revalidate: 3 });
+	return fetchDashboardDataInternal(userId, period);
 }
 
 export type DashboardData = Awaited<ReturnType<typeof fetchDashboardData>>;

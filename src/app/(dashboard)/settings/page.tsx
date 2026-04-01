@@ -1,6 +1,7 @@
 import { RiAndroidLine, RiArrowRightSLine } from "@remixicon/react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 
 import { CompanionTab } from "@/features/settings/components/companion-tab";
 import { DeleteAccountForm } from "@/features/settings/components/delete-account-form";
@@ -21,6 +22,7 @@ import {
 import { auth } from "@/shared/lib/auth/config";
 
 export default async function Page() {
+	await connection();
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
@@ -65,7 +67,7 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold mb-1">Preferências</h2>
+								<h2 className="text-xl font-medium mb-1">Preferências</h2>
 								<p className="text-sm text-muted-foreground">
 									Personalize sua experiência no OpenMonetis ajustando as
 									configurações de acordo com suas necessidades.
@@ -90,7 +92,7 @@ export default async function Page() {
 						<div className="space-y-4">
 							<div>
 								<div className="flex items-center gap-2 mb-1">
-									<h2 className="text-xl font-bold">OpenMonetis Companion</h2>
+									<h2 className="text-xl font-medium">OpenMonetis Companion</h2>
 									<span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success dark:bg-success/10">
 										<RiAndroidLine className="h-3 w-3" />
 										Android
@@ -112,7 +114,7 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold mb-1">Alterar nome</h2>
+								<h2 className="text-xl font-medium mb-1">Alterar nome</h2>
 								<p className="text-sm text-muted-foreground">
 									Atualize como seu nome aparece no OpenMonetis. Esse nome pode
 									ser exibido em diferentes seções do app e em comunicações.
@@ -128,7 +130,7 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold mb-1">Alterar senha</h2>
+								<h2 className="text-xl font-medium mb-1">Alterar senha</h2>
 								<p className="text-sm text-muted-foreground">
 									Defina uma nova senha para sua conta. Guarde-a em local
 									seguro.
@@ -144,7 +146,7 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold mb-1">Passkeys</h2>
+								<h2 className="text-xl font-medium mb-1">Passkeys</h2>
 								<p className="text-sm text-muted-foreground">
 									Passkeys permitem login sem senha, usando biometria (Face ID,
 									Touch ID, Windows Hello) ou chaves de segurança.
@@ -160,7 +162,7 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold mb-1">Alterar e-mail</h2>
+								<h2 className="text-xl font-medium mb-1">Alterar e-mail</h2>
 								<p className="text-sm text-muted-foreground">
 									Atualize o e-mail associado à sua conta. Você precisará
 									confirmar os links enviados para o novo e também para o e-mail
@@ -180,7 +182,7 @@ export default async function Page() {
 					<Card className="p-6">
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold mb-1 text-destructive">
+								<h2 className="text-xl font-medium mb-1 text-destructive">
 									Ações perigosas
 								</h2>
 								<p className="text-sm text-muted-foreground">

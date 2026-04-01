@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { DashboardGridEditable } from "@/features/dashboard/components/dashboard-grid-editable";
 import { DashboardMetricsCards } from "@/features/dashboard/components/dashboard-metrics-cards";
 import { DashboardWelcome } from "@/features/dashboard/components/dashboard-welcome";
@@ -14,6 +15,7 @@ type PageProps = {
 };
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	const user = await getUser();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");

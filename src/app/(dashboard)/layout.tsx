@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { fetchDashboardNavbarData } from "@/features/dashboard/navbar-queries";
 import { AppNavbar } from "@/shared/components/navigation/navbar/app-navbar";
 import { PrivacyProvider } from "@/shared/components/providers/privacy-provider";
@@ -9,6 +10,7 @@ export default async function DashboardLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	await connection();
 	const session = await getUserSession();
 	const navbarData = await fetchDashboardNavbarData(session.user.id);
 

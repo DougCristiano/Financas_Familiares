@@ -1,8 +1,10 @@
+import { connection } from "next/server";
 import { InstallmentAnalysisPage } from "@/features/dashboard/components/installment-analysis/installment-analysis-page";
 import { fetchInstallmentAnalysis } from "@/features/dashboard/expenses/installment-analysis-queries";
 import { getUser } from "@/shared/lib/auth/server";
 
 export default async function Page() {
+	await connection();
 	const user = await getUser();
 	const data = await fetchInstallmentAnalysis(user.id);
 

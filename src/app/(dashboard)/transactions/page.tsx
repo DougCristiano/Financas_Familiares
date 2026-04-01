@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { fetchUserPreferences } from "@/features/settings/queries";
 import { TransactionsPage } from "@/features/transactions/components/page/transactions-page";
 import {
@@ -27,6 +28,7 @@ type PageProps = {
 };
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 

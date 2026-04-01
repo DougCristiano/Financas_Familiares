@@ -1,4 +1,5 @@
 import { RiBankCard2Line } from "@remixicon/react";
+import { connection } from "next/server";
 import { fetchCartoesReportData } from "@/features/reports/cards-report-queries";
 import { CardCategoryBreakdown } from "@/features/reports/components/cards/card-category-breakdown";
 import { CardInvoiceStatus } from "@/features/reports/components/cards/card-invoice-status";
@@ -28,6 +29,7 @@ const getSingleParam = (
 export default async function RelatorioCartoesPage({
 	searchParams,
 }: PageProps) {
+	await connection();
 	const user = await getUser();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");

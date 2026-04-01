@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { payers } from "@/db/schema";
 import { fetchPendingInboxCount } from "@/features/inbox/queries";
 import { db } from "@/shared/lib/db";
@@ -53,15 +53,9 @@ async function fetchDashboardNavbarDataInternal(
 	};
 }
 
-export function fetchDashboardNavbarData(userId: string) {
-	const currentPeriod = getBusinessDateString().slice(0, 7);
-
-	return unstable_cache(
-		() => fetchDashboardNavbarDataInternal(userId),
-		[`dashboard-navbar-${userId}-${currentPeriod}`],
-		{
-			tags: [`dashboard-${userId}`],
-			revalidate: 60,
-		},
-	)();
+export async function fetchDashboardNavbarData(userId: string) {
+	"use cache";
+	cacheTag(`dashboard-${userId}`);
+	cacheLife({ revalidate: 3 });
+	return fetchDashboardNavbarDataInternal(userId);
 }

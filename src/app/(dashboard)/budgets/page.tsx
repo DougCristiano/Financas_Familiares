@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { BudgetsPage } from "@/features/budgets/components/budgets-page";
 import { fetchBudgetsForUser } from "@/features/budgets/queries";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
@@ -23,6 +24,7 @@ const capitalize = (value: string) =>
 	value.length === 0 ? value : value[0]?.toUpperCase() + value.slice(1);
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");

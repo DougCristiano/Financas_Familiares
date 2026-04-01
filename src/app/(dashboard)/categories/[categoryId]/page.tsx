@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { CategoryDetailHeader } from "@/features/categories/components/category-detail-header";
 import { fetchCategoryDetails } from "@/features/dashboard/categories/category-details-queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
@@ -32,6 +33,7 @@ const getSingleParam = (
 };
 
 export default async function Page({ params, searchParams }: PageProps) {
+	await connection();
 	const { categoryId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;

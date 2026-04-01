@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { InboxPage } from "@/features/inbox/components/inbox-page";
 import {
 	type ResolvedInboxSearchParams,
@@ -31,6 +32,7 @@ const EMPTY_DIALOG_DATA = {
 };
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const activeStatus = resolveInboxStatus(resolvedSearchParams);

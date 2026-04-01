@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import type { Category } from "@/db/schema";
 import { fetchCategoryChartData } from "@/features/reports/category-chart-queries";
 import { fetchCategoryReport } from "@/features/reports/category-report-queries";
@@ -29,6 +30,7 @@ const getSingleParam = (
 };
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	// Get authenticated user
 	const userId = await getUserId();
 

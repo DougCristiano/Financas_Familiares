@@ -1,5 +1,6 @@
 import { RiPencilLine } from "@remixicon/react";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import type { FinancialAccount } from "@/db/schema";
 import { CardDialog } from "@/features/cards/components/card-dialog";
 import type { Card } from "@/features/cards/components/types";
@@ -39,6 +40,7 @@ type PageProps = {
 };
 
 export default async function Page({ params, searchParams }: PageProps) {
+	await connection();
 	const { cardId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;

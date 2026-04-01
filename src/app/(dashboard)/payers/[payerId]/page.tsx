@@ -4,6 +4,7 @@ import {
 	RiWallet3Line,
 } from "@remixicon/react";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { PayerCardUsageCard } from "@/features/payers/components/details/payer-card-usage-card";
 import { PayerHeaderCard } from "@/features/payers/components/details/payer-header-card";
 import { PayerHistoryCard } from "@/features/payers/components/details/payer-history-card";
@@ -91,6 +92,7 @@ const createEmptySlugMaps = (): SlugMaps => ({
 type OptionSet = ReturnType<typeof buildOptionSets>;
 
 export default async function Page({ params, searchParams }: PageProps) {
+	await connection();
 	const { payerId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;

@@ -1,8 +1,10 @@
+import { connection } from "next/server";
 import { NotesPage } from "@/features/notes/components/notes-page";
 import { fetchAllNotesForUser } from "@/features/notes/queries";
 import { getUserId } from "@/shared/lib/auth/server";
 
 export default async function Page() {
+	await connection();
 	const userId = await getUserId();
 	const { activeNotes, archivedNotes } = await fetchAllNotesForUser(userId);
 

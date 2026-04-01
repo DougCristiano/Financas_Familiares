@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { fetchDashboardData } from "@/features/dashboard/fetch-dashboard-data";
 import { fetchUserDashboardPreferences } from "@/features/dashboard/preferences-queries";
 import {
@@ -52,15 +52,11 @@ async function fetchDashboardQuickActionOptionsInternal(
 	};
 }
 
-export function fetchDashboardQuickActionOptions(userId: string) {
-	return unstable_cache(
-		() => fetchDashboardQuickActionOptionsInternal(userId),
-		[`dashboard-quick-actions-${userId}`],
-		{
-			tags: [`dashboard-${userId}`],
-			revalidate: 60,
-		},
-	)();
+export async function fetchDashboardQuickActionOptions(userId: string) {
+	"use cache";
+	cacheTag(`dashboard-${userId}`);
+	cacheLife({ revalidate: 3 });
+	return fetchDashboardQuickActionOptionsInternal(userId);
 }
 
 export async function fetchDashboardPageData(userId: string, period: string) {

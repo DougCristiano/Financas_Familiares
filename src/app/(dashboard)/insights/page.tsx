@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { InsightsPage } from "@/features/insights/components/insights-page";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
 import { parsePeriodParam } from "@/shared/utils/period";
@@ -18,6 +19,7 @@ const getSingleParam = (
 };
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;
 	const periodoParam = getSingleParam(resolvedSearchParams, "periodo");
 	const { period: selectedPeriod } = parsePeriodParam(periodoParam);

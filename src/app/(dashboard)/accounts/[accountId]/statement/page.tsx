@@ -1,5 +1,6 @@
 import { RiPencilLine } from "@remixicon/react";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { AccountDialog } from "@/features/accounts/components/account-dialog";
 import { AccountStatementCard } from "@/features/accounts/components/account-statement-card";
 import type { Account } from "@/features/accounts/components/types";
@@ -42,6 +43,7 @@ const capitalize = (value: string) =>
 	value.length > 0 ? value[0]?.toUpperCase().concat(value.slice(1)) : value;
 
 export default async function Page({ params, searchParams }: PageProps) {
+	await connection();
 	const { accountId } = await params;
 	const userId = await getUserId();
 	const resolvedSearchParams = searchParams ? await searchParams : undefined;

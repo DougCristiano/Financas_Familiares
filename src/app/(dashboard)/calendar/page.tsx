@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { MonthlyCalendar } from "@/features/calendar/components/monthly-calendar";
 import { fetchCalendarData } from "@/features/calendar/queries";
 import {
@@ -16,6 +17,7 @@ type PageProps = {
 };
 
 export default async function Page({ searchParams }: PageProps) {
+	await connection();
 	const userId = await getUserId();
 	const resolvedParams = searchParams ? await searchParams : undefined;
 

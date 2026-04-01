@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ThemeProvider } from "@/shared/components/providers/theme-provider";
 import { Toaster } from "@/shared/components/ui/sonner";
 import "./globals.css";
@@ -35,7 +36,7 @@ export default function RootLayout({
 			</head>
 			<body className="subpixel-antialiased" suppressHydrationWarning>
 				<ThemeProvider attribute="class" defaultTheme="light">
-					{children}
+					<Suspense>{children}</Suspense>
 					<Toaster position="top-right" />
 				</ThemeProvider>
 			</body>

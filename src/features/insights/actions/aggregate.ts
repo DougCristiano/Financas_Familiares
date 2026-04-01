@@ -1,6 +1,6 @@
 import { getDay } from "date-fns";
 import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import {
 	budgets,
 	cards,
@@ -481,13 +481,9 @@ async function aggregateMonthDataInternal(userId: string, period: string) {
 	};
 }
 
-export function aggregateMonthData(userId: string, period: string) {
-	return unstable_cache(
-		() => aggregateMonthDataInternal(userId, period),
-		[`insights-aggregate-${userId}-${period}`],
-		{
-			tags: [`dashboard-${userId}`],
-			revalidate: 60,
-		},
-	)();
+export async function aggregateMonthData(userId: string, period: string) {
+	"use cache";
+	cacheTag(`dashboard-${userId}`);
+	cacheLife({ revalidate: 3 });
+	return aggregateMonthDataInternal(userId, period);
 }
