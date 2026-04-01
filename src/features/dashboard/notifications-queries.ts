@@ -1,6 +1,4 @@
-"use server";
-
-import { and, eq, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, lt, ne, sql } from "drizzle-orm";
 import {
 	budgets,
 	cards,
@@ -27,7 +25,11 @@ import {
 	toDateOnlyString,
 } from "@/shared/utils/date";
 import { safeToNumber as toNumber } from "@/shared/utils/number";
-import { formatPeriodForUrl } from "@/shared/utils/period";
+import {
+	addMonthsToPeriod,
+	formatPeriodForUrl,
+	getNextPeriod,
+} from "@/shared/utils/period";
 
 export type {
 	BudgetNotification,
@@ -98,6 +100,7 @@ export async function fetchDashboardNotifications(
 ): Promise<DashboardNotificationsSnapshot> {
 	const today = getBusinessDateString();
 	const DAYS_THRESHOLD = 5;
+	const nextPeriod = getNextPeriod(currentPeriod);
 
 	const adminPayerId = await getAdminPayerId(userId);
 
@@ -110,6 +113,10 @@ export async function fetchDashboardNotifications(
 	if (adminPayerId) {
 		boletosConditions.push(eq(transactions.payerId, adminPayerId));
 	}
+	boletosConditions.push(isNotNull(transactions.dueDate));
+	boletosConditions.push(
+		gte(transactions.period, addMonthsToPeriod(currentPeriod, -12)),
+	);
 
 	const budgetJoinConditions = [
 		eq(transactions.categoryId, budgets.categoryId),
@@ -122,118 +129,126 @@ export async function fetchDashboardNotifications(
 		budgetJoinConditions.push(eq(transactions.payerId, adminPayerId));
 	}
 
-	// --- All 4 queries are independent — run in parallel ---
-	const [overdueInvoices, currentInvoices, boletosRows, budgetRows] =
-		await Promise.all([
-			// Faturas atrasadas (períodos anteriores)
-			db
-				.select({
-					invoiceId: invoices.id,
-					cardId: cards.id,
-					cardName: cards.name,
-					cardLogo: cards.logo,
-					dueDay: cards.dueDay,
-					period: invoices.period,
-					totalAmount: sql<
-						number | null
-					>`COALESCE(SUM(${transactions.amount}), 0)`,
-				})
-				.from(invoices)
-				.innerJoin(cards, eq(invoices.cardId, cards.id))
-				.leftJoin(
-					transactions,
-					and(
-						eq(transactions.cardId, invoices.cardId),
-						eq(transactions.period, invoices.period),
-						eq(transactions.userId, invoices.userId),
-					),
-				)
-				.where(
-					and(
-						eq(invoices.userId, userId),
-						eq(invoices.paymentStatus, INVOICE_PAYMENT_STATUS.PENDING),
-						lt(invoices.period, currentPeriod),
-					),
-				)
-				.groupBy(
-					invoices.id,
-					cards.id,
-					cards.name,
-					cards.logo,
-					cards.dueDay,
-					invoices.period,
-				),
-			// Faturas do período atual
-			db
-				.select({
-					invoiceId: invoices.id,
-					cardId: cards.id,
-					cardName: cards.name,
-					cardLogo: cards.logo,
-					dueDay: cards.dueDay,
-					period: sql<string>`COALESCE(${invoices.period}, ${currentPeriod})`,
-					paymentStatus: invoices.paymentStatus,
-					totalAmount: sql<number | null>`
+	// Helper: monta a query de faturas por período (reutilizada para período atual e próximo)
+	const buildPeriodInvoicesQuery = (period: string) =>
+		db
+			.select({
+				invoiceId: invoices.id,
+				cardId: cards.id,
+				cardName: cards.name,
+				cardLogo: cards.logo,
+				dueDay: cards.dueDay,
+				period: sql<string>`COALESCE(${invoices.period}, ${period})`,
+				paymentStatus: invoices.paymentStatus,
+				totalAmount: sql<number | null>`
 				COALESCE(SUM(${transactions.amount}), 0)
 			  `,
-					transactionCount: sql<number | null>`COUNT(${transactions.id})`,
-				})
-				.from(cards)
-				.leftJoin(
-					invoices,
-					and(
-						eq(invoices.cardId, cards.id),
-						eq(invoices.userId, userId),
-						eq(invoices.period, currentPeriod),
-					),
-				)
-				.leftJoin(
-					transactions,
-					and(
-						eq(transactions.cardId, cards.id),
-						eq(transactions.userId, userId),
-						eq(transactions.period, currentPeriod),
-					),
-				)
-				.where(eq(cards.userId, userId))
-				.groupBy(
-					invoices.id,
-					cards.id,
-					cards.name,
-					cards.logo,
-					cards.dueDay,
-					invoices.period,
-					invoices.paymentStatus,
+				transactionCount: sql<number | null>`COUNT(${transactions.id})`,
+			})
+			.from(cards)
+			.leftJoin(
+				invoices,
+				and(
+					eq(invoices.cardId, cards.id),
+					eq(invoices.userId, userId),
+					eq(invoices.period, period),
 				),
-			// Boletos não pagos
-			db
-				.select({
-					id: transactions.id,
-					name: transactions.name,
-					amount: transactions.amount,
-					dueDate: transactions.dueDate,
-					period: transactions.period,
-				})
-				.from(transactions)
-				.where(and(...boletosConditions)),
-			// Orçamentos do período atual
-			db
-				.select({
-					orcamentoId: budgets.id,
-					categoryId: budgets.categoryId,
-					budgetAmount: budgets.amount,
-					period: budgets.period,
-					categoriaName: categories.name,
-					spentAmount: sql<number>`COALESCE(SUM(ABS(${transactions.amount})), 0)`,
-				})
-				.from(budgets)
-				.innerJoin(categories, eq(budgets.categoryId, categories.id))
-				.leftJoin(transactions, and(...budgetJoinConditions))
-				.where(
-					and(eq(budgets.userId, userId), eq(budgets.period, currentPeriod)),
-				)
-				.groupBy(budgets.id, budgets.amount, categories.name),
-		]);
+			)
+			.leftJoin(
+				transactions,
+				and(
+					eq(transactions.cardId, cards.id),
+					eq(transactions.userId, userId),
+					eq(transactions.period, period),
+				),
+			)
+			.where(eq(cards.userId, userId))
+			.groupBy(
+				invoices.id,
+				cards.id,
+				cards.name,
+				cards.logo,
+				cards.dueDay,
+				invoices.period,
+				invoices.paymentStatus,
+			);
+
+	// --- All 5 queries are independent — run in parallel ---
+	const [
+		overdueInvoices,
+		currentInvoices,
+		nextPeriodInvoices,
+		boletosRows,
+		budgetRows,
+	] = await Promise.all([
+		// Faturas atrasadas (períodos anteriores)
+		db
+			.select({
+				invoiceId: invoices.id,
+				cardId: cards.id,
+				cardName: cards.name,
+				cardLogo: cards.logo,
+				dueDay: cards.dueDay,
+				period: invoices.period,
+				totalAmount: sql<
+					number | null
+				>`COALESCE(SUM(${transactions.amount}), 0)`,
+			})
+			.from(invoices)
+			.innerJoin(cards, eq(invoices.cardId, cards.id))
+			.leftJoin(
+				transactions,
+				and(
+					eq(transactions.cardId, invoices.cardId),
+					eq(transactions.period, invoices.period),
+					eq(transactions.userId, invoices.userId),
+				),
+			)
+			.where(
+				and(
+					eq(invoices.userId, userId),
+					eq(invoices.paymentStatus, INVOICE_PAYMENT_STATUS.PENDING),
+					lt(invoices.period, currentPeriod),
+				),
+			)
+			.groupBy(
+				invoices.id,
+				cards.id,
+				cards.name,
+				cards.logo,
+				cards.dueDay,
+				invoices.period,
+			),
+		// Faturas do período atual e próximo
+		buildPeriodInvoicesQuery(currentPeriod),
+		buildPeriodInvoicesQuery(nextPeriod),
+		// Boletos não pagos
+		db
+			.select({
+				id: transactions.id,
+				name: transactions.name,
+				amount: transactions.amount,
+				dueDate: transactions.dueDate,
+				period: transactions.period,
+			})
+			.from(transactions)
+			.where(and(...boletosConditions)),
+		// Orçamentos do período atual
+		db
+			.select({
+				orcamentoId: budgets.id,
+				categoryId: budgets.categoryId,
+				budgetAmount: budgets.amount,
+				period: budgets.period,
+				categoriaName: categories.name,
+				spentAmount: sql<number>`COALESCE(SUM(ABS(${transactions.amount})), 0)`,
+			})
+			.from(budgets)
+			.innerJoin(categories, eq(budgets.categoryId, categories.id))
+			.leftJoin(transactions, and(...budgetJoinConditions))
+			.where(and(eq(budgets.userId, userId), eq(budgets.period, currentPeriod)))
+			.groupBy(budgets.id, budgets.amount, categories.name),
+	]);
 
 	// =====================
 	// Processar notificações
@@ -327,6 +342,53 @@ export async function fetchDashboardNotifications(
 		});
 	}
 
+	// Faturas do próximo período com vencimento próximo
+	const addedNotificationKeys = new Set(
+		notifications.map((n) => n.notificationKey),
+	);
+	for (const invoice of nextPeriodInvoices) {
+		if (!invoice.dueDay) continue;
+		const dueDate = buildDateOnlyStringFromPeriodDay(
+			nextPeriod,
+			invoice.dueDay,
+		);
+		if (!dueDate) continue;
+		if (invoice.paymentStatus === INVOICE_PAYMENT_STATUS.PAID) continue;
+
+		const invoiceIsDueSoon = isDateOnlyWithinDays(
+			dueDate,
+			DAYS_THRESHOLD,
+			today,
+		);
+		if (!invoiceIsDueSoon) continue;
+
+		const notificationKey = buildInvoiceNotificationKey(
+			invoice.cardId,
+			nextPeriod,
+		);
+		// Evitar duplicata se já foi adicionado via currentInvoices
+		if (addedNotificationKeys.has(notificationKey)) continue;
+
+		const amount = toNumber(invoice.totalAmount);
+		notifications.push({
+			type: "invoice",
+			name: invoice.cardName,
+			dueDate,
+			status: "due_soon",
+			amount: Math.abs(amount),
+			period: nextPeriod,
+			showAmount: false,
+			cardLogo: invoice.cardLogo,
+			notificationKey,
+			fingerprint: "due_soon",
+			href: buildInvoiceDetailsHref(invoice.cardId, nextPeriod),
+			isRead: false,
+			isArchived: false,
+			readAt: null,
+			archivedAt: null,
+		});
+	}
+
 	// Boletos
 	for (const boleto of boletosRows) {
 		const dueDate = toDateOnlyString(boleto.dueDate);
@@ -340,6 +402,7 @@ export async function fetchDashboardNotifications(
 		);
 		const isOldPeriod = boleto.period < currentPeriod;
 		const isCurrentPeriod = boleto.period === currentPeriod;
+		const isNextPeriod = boleto.period === nextPeriod;
 		const amount = toNumber(boleto.amount);
 		const href = `/transactions?periodo=${formatPeriodForUrl(boleto.period)}`;
 		const notificationKey = buildBoletoNotificationKey(boleto.id);
@@ -374,6 +437,23 @@ export async function fetchDashboardNotifications(
 				showAmount: boletoIsOverdue,
 				notificationKey,
 				fingerprint: notificationStatus,
+				href,
+				isRead: false,
+				isArchived: false,
+				readAt: null,
+				archivedAt: null,
+			});
+		} else if (isNextPeriod && boletoIsDueSoon) {
+			notifications.push({
+				type: "boleto",
+				name: boleto.name,
+				dueDate,
+				status: "due_soon",
+				amount: Math.abs(amount),
+				period: boleto.period,
+				showAmount: false,
+				notificationKey,
+				fingerprint: "due_soon",
 				href,
 				isRead: false,
 				isArchived: false,
