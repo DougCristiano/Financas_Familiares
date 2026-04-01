@@ -13,6 +13,9 @@ WORKDIR /app
 # Copiar apenas arquivos de dependências para aproveitar cache
 COPY package.json pnpm-lock.yaml* ./
 
+# Criar pasta public para o postinstall do pdfjs-dist
+RUN mkdir -p public
+
 # Instalar dependências (production + dev para o build)
 RUN pnpm install --frozen-lockfile
 
