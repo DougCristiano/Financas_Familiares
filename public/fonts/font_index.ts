@@ -13,6 +13,6 @@ export const america = localFont({
 			style: "normal",
 		},
 	],
-	display: "swap",
+	display: "fallback",
 	variable: "--font-america",
 });
