@@ -1,9 +1,12 @@
 "use client";
 
 import { RiCalendarCheckLine, RiLoader4Line } from "@remixicon/react";
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import { getInstallmentAnticipationsAction } from "@/features/transactions/anticipation-actions";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+	installmentAnticipationsQueryKey,
+	useInstallmentAnticipations,
+} from "@/features/transactions/hooks/use-installment-anticipations";
+import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -20,7 +23,6 @@ import {
 	EmptyTitle,
 } from "@/shared/components/ui/empty";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
-import type { InstallmentAnticipationWithRelations } from "@/shared/lib/installments/anticipation-types";
 import { AnticipationCard } from "../../shared/anticipation-card";
 
 interface AnticipationHistoryDialogProps {
@@ -40,53 +42,23 @@ export function AnticipationHistoryDialog({
 	onOpenChange,
 	onViewLancamento,
 }: AnticipationHistoryDialogProps) {
-	const [isLoading, setIsLoading] = useState(false);
-	const [anticipations, setAnticipations] = useState<
-		InstallmentAnticipationWithRelations[]
-	>([]);
-
-	// Use controlled state hook for dialog open state
+	const queryClient = useQueryClient();
 	const [dialogOpen, setDialogOpen] = useControlledState(
 		open,
 		false,
 		onOpenChange,
 	);
-
-	// Define loadAnticipations before it's used in useEffect
-	const loadAnticipations = useCallback(async () => {
-		setIsLoading(true);
-
-		try {
-			const result = await getInstallmentAnticipationsAction(seriesId);
-
-			if (!result.success) {
-				toast.error(
-					result.error || "Erro ao carregar histórico de antecipações",
-				);
-				setAnticipations([]);
-				return;
-			}
-
-			setAnticipations(result.data ?? []);
-		} catch (error) {
-			console.error("Erro ao buscar antecipações:", error);
-			toast.error("Erro ao carregar histórico de antecipações");
-			setAnticipations([]);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [seriesId]);
-
-	// Buscar antecipações ao abrir o dialog
-	useEffect(() => {
-		if (dialogOpen) {
-			loadAnticipations();
-		}
-	}, [dialogOpen, loadAnticipations]);
+	const {
+		data: anticipations = [],
+		isLoading,
+		isError,
+		refetch,
+	} = useInstallmentAnticipations(seriesId, dialogOpen);
 
 	const handleCanceled = () => {
-		// Recarregar lista após cancelamento
-		loadAnticipations();
+		void queryClient.invalidateQueries({
+			queryKey: installmentAnticipationsQueryKey(seriesId),
+		});
 	};
 
 	return (
@@ -106,6 +78,26 @@ export function AnticipationHistoryDialog({
 								Carregando histórico...
 							</span>
 						</div>
+					) : isError ? (
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<RiCalendarCheckLine className="size-6 text-muted-foreground" />
+								</EmptyMedia>
+								<EmptyTitle>Não foi possível carregar</EmptyTitle>
+								<EmptyDescription>
+									O histórico de antecipações não pôde ser carregado agora.
+								</EmptyDescription>
+							</EmptyHeader>
+							<Button
+								type="button"
+								variant="outline"
+								className="mx-auto"
+								onClick={() => void refetch()}
+							>
+								Tentar novamente
+							</Button>
+						</Empty>
 					) : anticipations.length === 0 ? (
 						<Empty>
 							<EmptyHeader>

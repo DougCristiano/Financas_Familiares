@@ -6,6 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { cancelInstallmentAnticipationAction } from "@/features/transactions/anticipation-actions";
+import type { InstallmentAnticipationListItem } from "@/features/transactions/hooks/use-installment-anticipations";
 import { ConfirmActionDialog } from "@/shared/components/confirm-action-dialog";
 import MoneyValues from "@/shared/components/money-values";
 import { Badge } from "@/shared/components/ui/badge";
@@ -18,11 +19,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/shared/components/ui/card";
-import type { InstallmentAnticipationWithRelations } from "@/shared/lib/installments/anticipation-types";
 import { displayPeriod } from "@/shared/utils/period";
 
 interface AnticipationCardProps {
-	anticipation: InstallmentAnticipationWithRelations;
+	anticipation: InstallmentAnticipationListItem;
 	onViewLancamento?: (transactionId: string) => void;
 	onCanceled?: () => void;
 }
@@ -37,8 +37,8 @@ export function AnticipationCard({
 	const isSettled = anticipation.transaction?.isSettled === true;
 	const canCancel = !isSettled;
 
-	const formatDate = (date: Date) => {
-		return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+	const formatDate = (date: string) => {
+		return format(new Date(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
 	};
 
 	const handleCancel = async () => {

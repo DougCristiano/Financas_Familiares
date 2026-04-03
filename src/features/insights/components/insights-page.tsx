@@ -6,6 +6,7 @@ import {
 	RiSaveLine,
 	RiSparklingLine,
 } from "@remixicon/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState, useTransition } from "react";
@@ -13,10 +14,13 @@ import { toast } from "sonner";
 import {
 	deleteSavedInsightsAction,
 	generateInsightsAction,
-	loadSavedInsightsAction,
 	saveInsightsAction,
 } from "@/features/insights/actions";
 import { DEFAULT_MODEL } from "@/features/insights/constants";
+import {
+	savedInsightsQueryKey,
+	useSavedInsights,
+} from "@/features/insights/hooks/use-saved-insights";
 import { EmptyState } from "@/shared/components/empty-state";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { Button } from "@/shared/components/ui/button";
@@ -32,47 +36,47 @@ interface InsightsPageProps {
 }
 
 export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
-	const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
-	const [insights, setInsights] = useState<InsightsResponse | null>(null);
+	const queryClient = useQueryClient();
+	const savedInsightsQuery = useSavedInsights(period);
 	const [isPending, startTransition] = useTransition();
 	const [isSaving, startSaveTransition] = useTransition();
+	const [draftInsights, setDraftInsights] = useState<InsightsResponse | null>(
+		null,
+	);
+	const [selectedModelOverride, setSelectedModelOverride] = useState<
+		string | null
+	>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isSaved, setIsSaved] = useState(false);
-	const [savedDate, setSavedDate] = useState<Date | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const savedInsights = savedInsightsQuery.data ?? null;
+	const insights = draftInsights ?? savedInsights?.insights ?? null;
+	const selectedModel =
+		selectedModelOverride ?? savedInsights?.modelId ?? DEFAULT_MODEL;
+	const isSaved = draftInsights === null && savedInsights !== null;
+	const savedDate = isSaved ? (savedInsights?.createdAt ?? null) : null;
+	const isLoadingSavedInsights =
+		savedInsightsQuery.isLoading && draftInsights === null;
+	const savedInsightsError =
+		draftInsights === null && savedInsightsQuery.error instanceof Error
+			? savedInsightsQuery.error.message
+			: null;
 
-	// Carregar insights salvos ao montar o componente
 	useEffect(() => {
-		const loadSaved = async () => {
-			try {
-				const result = await loadSavedInsightsAction(period);
-				if (result.success && result.data) {
-					setInsights(result.data.insights);
-					setSelectedModel(result.data.modelId);
-					setIsSaved(true);
-					setSavedDate(result.data.createdAt);
-				}
-			} catch (err) {
-				console.error("Error loading saved insights:", err);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		loadSaved();
+		void period;
+		setDraftInsights(null);
+		setSelectedModelOverride(null);
+		setError(null);
 	}, [period]);
 
 	const handleAnalyze = () => {
 		setError(null);
-		setIsSaved(false);
-		setSavedDate(null);
 		onAnalyze?.();
 		startTransition(async () => {
 			try {
 				const result = await generateInsightsAction(period, selectedModel);
 
 				if (result.success) {
-					setInsights(result.data);
+					setDraftInsights(result.data);
+					setSelectedModelOverride(selectedModel);
 					toast.success("Insights gerados com sucesso!");
 				} else {
 					setError(result.error);
@@ -99,8 +103,13 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 				);
 
 				if (result.success) {
-					setIsSaved(true);
-					setSavedDate(result.data.createdAt);
+					queryClient.setQueryData(savedInsightsQueryKey(period), {
+						insights,
+						modelId: selectedModel,
+						createdAt: result.data.createdAt.toISOString(),
+					});
+					setDraftInsights(null);
+					setSelectedModelOverride(null);
 					toast.success("Análise salva com sucesso!");
 				} else {
 					toast.error(result.error);
@@ -113,13 +122,16 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 	};
 
 	const handleDelete = () => {
+		if (!insights) return;
+
 		startSaveTransition(async () => {
 			try {
 				const result = await deleteSavedInsightsAction(period);
 
 				if (result.success) {
-					setIsSaved(false);
-					setSavedDate(null);
+					queryClient.setQueryData(savedInsightsQueryKey(period), null);
+					setDraftInsights(insights);
+					setSelectedModelOverride(selectedModel);
 					toast.success("Análise removida com sucesso!");
 				} else {
 					toast.error(result.error);
@@ -148,7 +160,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 			{/* Model Selector */}
 			<ModelSelector
 				value={selectedModel}
-				onValueChange={setSelectedModel}
+				onValueChange={setSelectedModelOverride}
 				disabled={isPending}
 			/>
 
@@ -156,7 +168,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 			<div className="flex items-center gap-3 flex-wrap">
 				<Button
 					onClick={handleAnalyze}
-					disabled={isPending || isLoading}
+					disabled={isPending || isLoadingSavedInsights}
 					className="bg-linear-to-r from-primary via-violet-400 to-cyan-400 dark:from-primary-dark dark:to-cyan-600"
 				>
 					<RiSparklingLine className="mr-2 size-5" aria-hidden="true" />
@@ -166,7 +178,7 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 				{insights && !error && (
 					<Button
 						onClick={isSaved ? handleDelete : handleSave}
-						disabled={isSaving || isPending || isLoading}
+						disabled={isSaving || isPending || isLoadingSavedInsights}
 						variant={isSaved ? "destructive" : "outline"}
 					>
 						{isSaved ? (
@@ -195,23 +207,43 @@ export function InsightsPage({ period, onAnalyze }: InsightsPageProps) {
 
 			{/* Content Area */}
 			<div className="min-h-[400px]">
-				{(isPending || isLoading) && <LoadingState />}
-				{!isPending && !isLoading && !insights && !error && (
-					<Card className="flex min-h-[50vh] w-full items-center justify-center py-12">
-						<EmptyState
-							media={<RiSparklingLine className="size-6 text-primary" />}
-							title="Nenhuma análise realizada"
-							description="Clique no botão acima para gerar insights inteligentes sobre seus
+				{(isPending || isLoadingSavedInsights) && <LoadingState />}
+				{!isPending &&
+					!isLoadingSavedInsights &&
+					!insights &&
+					!error &&
+					!savedInsightsError && (
+						<Card className="flex min-h-[50vh] w-full items-center justify-center py-12">
+							<EmptyState
+								media={<RiSparklingLine className="size-6 text-primary" />}
+								title="Nenhuma análise realizada"
+								description="Clique no botão acima para gerar insights inteligentes sobre seus
           dados financeiros do mês selecionado."
+							/>
+						</Card>
+					)}
+				{!isPending && !isLoadingSavedInsights && error && (
+					<ErrorState
+						title="Erro ao gerar insights"
+						error={error}
+						onRetry={handleAnalyze}
+					/>
+				)}
+				{!isPending &&
+					!isLoadingSavedInsights &&
+					!error &&
+					savedInsightsError && (
+						<ErrorState
+							title="Erro ao carregar insights salvos"
+							error={savedInsightsError}
+							onRetry={() => void savedInsightsQuery.refetch()}
 						/>
-					</Card>
-				)}
-				{!isPending && !isLoading && error && (
-					<ErrorState error={error} onRetry={handleAnalyze} />
-				)}
-				{!isPending && !isLoading && insights && !error && (
-					<InsightsGrid insights={insights} />
-				)}
+					)}
+				{!isPending &&
+					!isLoadingSavedInsights &&
+					insights &&
+					!error &&
+					!savedInsightsError && <InsightsGrid insights={insights} />}
 			</div>
 		</div>
 	);
@@ -258,18 +290,18 @@ function LoadingState() {
 }
 
 function ErrorState({
+	title,
 	error,
 	onRetry,
 }: {
+	title: string;
 	error: string;
 	onRetry: () => void;
 }) {
 	return (
 		<div className="flex flex-col items-center justify-center gap-4 py-12 px-4 text-center">
 			<div className="flex flex-col gap-2">
-				<h3 className="text-lg font-medium text-destructive">
-					Erro ao gerar insights
-				</h3>
+				<h3 className="text-lg font-medium text-destructive">{title}</h3>
 				<p className="text-sm text-muted-foreground max-w-md">{error}</p>
 			</div>
 			<Button onClick={onRetry} variant="outline">

@@ -1,13 +1,37 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { fetchJson } from "@/shared/lib/fetch-json";
+
+const ATTACHMENT_URL_STALE_TIME = 4 * 60 * 1000;
+
+export const attachmentUrlQueryKey = (attachmentId: string) =>
+	["attachments", "url", attachmentId] as const;
+
+export function useAttachmentUrlQuery(attachmentId: string, enabled: boolean) {
+	return useQuery({
+		queryKey: attachmentUrlQueryKey(attachmentId),
+		queryFn: async () => {
+			const payload = await fetchJson<{ url: string }>(
+				`/api/attachments/${attachmentId}/presign`,
+			);
+
+			return payload.url;
+		},
+		enabled: enabled && Boolean(attachmentId),
+		staleTime: ATTACHMENT_URL_STALE_TIME,
+		gcTime: ATTACHMENT_URL_STALE_TIME * 2,
+	});
+}
 
 export function useAttachmentUrl(attachmentId: string) {
-	const [url, setUrl] = useState<string | null>(null);
+	const [isVisible, setIsVisible] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		setUrl(null);
+		void attachmentId;
+		setIsVisible(false);
 		const el = containerRef.current;
 		if (!el) return;
 
@@ -15,10 +39,7 @@ export function useAttachmentUrl(attachmentId: string) {
 			(entries) => {
 				if (!entries[0].isIntersecting) return;
 				observer.disconnect();
-				fetch(`/api/attachments/${attachmentId}/presign`)
-					.then((r) => r.json())
-					.then((data: { url: string }) => setUrl(data.url))
-					.catch(() => {});
+				setIsVisible(true);
 			},
 			{ rootMargin: "150px" },
 		);
@@ -27,5 +48,7 @@ export function useAttachmentUrl(attachmentId: string) {
 		return () => observer.disconnect();
 	}, [attachmentId]);
 
-	return { url, containerRef };
+	const { data: url } = useAttachmentUrlQuery(attachmentId, isVisible);
+
+	return { url: url ?? null, containerRef };
 }

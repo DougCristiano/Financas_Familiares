@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { QueryProvider } from "@/shared/components/providers/query-provider";
 import { ThemeProvider } from "@/shared/components/providers/theme-provider";
 import { Toaster } from "@/shared/components/ui/sonner";
 import "./globals.css";
@@ -21,6 +22,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html
+			data-scroll-behavior="smooth"
 			lang="pt-BR"
 			className={`${america.variable} ${america.className} `}
 			suppressHydrationWarning
@@ -36,8 +38,10 @@ export default function RootLayout({
 			</head>
 			<body className="antialiased" suppressHydrationWarning>
 				<ThemeProvider attribute="class" defaultTheme="light">
-					<Suspense>{children}</Suspense>
-					<Toaster position="top-right" />
+					<QueryProvider>
+						<Suspense>{children}</Suspense>
+						<Toaster position="top-right" />
+					</QueryProvider>
 				</ThemeProvider>
 			</body>
 		</html>

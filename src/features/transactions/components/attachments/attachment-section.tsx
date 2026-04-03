@@ -1,20 +1,15 @@
 "use client";
 
 import { RiFileAddLine } from "@remixicon/react";
-import { useCallback, useEffect, useState } from "react";
-import { fetchTransactionAttachmentsAction } from "@/features/transactions/actions/attachments";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import {
+	transactionAttachmentsQueryKey,
+	useTransactionAttachments,
+} from "@/features/transactions/hooks/use-transaction-attachments";
 import { Button } from "@/shared/components/ui/button";
 import { AttachmentItem } from "./attachment-item";
 import { AttachmentUpload } from "./attachment-upload";
-
-type AttachmentRow = {
-	attachmentId: string;
-	fileName: string;
-	fileSize: number;
-	mimeType: string;
-	createdAt: Date;
-	url: string;
-};
 
 interface AttachmentSectionProps {
 	transactionId: string;
@@ -41,26 +36,33 @@ export function AttachmentSection({
 	onCancelPendingUpload,
 	maxSizeMb,
 }: AttachmentSectionProps) {
-	const [items, setItems] = useState<AttachmentRow[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const data = await fetchTransactionAttachmentsAction(transactionId);
-			setItems(data);
-			onLoaded?.(data.length);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [transactionId, onLoaded]);
+	const queryClient = useQueryClient();
+	const {
+		data: items = [],
+		isLoading,
+		isError,
+	} = useTransactionAttachments(transactionId);
 
 	useEffect(() => {
-		load();
-	}, [load]);
+		onLoaded?.(items.length);
+	}, [items.length, onLoaded]);
+
+	const invalidateAttachments = () => {
+		void queryClient.invalidateQueries({
+			queryKey: transactionAttachmentsQueryKey(transactionId),
+		});
+	};
 
 	if (isLoading) {
 		return <p className="text-xs text-muted-foreground">Carregando...</p>;
+	}
+
+	if (isError) {
+		return (
+			<p className="text-xs text-muted-foreground">
+				Não foi possível carregar os anexos.
+			</p>
+		);
 	}
 
 	const hasPendingUploads = (pendingUploadFiles?.length ?? 0) > 0;
@@ -82,7 +84,7 @@ export function AttachmentSection({
 							fileSize={item.fileSize}
 							mimeType={item.mimeType}
 							url={item.url}
-							onDeleted={load}
+							onDeleted={invalidateAttachments}
 							readonly={readonly}
 							isPendingDelete={pendingDetachIds?.includes(item.attachmentId)}
 							onPendingDelete={onPendingDetach}
@@ -119,7 +121,7 @@ export function AttachmentSection({
 			{!readonly && (
 				<AttachmentUpload
 					transactionId={transactionId}
-					onUploaded={load}
+					onUploaded={invalidateAttachments}
 					onPendingUpload={onPendingUpload}
 					maxSizeMb={maxSizeMb}
 				/>

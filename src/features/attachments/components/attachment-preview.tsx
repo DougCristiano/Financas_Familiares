@@ -8,6 +8,7 @@ import {
 	RiExternalLinkLine,
 } from "@remixicon/react";
 import { useEffect, useState } from "react";
+import { useAttachmentUrlQuery } from "@/features/attachments/hooks/use-attachment-url";
 import type { AttachmentForPeriod } from "@/features/attachments/queries";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -30,7 +31,6 @@ export function AttachmentPreview({
 	onClose,
 }: AttachmentPreviewProps) {
 	const [currentIndex, setCurrentIndex] = useState(selectedIndex);
-	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 	const open = selectedIndex >= 0;
 
 	useEffect(() => {
@@ -52,17 +52,11 @@ export function AttachmentPreview({
 
 	const attachment = attachments[currentIndex];
 	const attachmentId = attachment?.attachmentId;
-
-	// Busca URL fresca a cada troca de anexo
-	useEffect(() => {
-		if (!attachmentId) return;
-		setPreviewUrl(null);
-
-		fetch(`/api/attachments/${attachmentId}/presign`)
-			.then((r) => r.json())
-			.then((data: { url: string }) => setPreviewUrl(data.url))
-			.catch(() => {});
-	}, [attachmentId]);
+	const {
+		data: previewUrl,
+		isLoading: isPreviewLoading,
+		isError: isPreviewError,
+	} = useAttachmentUrlQuery(attachmentId ?? "", open && Boolean(attachmentId));
 
 	if (!attachment) return null;
 
@@ -170,9 +164,14 @@ export function AttachmentPreview({
 				</DialogHeader>
 
 				<div className="min-h-0 min-w-0 flex-1">
-					{!previewUrl && (
+					{isPreviewLoading && (
 						<div className="flex h-full w-full items-center justify-center">
 							<div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+						</div>
+					)}
+					{isPreviewError && (
+						<div className="flex h-full w-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+							Não foi possível carregar a visualização deste anexo.
 						</div>
 					)}
 					{isPdf && previewUrl && (
