@@ -7,6 +7,12 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.3.4] - 2026-04-05
+
+### Corrigido
+
+- Anexos: corrigido upload que falhava com `NetworkError` — CSP `connect-src` bloqueava fetch para o Storage
+
 ## [2.3.3] - 2026-04-05
 
 ### Corrigido

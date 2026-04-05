@@ -52,7 +52,7 @@ const nextConfig: NextConfig = {
 							"style-src 'self' 'unsafe-inline'",
 							"img-src 'self' https://lh3.googleusercontent.com data: blob:",
 							"font-src 'self'",
-							"connect-src 'self' https://umami.felipecoutinho.com",
+							`connect-src 'self' https://umami.felipecoutinho.com ${process.env.S3_ENDPOINT ? new URL(process.env.S3_ENDPOINT).origin : ""}`.trim(),
 							"frame-ancestors 'none'",
 						].join("; "),
 					},
