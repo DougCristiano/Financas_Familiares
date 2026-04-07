@@ -30,8 +30,8 @@ export async function AppNavbar({
 	return (
 		<NavbarShell logoHref="/dashboard" fixed>
 			<NavMenu />
-			{/* Grupo direito: empurrado para a direita no mobile via ml-auto; no desktop o ml-auto já fica na nav */}
-			<div className="ml-auto nav:ml-0 flex items-center gap-1">
+			{/* Grupo direito: fixo no extremo direito ate 930px */}
+			<div className="flex flex-1 items-center justify-end gap-1 min-[931px]:flex-none min-[931px]:justify-start">
 				<NotificationBell
 					notifications={notificationsSnapshot.notifications}
 					unreadCount={notificationsSnapshot.unreadCount}

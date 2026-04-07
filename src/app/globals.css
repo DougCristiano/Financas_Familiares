@@ -4,11 +4,16 @@
 
 @theme {
   --spacing-custom-height-card: 29rem;
-  --spacing-8xl: 90rem;    /* 1440px - desktop padrão */
-  --spacing-9xl: 112.5rem; /* 1800px - 2K */
-  --spacing-10xl: 150rem;  /* 2400px - 4K */
-  --breakpoint-3xl: 120rem;      /* 1920px - viewport 2K+ */
-  --breakpoint-nav: 58.125rem;   /* 930px  - breakpoint navbar desktop/mobile */
+  --spacing-8xl: 90rem;
+  /* 1440px - desktop padrão */
+  --spacing-9xl: 112.5rem;
+  /* 1800px - 2K */
+  --spacing-10xl: 150rem;
+  /* 2400px - 4K */
+  --breakpoint-3xl: 120rem;
+  /* 1920px - viewport 2K+ */
+  --breakpoint-nav: 931px;
+  /* desktop apenas acima de 930px */
 }
 
 :root {
@@ -55,16 +60,26 @@
   --chart-9: var(--color-cyan-500);
   --chart-10: var(--color-lime-500);
 
-  --data-1:  oklch(45% 0.22 255);  /* azul profundo */
-  --data-2:  oklch(52% 0.22 245);  /* azul médio */
-  --data-3:  oklch(58% 0.21 235);  /* azul-ciano */
-  --data-4:  oklch(64% 0.19 220);  /* ciano-azul */
-  --data-5:  oklch(68% 0.17 205);  /* ciano */
-  --data-6:  oklch(60% 0.18 270);  /* azul-violeta */
-  --data-7:  oklch(54% 0.20 280);  /* violeta-azul */
-  --data-8:  oklch(50% 0.21 290);  /* violeta */
-  --data-9:  oklch(45% 0.19 300);  /* roxo */
-  --data-10: oklch(62% 0.15 215);  /* ciano claro */
+  --data-1: oklch(45% 0.22 255);
+  /* azul profundo */
+  --data-2: oklch(52% 0.22 245);
+  /* azul médio */
+  --data-3: oklch(58% 0.21 235);
+  /* azul-ciano */
+  --data-4: oklch(64% 0.19 220);
+  /* ciano-azul */
+  --data-5: oklch(68% 0.17 205);
+  /* ciano */
+  --data-6: oklch(60% 0.18 270);
+  /* azul-violeta */
+  --data-7: oklch(54% 0.20 280);
+  /* violeta-azul */
+  --data-8: oklch(50% 0.21 290);
+  /* violeta */
+  --data-9: oklch(45% 0.19 300);
+  /* roxo */
+  --data-10: oklch(62% 0.15 215);
+  /* ciano claro */
 
   --sidebar: oklch(97% 0.006 255);
   --sidebar-foreground: var(--foreground);
@@ -139,16 +154,26 @@
   --chart-9: var(--color-cyan-500);
   --chart-10: var(--color-lime-500);
 
-  --data-1:  oklch(55% 0.22 255);  /* azul profundo */
-  --data-2:  oklch(62% 0.22 245);  /* azul médio */
-  --data-3:  oklch(67% 0.21 235);  /* azul-ciano */
-  --data-4:  oklch(73% 0.19 220);  /* ciano-azul */
-  --data-5:  oklch(77% 0.17 205);  /* ciano */
-  --data-6:  oklch(68% 0.18 270);  /* azul-violeta */
-  --data-7:  oklch(62% 0.20 280);  /* violeta-azul */
-  --data-8:  oklch(58% 0.21 290);  /* violeta */
-  --data-9:  oklch(53% 0.19 300);  /* roxo */
-  --data-10: oklch(70% 0.15 215);  /* ciano claro */
+  --data-1: oklch(55% 0.22 255);
+  /* azul profundo */
+  --data-2: oklch(62% 0.22 245);
+  /* azul médio */
+  --data-3: oklch(67% 0.21 235);
+  /* azul-ciano */
+  --data-4: oklch(73% 0.19 220);
+  /* ciano-azul */
+  --data-5: oklch(77% 0.17 205);
+  /* ciano */
+  --data-6: oklch(68% 0.18 270);
+  /* azul-violeta */
+  --data-7: oklch(62% 0.20 280);
+  /* violeta-azul */
+  --data-8: oklch(58% 0.21 290);
+  /* violeta */
+  --data-9: oklch(53% 0.19 300);
+  /* roxo */
+  --data-10: oklch(70% 0.15 215);
+  /* ciano claro */
 
   --sidebar: oklch(8% 0.010 255);
   --sidebar-foreground: var(--foreground);
@@ -286,6 +311,7 @@
     opacity: 0;
     transform: scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -297,6 +323,7 @@
     opacity: 1;
     transform: scale(1);
   }
+
   to {
     opacity: 0;
     transform: scale(0.96);
@@ -317,13 +344,23 @@
 }
 
 @keyframes overlay-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes overlay-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 [data-slot="dialog-overlay"][data-state="open"] {
@@ -343,15 +380,37 @@
 }
 
 @keyframes blink-in {
-  0%, 40%  { opacity: 1; }
-  50%, 90% { opacity: 0; }
-  100%     { opacity: 1; }
+
+  0%,
+  40% {
+    opacity: 1;
+  }
+
+  50%,
+  90% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes blink-out {
-  0%, 40%  { opacity: 0; }
-  50%, 90% { opacity: 1; }
-  100%     { opacity: 0; }
+
+  0%,
+  40% {
+    opacity: 0;
+  }
+
+  50%,
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .overdue-blink {

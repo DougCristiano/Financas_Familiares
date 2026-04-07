@@ -42,8 +42,8 @@ export function NavMenu() {
 
 	return (
 		<>
-			{/* Desktop */}
-			<nav className="hidden nav:flex items-center ml-auto">
+			{/* Desktop (apenas acima de 930px) */}
+			<nav className="hidden min-[931px]:flex items-center ml-auto">
 				<NavigationMenu viewport={false}>
 					<NavigationMenuList className="gap-6">
 						<NavigationMenuItem>
@@ -94,7 +94,7 @@ export function NavMenu() {
 					<Button
 						variant="navbar"
 						size="icon-sm"
-						className="-order-1 nav:hidden"
+						className="-order-1 min-[931px]:hidden"
 					>
 						<RiMenuLine className="size-5" />
 						<span className="sr-only">Abrir menu</span>
