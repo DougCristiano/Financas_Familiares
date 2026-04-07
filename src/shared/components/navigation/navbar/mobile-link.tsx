@@ -37,29 +37,31 @@ export function MobileLink({
 			preservePeriod={preservePeriod}
 			onClick={onClick}
 			className={cn(
-				"flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-				"text-muted-foreground hover:text-foreground hover:bg-accent",
-				isActive && "bg-primary/10 text-primary font-medium",
+				"group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
+				"text-foreground hover:bg-accent",
+				isActive && "bg-primary/8",
 			)}
 		>
 			<span
 				className={cn(
-					"shrink-0",
-					isActive ? "text-primary" : "text-muted-foreground",
+					"size-8 rounded-lg flex items-center justify-center shrink-0 transition-all",
+					isActive
+						? "bg-primary text-primary-foreground shadow-sm"
+						: "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-sm",
 				)}
 			>
 				{icon}
 			</span>
-			<span className="flex-1 flex flex-col gap-0.5">
-				<span>{children}</span>
+			<span className="flex-1 flex flex-col gap-0">
+				<span className="font-medium leading-tight">{children}</span>
 				{description && (
-					<span className="text-xs text-muted-foreground leading-snug">
+					<span className="text-xs text-muted-foreground leading-snug mt-0.5">
 						{description}
 					</span>
 				)}
 			</span>
 			{badge && badge > 0 ? (
-				<Badge variant="secondary" className="text-xs px-1.5 py-0">
+				<Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 shrink-0 ml-auto">
 					{badge}
 				</Badge>
 			) : null}

@@ -29,9 +29,9 @@ import { NavPill } from "./nav-pill";
 import { MobileTools, NavToolsDropdown } from "./nav-tools";
 
 const triggerClass =
-	"h-8! rounded-md! px-2! py-0! text-sm! font-medium! bg-transparent! shadow-none! capitalize! [&_svg]:text-current! text-black/75! hover:text-black! hover:bg-black/10! focus:text-black! focus:bg-black/10! focus-visible:ring-black/20! data-[state=open]:text-black! data-[state=open]:bg-black/10!";
+	"h-auto! px-0! py-0! pb-0.5! bg-transparent! shadow-none! rounded-none! lowercase! text-sm! font-medium! text-white/75! hover:text-white! hover:bg-transparent! focus:bg-transparent! data-[state=open]:text-white! data-[state=open]:bg-transparent! border-b-2! border-transparent! hover:border-white/60! data-[state=open]:border-white! focus-visible:ring-0! [&>svg:last-child]:size-3! [&>svg:last-child]:opacity-60! [&>svg:last-child]:ml-0.5! transition-colors!";
 
-const triggerActiveClass = "bg-black/15! text-black!";
+const triggerActiveClass = "text-white! border-white!";
 
 export function NavMenu() {
 	const pathname = usePathname();
@@ -43,9 +43,9 @@ export function NavMenu() {
 	return (
 		<>
 			{/* Desktop */}
-			<nav className="hidden md:flex items-center justify-center flex-1 gap-4">
+			<nav className="hidden md:flex items-center ml-auto">
 				<NavigationMenu viewport={false}>
-					<NavigationMenuList className="gap-2">
+					<NavigationMenuList className="gap-6">
 						<NavigationMenuItem>
 							<NavPill href="/dashboard" preservePeriod>
 								Dashboard

@@ -4,42 +4,33 @@ import { cn } from "@/shared/utils/ui";
 interface LogoProps {
 	variant?: "full" | "small" | "compact";
 	className?: string;
-	/** Apenas nos variants "full" e "compact" */
-	invertTextOnDark?: boolean;
-	/** Exibe o ícone na cor original, sem filtro preto. Apenas nos variants "full" e "compact" */
-	colorIcon?: boolean;
+	/** Força texto e ícone em branco (para fundos escuros/primary) */
+	white?: boolean;
 }
 
 const iconFilterClass = "brightness-0 saturate-0";
 
-export function Logo({
-	variant = "full",
-	className,
-	invertTextOnDark = true,
-	colorIcon = false,
-}: LogoProps) {
+export function Logo({ variant = "full", className, white = false }: LogoProps) {
+	const textBase = white ? "text-white/85" : "text-foreground";
+	const textIN = white ? "text-white font-bold" : "text-primary font-bold";
+
 	if (variant === "compact") {
 		return (
-			<div className={cn("flex items-center gap-1", className)}>
+			<div className={cn("flex items-center gap-2", className)}>
 				<div className="relative size-8 shrink-0">
 					<Image
-						src="/images/logo_small.png"
-						alt="OpenMonetis"
+						src="/images/logo_icon.png"
+						alt="f{IN}anças"
 						fill
 						sizes="32px"
-						className={cn("object-contain", !colorIcon && iconFilterClass)}
+						className="object-contain"
 						priority
 					/>
 				</div>
-				<div className="relative hidden h-8 w-[110px] shrink-0 sm:block">
-					<Image
-						src="/images/logo_text.png"
-						alt="OpenMonetis"
-						fill
-						sizes="110px"
-						className={cn("object-contain", invertTextOnDark && "dark:invert")}
-						priority
-					/>
+				<div className="hidden sm:flex items-baseline shrink-0">
+					<span className={cn("text-sm font-medium tracking-wide", textBase)}>f</span>
+					<span className={cn("text-sm tracking-wide", textIN)}>{'{IN}'}</span>
+					<span className={cn("text-sm font-medium tracking-wide", textBase)}>anças</span>
 				</div>
 			</div>
 		);
@@ -49,8 +40,8 @@ export function Logo({
 		return (
 			<div className={cn("relative size-8 shrink-0", className)}>
 				<Image
-					src="/images/logo_small.png"
-					alt="OpenMonetis"
+					src="/images/logo_icon.png"
+					alt="f{IN}anças"
 					fill
 					sizes="32px"
 					className="object-contain"
@@ -61,26 +52,21 @@ export function Logo({
 	}
 
 	return (
-		<div className={cn("flex items-center gap-1.5 py-4", className)}>
-			<div className="relative size-7 shrink-0">
+		<div className={cn("flex items-center gap-2.5 py-4", className)}>
+			<div className="relative size-9 shrink-0">
 				<Image
-					src="/images/logo_small.png"
-					alt="OpenMonetis"
+					src="/images/logo_icon.png"
+					alt="f{IN}anças"
 					fill
-					sizes="28px"
-					className={cn("object-contain", !colorIcon && iconFilterClass)}
+					sizes="36px"
+					className="object-contain"
 					priority
 				/>
 			</div>
-			<div className="relative h-8 w-[100px] shrink-0">
-				<Image
-					src="/images/logo_text.png"
-					alt="OpenMonetis"
-					fill
-					sizes="100px"
-					className={cn("object-contain", invertTextOnDark && "dark:invert")}
-					priority
-				/>
+			<div className="flex items-baseline">
+				<span className={cn("text-base font-medium tracking-wide", textBase)}>f</span>
+				<span className={cn("text-base tracking-wide", textIN)}>{'{IN}'}</span>
+				<span className={cn("text-base font-medium tracking-wide", textBase)}>anças</span>
 			</div>
 		</div>
 	);

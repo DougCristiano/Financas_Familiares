@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { buttonVariants } from "@/shared/components/ui/button";
 import { cn } from "@/shared/utils/ui";
 import { NavLink } from "./nav-link";
 
@@ -24,9 +23,11 @@ export function NavPill({ href, preservePeriod, children }: NavPillProps) {
 			href={href}
 			preservePeriod={preservePeriod}
 			className={cn(
-				buttonVariants({ variant: "navbar", size: "sm" }),
-				"capitalize",
-				isActive && "bg-black/15 text-black",
+				"relative lowercase text-sm font-medium pb-0.5 transition-colors",
+				"border-b-2 border-transparent",
+				isActive
+					? "text-white border-white"
+					: "text-white/75 hover:text-white hover:border-white/60",
 			)}
 		>
 			{children}

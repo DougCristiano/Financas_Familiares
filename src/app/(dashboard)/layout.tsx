@@ -22,8 +22,8 @@ export default async function DashboardLayout({
 				preLancamentosCount={navbarData.preLancamentosCount}
 				notificationsSnapshot={navbarData.notificationsSnapshot}
 			/>
-			<div className="relative flex flex-1 flex-col pt-16">
-				<div className="pointer-events-none fixed inset-x-0 top-16 h-32 overflow-hidden md:h-36 z-0">
+			<div className="relative flex flex-1 flex-col pt-14">
+				<div className="pointer-events-none fixed inset-x-0 top-14 h-32 overflow-hidden md:h-36 z-0">
 					<DotPattern
 						width={20}
 						height={20}

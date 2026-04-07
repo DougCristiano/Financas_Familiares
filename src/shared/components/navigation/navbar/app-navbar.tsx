@@ -30,7 +30,7 @@ export async function AppNavbar({
 	return (
 		<NavbarShell logoHref="/dashboard" fixed>
 			<NavMenu />
-			<div className="ml-auto flex items-center gap-2">
+			<div className="flex items-center gap-1">
 				<NotificationBell
 					notifications={notificationsSnapshot.notifications}
 					unreadCount={notificationsSnapshot.unreadCount}

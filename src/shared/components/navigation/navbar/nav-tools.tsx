@@ -3,9 +3,7 @@
 import { RiCalculatorLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 import { usePrivacyMode } from "@/shared/components/providers/privacy-provider";
 import { Badge } from "@/shared/components/ui/badge";
-
-const itemClass =
-	"flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-sm text-foreground hover:bg-accent transition-colors cursor-pointer";
+import { cn } from "@/shared/utils/ui";
 
 type NavToolsDropdownProps = {
 	onOpenCalculator: () => void;
@@ -15,23 +13,38 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 	const { privacyMode, toggle } = usePrivacyMode();
 
 	return (
-		<ul className="grid w-72 gap-0.5 p-2">
+		<ul className="grid w-80 gap-0.5 p-2">
 			<li>
-				<button type="button" className={itemClass} onClick={onOpenCalculator}>
-					<span className="text-primary shrink-0">
+				<button
+					type="button"
+					className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-foreground hover:bg-accent"
+					onClick={onOpenCalculator}
+				>
+					<span className="size-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-sm transition-all">
 						<RiCalculatorLine className="size-4" />
 					</span>
 					<span className="flex flex-col flex-1 text-left">
-						<span className="font-medium">Calculadora</span>
-						<span className="text-xs text-muted-foreground lowercase">
-							Faça cálculos rápidos
+						<span className="text-sm font-medium leading-tight">calculadora</span>
+						<span className="text-xs text-muted-foreground leading-snug mt-0.5">
+							faça cálculos rápidos
 						</span>
 					</span>
 				</button>
 			</li>
 			<li>
-				<button type="button" onClick={toggle} className={itemClass}>
-					<span className="text-primary shrink-0">
+				<button
+					type="button"
+					onClick={toggle}
+					className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-foreground hover:bg-accent"
+				>
+					<span
+						className={cn(
+							"size-9 rounded-lg flex items-center justify-center shrink-0 transition-all group-hover:shadow-sm",
+							privacyMode
+								? "bg-primary text-primary-foreground"
+								: "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground",
+						)}
+					>
 						{privacyMode ? (
 							<RiEyeOffLine className="size-4" />
 						) : (
@@ -39,17 +52,17 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 						)}
 					</span>
 					<span className="flex flex-col flex-1 text-left">
-						<span className="font-medium">Privacidade</span>
-						<span className="text-xs text-muted-foreground lowercase">
-							Oculta valores na tela
+						<span className="text-sm font-medium leading-tight">privacidade</span>
+						<span className="text-xs text-muted-foreground leading-snug mt-0.5">
+							oculta valores na tela
 						</span>
 					</span>
 					{privacyMode && (
 						<Badge
 							variant="secondary"
-							className="text-xs px-1.5 py-0 h-4 text-success"
+							className="text-xs px-1.5 py-0 h-5 text-success ml-auto shrink-0"
 						>
-							Ativo
+							ativo
 						</Badge>
 					)}
 				</button>

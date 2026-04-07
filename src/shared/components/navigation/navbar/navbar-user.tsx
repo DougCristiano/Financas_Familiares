@@ -86,7 +86,7 @@ export function NavbarUser({
 				<div className="relative">
 					<DropdownMenuTrigger asChild>
 						<button
-							className="flex size-9 items-center justify-center overflow-hidden rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
+							className="flex size-9 items-center justify-center overflow-hidden rounded-full ring-2 ring-white/20 transition-all hover:ring-white/40 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
 							aria-label="Menu do usuário"
 						>
 							<div className="relative size-10 overflow-hidden rounded-full">
