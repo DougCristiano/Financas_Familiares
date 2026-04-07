@@ -23,7 +23,7 @@ export default async function DashboardLayout({
 				notificationsSnapshot={navbarData.notificationsSnapshot}
 			/>
 			<div className="relative flex flex-1 flex-col pt-16">
-				<div className="pointer-events-none absolute inset-x-0 top-0 h-32 overflow-hidden md:h-36">
+				<div className="pointer-events-none fixed inset-x-0 top-16 h-32 overflow-hidden md:h-36 z-0">
 					<DotPattern
 						width={20}
 						height={20}
@@ -34,7 +34,7 @@ export default async function DashboardLayout({
 					/>
 					<div className="absolute inset-0 bg-linear-to-b from-primary/6 to-transparent" />
 				</div>
-				<div className="@container/main flex flex-1 flex-col gap-2">
+				<div className="@container/main flex flex-1 flex-col gap-2 relative z-10">
 					<div className="flex flex-col gap-4 py-5 md:gap-6 w-full max-w-8xl mx-auto px-4 ">
 						{children}
 					</div>
