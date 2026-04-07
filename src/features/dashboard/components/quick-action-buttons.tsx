@@ -23,8 +23,12 @@ export function QuickActionButtons({
 	period,
 	quickActionOptions,
 }: QuickActionButtonsProps) {
+	const quickActionButtonClass =
+		"flex-1 min-w-0 justify-center gap-2 px-2 min-[480px]:px-3";
+	const quickActionTextClass = "hidden min-[520px]:inline";
+
 	return (
-		<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+		<div className="flex w-full items-center gap-2">
 			<TransactionDialog
 				mode="create"
 				payerOptions={quickActionOptions.payerOptions}
@@ -40,10 +44,12 @@ export function QuickActionButtons({
 					<Button
 						size="sm"
 						variant="outline"
-						className="gap-2 flex-1 sm:flex-none"
+						className={quickActionButtonClass}
+						aria-label="Nova receita"
+						title="Nova receita"
 					>
 						<RiAddFill className="size-4 text-success/80" />
-						<span>Nova receita</span>
+						<span className={quickActionTextClass}>Nova receita</span>
 					</Button>
 				}
 			/>
@@ -63,10 +69,12 @@ export function QuickActionButtons({
 					<Button
 						size="sm"
 						variant="outline"
-						className="gap-2 flex-1 sm:flex-none"
+						className={quickActionButtonClass}
+						aria-label="Nova despesa"
+						title="Nova despesa"
 					>
 						<RiAddFill className="size-4 text-destructive/80" />
-						<span>Nova despesa</span>
+						<span className={quickActionTextClass}>Nova despesa</span>
 					</Button>
 				}
 			/>
@@ -77,10 +85,12 @@ export function QuickActionButtons({
 					<Button
 						size="sm"
 						variant="outline"
-						className="gap-2 flex-1 sm:flex-none"
+						className={quickActionButtonClass}
+						aria-label="Nova anotação"
+						title="Nova anotação"
 					>
 						<RiTodoLine className="size-4 text-info/80" />
-						<span>Nova anotação</span>
+						<span className={quickActionTextClass}>Nova anotação</span>
 					</Button>
 				}
 			/>

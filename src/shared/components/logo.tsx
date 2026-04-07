@@ -27,7 +27,7 @@ export function Logo({ variant = "full", className, white = false }: LogoProps) 
 						priority
 					/>
 				</div>
-				<div className="hidden sm:flex items-baseline shrink-0">
+				<div className="flex items-baseline shrink-0">
 					<span className={cn("text-sm font-medium tracking-wide", textBase)}>f</span>
 					<span className={cn("text-sm tracking-wide", textIN)}>{'{IN}'}</span>
 					<span className={cn("text-sm font-medium tracking-wide", textBase)}>anças</span>
