@@ -16,7 +16,7 @@ import { useState } from "react";
 import { version } from "@/package.json";
 import { FeedbackDialogBody } from "@/shared/components/navigation/navbar/feedback-dialog";
 import { Badge } from "@/shared/components/ui/badge";
-import { Dialog, DialogTrigger } from "@/shared/components/ui/dialog";
+import { Dialog } from "@/shared/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -81,8 +81,8 @@ export function NavbarUser({
 	}
 
 	return (
-		<Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-			<DropdownMenu>
+		<>
+			<DropdownMenu modal={false}>
 				<div className="relative">
 					<DropdownMenuTrigger asChild>
 						<button
@@ -171,15 +171,14 @@ export function NavbarUser({
 							</Badge>
 						</Link>
 
-						<DialogTrigger asChild>
-							<button
-								type="button"
-								className={cn(itemClass, "text-foreground")}
-							>
-								<RiMessageLine className="size-4 text-muted-foreground shrink-0" />
-								Enviar Feedback
-							</button>
-						</DialogTrigger>
+						<button
+							type="button"
+							className={cn(itemClass, "text-foreground")}
+							onClick={() => setFeedbackOpen(true)}
+						>
+							<RiMessageLine className="size-4 text-muted-foreground shrink-0" />
+							Enviar Feedback
+						</button>
 
 						{updateCheck.hasUpdate && (
 							<Link
@@ -219,7 +218,10 @@ export function NavbarUser({
 					</div>
 				</DropdownMenuContent>
 			</DropdownMenu>
-			<FeedbackDialogBody onClose={() => setFeedbackOpen(false)} />
-		</Dialog>
+
+			<Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+				<FeedbackDialogBody onClose={() => setFeedbackOpen(false)} />
+			</Dialog>
+		</>
 	);
 }

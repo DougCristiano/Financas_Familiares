@@ -16,7 +16,7 @@ export function NavbarShell({
 
 	return (
 		<header
-			className={`${positionClass} z-50 flex h-14 shrink-0 items-center bg-primary border-b border-white/10`}
+			className={`${positionClass} z-[60] flex h-14 shrink-0 items-center bg-primary border-b border-white/10`}
 		>
 			<div className="relative z-10 mx-auto flex h-full w-full max-w-8xl items-center gap-3 px-4">
 				{logoHref ? (

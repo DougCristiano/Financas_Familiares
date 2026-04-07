@@ -24,9 +24,9 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 						<RiCalculatorLine className="size-4" />
 					</span>
 					<span className="flex flex-col flex-1 text-left">
-						<span className="text-sm font-medium leading-tight">calculadora</span>
+						<span className="text-sm font-medium leading-tight">Calculadora</span>
 						<span className="text-xs text-muted-foreground leading-snug mt-0.5">
-							faça cálculos rápidos
+							Faça cálculos básicos rápidos
 						</span>
 					</span>
 				</button>
@@ -52,9 +52,9 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 						)}
 					</span>
 					<span className="flex flex-col flex-1 text-left">
-						<span className="text-sm font-medium leading-tight">privacidade</span>
+						<span className="text-sm font-medium leading-tight">Privacidade</span>
 						<span className="text-xs text-muted-foreground leading-snug mt-0.5">
-							oculta valores na tela
+							Oculta valores na tela
 						</span>
 					</span>
 					{privacyMode && (

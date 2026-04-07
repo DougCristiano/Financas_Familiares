@@ -37,7 +37,7 @@ export function NotificationBell(props: NotificationBellProps) {
 	} = useNotificationBell(props);
 
 	return (
-		<DropdownMenu open={open} onOpenChange={setOpen}>
+		<DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
 			<NotificationBellTrigger
 				open={open}
 				hasAnySourceItems={hasAnySourceItems}
