@@ -8,11 +8,15 @@ import { inter } from "@/public/fonts/font_index";
 
 export const metadata: Metadata = {
 	title: {
-		default: "OpenMonetis | Suas finanças, do seu jeito",
-		template: "%s | OpenMonetis",
+		default: "f{IN}anças",
+		template: "%s | f{IN}anças",
 	},
 	description:
 		"Controle suas finanças pessoais de forma simples e transparente.",
+	icons: {
+		icon: "/logocorreto.png",
+		apple: "/logocorreto.png",
+	},
 };
 
 export default function RootLayout({
