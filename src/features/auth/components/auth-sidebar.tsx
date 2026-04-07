@@ -3,7 +3,7 @@ import {
 	RiBarChart2Line,
 	RiShieldCheckLine,
 } from "@remixicon/react";
-import { Logo } from "@/shared/components/logo";
+import Image from "next/image";
 import { DotPattern } from "@/shared/components/ui/dot-pattern";
 import { AuthSidebarInvoicesMock } from "./auth-sidebar-invoices-mock";
 
@@ -16,10 +16,10 @@ function FeatureItem({
 }) {
 	return (
 		<div className="flex items-center gap-3">
-			<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-black/12">
-				<Icon className="h-3.5 w-3.5 text-black/55" />
+			<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/12">
+				<Icon className="h-3.5 w-3.5 text-white/70" />
 			</div>
-			<span className="text-sm font-medium text-black/68">{text}</span>
+			<span className="text-sm font-medium text-white/80">{text}</span>
 		</div>
 	);
 }
@@ -40,11 +40,26 @@ function AuthSidebar() {
 			</div>
 
 			<div className="relative flex flex-1 flex-col justify-between p-10 lg:p-12">
-				<Logo
-					variant="compact"
-					invertTextOnDark={false}
-					className="opacity-92 [&_img]:brightness-0 [&_img]:saturate-0"
-				/>
+				<div className="flex items-center gap-3">
+					<div className="relative size-10 shrink-0">
+						<Image
+							src="/images/logo_icon.png"
+							alt="Dinheir{IN}"
+							fill
+							sizes="40px"
+							className="object-contain brightness-0 invert"
+							priority
+						/>
+					</div>
+					<div className="flex items-baseline">
+						<span className="text-lg font-medium tracking-wide text-white">
+							D
+						</span>
+						<span className="text-lg tracking-wide text-white font-bold">
+							inheir{"{IN}"}
+						</span>
+					</div>
+				</div>
 
 				<div className="flex flex-1 items-center justify-center py-10">
 					<div className="w-full rotate-[1.5deg]">

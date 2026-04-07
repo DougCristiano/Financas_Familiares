@@ -69,7 +69,7 @@ export default async function Page() {
 							<div>
 								<h2 className="text-xl font-semibold mb-1">Preferências</h2>
 								<p className="text-sm text-muted-foreground">
-									Personalize sua experiência no OpenMonetis ajustando as
+									Personalize sua experiência no Dinheir{"{IN}"} ajustando as
 									configurações de acordo com suas necessidades.
 								</p>
 							</div>
@@ -118,8 +118,9 @@ export default async function Page() {
 							<div>
 								<h2 className="text-xl font-semibold mb-1">Alterar nome</h2>
 								<p className="text-sm text-muted-foreground">
-									Atualize como seu nome aparece no OpenMonetis. Esse nome pode
-									ser exibido em diferentes seções do app e em comunicações.
+									Atualize como seu nome aparece no Dinheir{"{IN}"}. Esse nome
+									pode ser exibido em diferentes seções do app e em
+									comunicações.
 								</p>
 							</div>
 							<Separator />
@@ -186,8 +187,8 @@ export default async function Page() {
 							<div>
 								<h2 className="text-xl font-semibold mb-1">Ações perigosas</h2>
 								<p className="text-sm text-muted-foreground">
-									Você pode zerar os dados do OpenMonetis e manter seu acesso,
-									ou excluir sua conta inteira de forma irreversível.
+									Você pode zerar os dados do Dinheir{"{IN}"} e manter seu
+									acesso, ou excluir sua conta inteira de forma irreversível.
 								</p>
 							</div>
 							<Separator />

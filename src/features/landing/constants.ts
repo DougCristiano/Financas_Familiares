@@ -191,7 +191,7 @@ export const companionSteps: FeatureItem[] = [
 	},
 	{
 		icon: RiCheckLine,
-		title: "Revise e confirme no OpenMonetis",
+		title: "Revise e confirme no Dinheir{IN}",
 		description: "Pré-lançamentos ficam na inbox para sua aprovação",
 		colorVar: "var(--data-9)",
 	},

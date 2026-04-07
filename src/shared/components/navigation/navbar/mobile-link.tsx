@@ -61,7 +61,10 @@ export function MobileLink({
 				)}
 			</span>
 			{badge && badge > 0 ? (
-				<Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 shrink-0 ml-auto">
+				<Badge
+					variant="secondary"
+					className="text-xs px-1.5 py-0 h-5 shrink-0 ml-auto"
+				>
 					{badge}
 				</Badge>
 			) : null}

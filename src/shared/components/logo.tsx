@@ -8,9 +8,11 @@ interface LogoProps {
 	white?: boolean;
 }
 
-const iconFilterClass = "brightness-0 saturate-0";
-
-export function Logo({ variant = "full", className, white = false }: LogoProps) {
+export function Logo({
+	variant = "full",
+	className,
+	white = false,
+}: LogoProps) {
 	const textBase = white ? "text-white/85" : "text-foreground";
 	const textIN = white ? "text-white font-bold" : "text-primary font-bold";
 
@@ -28,9 +30,13 @@ export function Logo({ variant = "full", className, white = false }: LogoProps) 
 					/>
 				</div>
 				<div className="flex items-baseline shrink-0">
-					<span className={cn("text-sm font-medium tracking-wide", textBase)}>f</span>
-					<span className={cn("text-sm tracking-wide", textIN)}>{'{IN}'}</span>
-					<span className={cn("text-sm font-medium tracking-wide", textBase)}>anças</span>
+					<span className={cn("text-sm font-medium tracking-wide", textBase)}>
+						f
+					</span>
+					<span className={cn("text-sm tracking-wide", textIN)}>{"{IN}"}</span>
+					<span className={cn("text-sm font-medium tracking-wide", textBase)}>
+						anças
+					</span>
 				</div>
 			</div>
 		);
@@ -64,9 +70,13 @@ export function Logo({ variant = "full", className, white = false }: LogoProps) 
 				/>
 			</div>
 			<div className="flex items-baseline">
-				<span className={cn("text-base font-medium tracking-wide", textBase)}>f</span>
-				<span className={cn("text-base tracking-wide", textIN)}>{'{IN}'}</span>
-				<span className={cn("text-base font-medium tracking-wide", textBase)}>anças</span>
+				<span className={cn("text-base font-medium tracking-wide", textBase)}>
+					f
+				</span>
+				<span className={cn("text-base tracking-wide", textIN)}>{"{IN}"}</span>
+				<span className={cn("text-base font-medium tracking-wide", textBase)}>
+					anças
+				</span>
 			</div>
 		</div>
 	);

@@ -142,7 +142,7 @@ export function LoginForm({ className, ...props }: DivProps) {
 				>
 					<FieldGroup className="mx-auto w-full max-w-md gap-5">
 						<AuthHeader
-							title="Entrar no OpenMonetis"
+							title="Entrar em Dinheir{IN}"
 							description="Acesse sua conta para acompanhar cartões, lançamentos e metas em um só lugar."
 						/>
 

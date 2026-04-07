@@ -49,7 +49,7 @@ const feedbackCategories = [
 		id: "experience",
 		title: "Compartilhar Experiência",
 		icon: RiStarLine,
-		description: "Como o OpenMonetis tem ajudado você?",
+		description: "Como o Dinheir{IN} tem ajudado você?",
 		color: "text-purple-500 dark:text-purple-400",
 		url: `${GITHUB_DISCUSSIONS_BASE}?category=sua-experiencia`,
 	},
