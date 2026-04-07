@@ -16,12 +16,10 @@ import {
 	sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import {
-	RiAddFill,
 	RiCheckLine,
 	RiCloseLine,
 	RiDragMove2Line,
 	RiEyeOffLine,
-	RiTodoLine,
 } from "@remixicon/react";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -38,8 +36,6 @@ import {
 	type WidgetConfig,
 	widgetsConfig,
 } from "@/features/dashboard/widgets/widgets-config";
-import { NoteDialog } from "@/features/notes/components/note-dialog";
-import { TransactionDialog } from "@/features/transactions/components/dialogs/transaction-dialog/transaction-dialog";
 import { ExpandableWidgetCard } from "@/shared/components/expandable-widget-card";
 import { Button } from "@/shared/components/ui/button";
 
@@ -193,78 +189,7 @@ export function DashboardGridEditable({
 		<div className="space-y-4">
 			{/* Toolbar */}
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				{!isEditing ? (
-					<div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
-						<div className="-mb-1 grid w-full grid-cols-3 gap-1 pb-1 sm:mb-0 sm:flex sm:w-auto sm:items-center sm:gap-2 sm:overflow-visible sm:pb-0">
-							<TransactionDialog
-								mode="create"
-								payerOptions={quickActionOptions.payerOptions}
-								splitPayerOptions={quickActionOptions.splitPayerOptions}
-								defaultPayerId={quickActionOptions.defaultPayerId}
-								accountOptions={quickActionOptions.accountOptions}
-								cardOptions={quickActionOptions.cardOptions}
-								categoryOptions={quickActionOptions.categoryOptions}
-								estabelecimentos={quickActionOptions.estabelecimentos}
-								defaultPeriod={period}
-								defaultTransactionType="Receita"
-								trigger={
-									<Button
-										size="sm"
-										variant="outline"
-										className="h-12 w-full min-w-0 flex-col justify-center gap-0.5 px-1.5 text-sm whitespace-normal sm:h-8 sm:w-auto sm:flex-row sm:gap-2 sm:px-3 sm:whitespace-nowrap"
-									>
-										<span className="flex items-center gap-0.5">
-											<RiAddFill className="size-3.5 shrink-0 text-success/80" />
-										</span>
-										<span className="sm:hidden">Receita</span>
-										<span className="hidden sm:inline">Nova receita</span>
-									</Button>
-								}
-							/>
-							<TransactionDialog
-								mode="create"
-								payerOptions={quickActionOptions.payerOptions}
-								splitPayerOptions={quickActionOptions.splitPayerOptions}
-								defaultPayerId={quickActionOptions.defaultPayerId}
-								accountOptions={quickActionOptions.accountOptions}
-								cardOptions={quickActionOptions.cardOptions}
-								categoryOptions={quickActionOptions.categoryOptions}
-								estabelecimentos={quickActionOptions.estabelecimentos}
-								defaultPeriod={period}
-								defaultTransactionType="Despesa"
-								trigger={
-									<Button
-										size="sm"
-										variant="outline"
-										className="h-12 w-full min-w-0 flex-col justify-center gap-0.5 px-1.5 text-sm whitespace-normal sm:h-8 sm:w-auto sm:flex-row sm:gap-2 sm:px-3 sm:whitespace-nowrap"
-									>
-										<span className="flex items-center gap-0.5">
-											<RiAddFill className="size-3.5 shrink-0 text-destructive/80" />
-										</span>
-										<span className="sm:hidden">Despesa</span>
-										<span className="hidden sm:inline">Nova despesa</span>
-									</Button>
-								}
-							/>
-							<NoteDialog
-								mode="create"
-								trigger={
-									<Button
-										size="sm"
-										variant="outline"
-										className="h-12 w-full min-w-0 flex-col justify-center gap-0.5 px-1.5 text-sm whitespace-normal sm:h-8 sm:w-auto sm:flex-row sm:gap-2 sm:px-3 sm:whitespace-nowrap"
-									>
-										<RiTodoLine className="size-3.5 shrink-0 text-info/80" />
-										<span className="sm:hidden">Anotação</span>
-										<span className="hidden sm:inline">Nova anotação</span>
-									</Button>
-								}
-							/>
-						</div>
-					</div>
-				) : (
-					<div />
-				)}
+				{!isEditing && <div />}
 
 				<div className="flex w-full items-center justify-end gap-2 sm:w-auto">
 					{isEditing ? (

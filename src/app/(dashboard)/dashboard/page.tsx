@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { DashboardGridEditable } from "@/features/dashboard/components/dashboard-grid-editable";
 import { DashboardMetricsCards } from "@/features/dashboard/components/dashboard-metrics-cards";
 import { DashboardWelcome } from "@/features/dashboard/components/dashboard-welcome";
+import { QuickActionButtons } from "@/features/dashboard/components/quick-action-buttons";
 import { fetchDashboardPageData } from "@/features/dashboard/page-data-queries";
 import { getSingleParam } from "@/features/transactions/page-helpers";
 import MonthNavigation from "@/shared/components/month-picker/month-navigation";
@@ -29,12 +30,15 @@ export default async function Page({ searchParams }: PageProps) {
 		<main className="flex flex-col gap-4">
 			<DashboardWelcome name={user.name} />
 			<MonthNavigation />
+			<QuickActionButtons
+				period={selectedPeriod}
+				quickActionOptions={quickActionOptions}
+			/>
 			<DashboardMetricsCards metrics={dashboardData.metrics} />
 			<DashboardGridEditable
 				data={dashboardData}
 				period={selectedPeriod}
 				initialPreferences={dashboardWidgets}
-				quickActionOptions={quickActionOptions}
 			/>
 		</main>
 	);
