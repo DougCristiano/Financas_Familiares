@@ -8,21 +8,11 @@ import { inter } from "@/public/fonts/font_index";
 
 export const metadata: Metadata = {
 	title: {
-		default: "f{IN}anças",
-		template: "%s | f{IN}anças",
+		default: "Dinheir{IN}",
+		template: "%s | Dinheir{IN}",
 	},
 	description:
 		"Controle suas finanças pessoais de forma simples e transparente.",
-	icons: {
-		icon: [
-			{
-				url: "/favicons/favicon-16x16.png",
-				type: "image/png",
-				sizes: "16x16",
-			},
-		],
-		apple: "/favicons/favicon-16x16.png",
-	},
 };
 
 export default function RootLayout({

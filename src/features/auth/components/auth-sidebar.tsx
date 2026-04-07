@@ -53,10 +53,10 @@ function AuthSidebar() {
 					</div>
 					<div className="flex items-baseline">
 						<span className="text-lg font-medium tracking-wide text-white">
-							D
+							Dinheir
 						</span>
 						<span className="text-lg tracking-wide text-white font-bold">
-							inheir{"{IN}"}
+							{"{IN}"}
 						</span>
 					</div>
 				</div>

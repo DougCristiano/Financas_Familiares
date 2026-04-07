@@ -22,7 +22,7 @@ export function Logo({
 				<div className="relative size-8 shrink-0">
 					<Image
 						src="/images/logo_icon.png"
-						alt="f{IN}anças"
+						alt="Dinheir{IN}"
 						fill
 						sizes="32px"
 						className="object-contain"
@@ -31,12 +31,9 @@ export function Logo({
 				</div>
 				<div className="flex items-baseline shrink-0">
 					<span className={cn("text-sm font-medium tracking-wide", textBase)}>
-						f
+						Dinheir
 					</span>
 					<span className={cn("text-sm tracking-wide", textIN)}>{"{IN}"}</span>
-					<span className={cn("text-sm font-medium tracking-wide", textBase)}>
-						anças
-					</span>
 				</div>
 			</div>
 		);
@@ -47,7 +44,7 @@ export function Logo({
 			<div className={cn("relative size-8 shrink-0", className)}>
 				<Image
 					src="/images/logo_icon.png"
-					alt="f{IN}anças"
+					alt="Dinheir{IN}"
 					fill
 					sizes="32px"
 					className="object-contain"
@@ -62,7 +59,7 @@ export function Logo({
 			<div className="relative size-9 shrink-0">
 				<Image
 					src="/images/logo_icon.png"
-					alt="f{IN}anças"
+					alt="Dinheir{IN}"
 					fill
 					sizes="36px"
 					className="object-contain"
@@ -71,12 +68,9 @@ export function Logo({
 			</div>
 			<div className="flex items-baseline">
 				<span className={cn("text-base font-medium tracking-wide", textBase)}>
-					f
+					Dinheir
 				</span>
 				<span className={cn("text-base tracking-wide", textIN)}>{"{IN}"}</span>
-				<span className={cn("text-base font-medium tracking-wide", textBase)}>
-					anças
-				</span>
 			</div>
 		</div>
 	);
