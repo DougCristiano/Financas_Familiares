@@ -30,7 +30,8 @@ export async function AppNavbar({
 	return (
 		<NavbarShell logoHref="/dashboard" fixed>
 			<NavMenu />
-			<div className="flex items-center gap-1">
+			{/* Grupo direito: empurrado para a direita no mobile via ml-auto; no desktop o ml-auto já fica na nav */}
+			<div className="ml-auto nav:ml-0 flex items-center gap-1">
 				<NotificationBell
 					notifications={notificationsSnapshot.notifications}
 					unreadCount={notificationsSnapshot.unreadCount}
@@ -40,12 +41,12 @@ export async function AppNavbar({
 				/>
 				<RefreshPageButton variant="navbar" />
 				<AnimatedThemeToggler variant="navbar" />
+				<NavbarUser
+					user={user}
+					pagadorAvatarUrl={pagadorAvatarUrl}
+					updateCheck={updateCheck}
+				/>
 			</div>
-			<NavbarUser
-				user={user}
-				pagadorAvatarUrl={pagadorAvatarUrl}
-				updateCheck={updateCheck}
-			/>
 		</NavbarShell>
 	);
 }

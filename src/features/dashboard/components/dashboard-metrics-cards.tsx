@@ -134,7 +134,7 @@ const getTrendBadgeClass = (trend: Trend, invertTrend: boolean): string => {
 
 export function DashboardMetricsCards({ metrics }: DashboardMetricsCardsProps) {
 	return (
-		<div className="grid grid-cols-1 gap-3 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+		<div className="grid grid-cols-1 gap-3 2xl:gap-4 3xl:gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{CARDS.map(
 				({
 					label,

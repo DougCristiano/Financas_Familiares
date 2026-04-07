@@ -4,7 +4,11 @@
 
 @theme {
   --spacing-custom-height-card: 29rem;
-  --spacing-8xl: 90rem;
+  --spacing-8xl: 90rem;    /* 1440px - desktop padrão */
+  --spacing-9xl: 112.5rem; /* 1800px - 2K */
+  --spacing-10xl: 150rem;  /* 2400px - 4K */
+  --breakpoint-3xl: 120rem;      /* 1920px - viewport 2K+ */
+  --breakpoint-nav: 58.125rem;   /* 930px  - breakpoint navbar desktop/mobile */
 }
 
 :root {
@@ -296,6 +300,19 @@
   to {
     opacity: 0;
     transform: scale(0.96);
+  }
+}
+
+/* Escala tipográfica para monitores grandes */
+@media (min-width: 2560px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 3840px) {
+  html {
+    font-size: 19px;
   }
 }
 

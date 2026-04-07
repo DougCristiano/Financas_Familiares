@@ -246,7 +246,7 @@ export function DashboardGridEditable({
 					items={orderedWidgets.map((w) => w.id)}
 					strategy={rectSortingStrategy}
 				>
-					<section className="grid grid-cols-1 gap-3 @4xl/main:grid-cols-2 @6xl/main:grid-cols-3">
+					<section className="grid grid-cols-1 gap-3 @4xl/main:grid-cols-2 @6xl/main:grid-cols-3 @9xl/main:grid-cols-4">
 						{orderedWidgets.map((widget) => (
 							<SortableWidget
 								key={widget.id}

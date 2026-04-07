@@ -35,7 +35,7 @@ export default async function DashboardLayout({
 					<div className="absolute inset-0 bg-linear-to-b from-primary/6 to-transparent" />
 				</div>
 				<div className="@container/main flex flex-1 flex-col gap-2 relative z-10">
-					<div className="flex flex-col gap-4 py-5 md:gap-6 w-full max-w-8xl mx-auto px-4 ">
+					<div className="flex flex-col gap-4 py-5 md:gap-6 w-full max-w-8xl 2xl:max-w-9xl 3xl:max-w-10xl mx-auto px-4 2xl:px-8 3xl:px-12">
 						{children}
 					</div>
 				</div>

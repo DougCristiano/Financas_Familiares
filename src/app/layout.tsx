@@ -14,8 +14,14 @@ export const metadata: Metadata = {
 	description:
 		"Controle suas finanças pessoais de forma simples e transparente.",
 	icons: {
-		icon: "/logocorreto.png",
-		apple: "/logocorreto.png",
+		icon: [
+			{
+				url: "/favicons/favicon-16x16.png",
+				type: "image/png",
+				sizes: "16x16",
+			},
+		],
+		apple: "/favicons/favicon-16x16.png",
 	},
 };
 
@@ -32,6 +38,12 @@ export default function RootLayout({
 			suppressHydrationWarning
 		>
 			<head>
+				<link
+					rel="icon"
+					type="image/png"
+					sizes="16x16"
+					href="/favicons/favicon-16x16.png"
+				/>
 				<meta name="apple-mobile-web-app-title" content="OpenMonetis" />
 				{process.env.UMAMI_URL && process.env.UMAMI_WEBSITE_ID && (
 					<script

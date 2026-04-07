@@ -18,7 +18,7 @@ export function NavbarShell({
 		<header
 			className={`${positionClass} z-[60] flex h-14 shrink-0 items-center bg-primary border-b border-white/10`}
 		>
-			<div className="relative z-10 mx-auto flex h-full w-full max-w-8xl items-center gap-3 px-4">
+			<div className="relative z-10 mx-auto flex h-full w-full max-w-8xl 2xl:max-w-9xl 3xl:max-w-10xl items-center gap-3 px-4 2xl:px-8 3xl:px-12">
 				{logoHref ? (
 					<Link href={logoHref} className="shrink-0">
 						<Logo variant="compact" white />
