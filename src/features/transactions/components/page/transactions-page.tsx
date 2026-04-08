@@ -660,9 +660,8 @@ export function TransactionsPage({
 			<ConfirmActionDialog
 				open={multipleBulkDeleteOpen && pendingMultipleDeleteData.length > 0}
 				onOpenChange={setMultipleBulkDeleteOpen}
-				title={`Remover ${pendingMultipleDeleteData.length} ${
-					pendingMultipleDeleteData.length === 1 ? "lançamento" : "lançamentos"
-				}?`}
+				title={`Remover ${pendingMultipleDeleteData.length} ${pendingMultipleDeleteData.length === 1 ? "lançamento" : "lançamentos"
+					}?`}
 				description="Essa ação é irreversível e removerá os lançamentos selecionados de forma permanente."
 				confirmLabel="Remover"
 				pendingLabel="Removendo..."
