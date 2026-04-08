@@ -60,6 +60,7 @@ interface TransactionsPageProps {
 	columnOrder?: string[] | null;
 	defaultCardId?: string | null;
 	defaultPaymentMethod?: string | null;
+	defaultPurchaseDate?: string | null;
 	lockCardSelection?: boolean;
 	lockPaymentMethod?: boolean;
 	pagination?: TransactionsPaginationState;
@@ -93,6 +94,7 @@ export function TransactionsPage({
 	columnOrder = null,
 	defaultCardId,
 	defaultPaymentMethod,
+	defaultPurchaseDate,
 	lockCardSelection,
 	lockPaymentMethod,
 	pagination,
@@ -482,9 +484,14 @@ export function TransactionsPage({
 					defaultPeriod={selectedPeriod}
 					defaultCardId={defaultCardId}
 					defaultPaymentMethod={defaultPaymentMethod}
+					defaultPurchaseDate={defaultPurchaseDate}
 					lockCardSelection={lockCardSelection}
 					lockPaymentMethod={lockPaymentMethod}
 					defaultTransactionType={transactionTypeForCreate ?? undefined}
+					onSuccess={() => {
+						// Revalidation is handled server-side via the action,
+						// this callback ensures any client-side state is managed
+					}}
 					maxSizeMb={attachmentMaxSizeMb}
 				/>
 			) : null}
@@ -507,6 +514,10 @@ export function TransactionsPage({
 				estabelecimentos={estabelecimentos}
 				transaction={transactionToCopy ?? undefined}
 				defaultPeriod={selectedPeriod}
+				onSuccess={() => {
+					// Revalidation is handled server-side via the action,
+					// this callback ensures any client-side state is managed
+				}}
 				maxSizeMb={attachmentMaxSizeMb}
 			/>
 
@@ -529,6 +540,10 @@ export function TransactionsPage({
 				transaction={transactionToImport ?? undefined}
 				defaultPeriod={selectedPeriod}
 				isImporting={true}
+				onSuccess={() => {
+					// Revalidation is handled server-side via the action,
+					// this callback ensures any client-side state is managed
+				}}
 				maxSizeMb={attachmentMaxSizeMb}
 			/>
 

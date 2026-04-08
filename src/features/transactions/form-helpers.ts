@@ -1,6 +1,11 @@
 import type { TransactionItem } from "@/features/transactions/components/types";
 import { getTodayDateString } from "@/shared/utils/date";
-import { derivePeriodFromDate, getNextPeriod } from "@/shared/utils/period";
+import {
+	addMonthsToPeriod,
+	derivePeriodFromDate,
+	getNextPeriod,
+	parsePeriod,
+} from "@/shared/utils/period";
 import {
 	PAYMENT_METHODS,
 	TRANSACTION_CONDITIONS,
@@ -58,6 +63,48 @@ export function deriveCreditCardPeriod(
 	}
 
 	return period;
+}
+
+function buildDateFromPeriod(period: string, day: number): string {
+	const { year, month } = parsePeriod(period);
+	const daysInMonth = new Date(year, month, 0).getDate();
+	const safeDay = Math.min(Math.max(day, 1), daysInMonth);
+	return `${period}-${String(safeDay).padStart(2, "0")}`;
+}
+
+/**
+ * Derives a purchase date that maps to the target invoice period for a card.
+ * Useful when opening "Nova Despesa" from a specific invoice period so the
+ * created transaction appears in the same invoice by default.
+ */
+export function derivePurchaseDateForCardPeriod(
+	targetPeriod: string,
+	closingDay: string | null | undefined,
+	dueDay?: string | null | undefined,
+): string {
+	if (!/^(\d{4})-(\d{2})$/.test(targetPeriod)) {
+		return getTodayDateString();
+	}
+
+	const offsets = [-3, -2, -1, 0, 1, 2];
+
+	for (const offset of offsets) {
+		const candidatePeriod = addMonthsToPeriod(targetPeriod, offset);
+		const { year, month } = parsePeriod(candidatePeriod);
+		const daysInMonth = new Date(year, month, 0).getDate();
+
+		for (let day = 1; day <= daysInMonth; day += 1) {
+			const candidateDate = buildDateFromPeriod(candidatePeriod, day);
+			if (
+				deriveCreditCardPeriod(candidateDate, closingDay, dueDay) ===
+				targetPeriod
+			) {
+				return candidateDate;
+			}
+		}
+	}
+
+	return `${targetPeriod}-01`;
 }
 
 /**

@@ -12,6 +12,7 @@ import {
 } from "@/features/invoices/queries";
 import { fetchUserPreferences } from "@/features/settings/queries";
 import { TransactionsPage as LancamentosSection } from "@/features/transactions/components/page/transactions-page";
+import { derivePurchaseDateForCardPeriod } from "@/features/transactions/form-helpers";
 import {
 	buildOptionSets,
 	buildSluggedFilters,
@@ -144,6 +145,11 @@ export default async function Page({ params, searchParams }: PageProps) {
 	const periodLabel = `${monthName.charAt(0).toUpperCase()}${monthName.slice(
 		1,
 	)} de ${year}`;
+	const defaultPurchaseDate = derivePurchaseDateForCardPeriod(
+		selectedPeriod,
+		card.closingDay,
+		card.dueDay,
+	);
 
 	return (
 		<main className="flex flex-col gap-6">
@@ -207,6 +213,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 					attachmentMaxSizeMb={userPreferences?.attachmentMaxSizeMb ?? 50}
 					defaultCardId={card.id}
 					defaultPaymentMethod="Cartão de crédito"
+					defaultPurchaseDate={defaultPurchaseDate}
 					lockCardSelection
 					lockPaymentMethod
 				/>
