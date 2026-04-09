@@ -29,7 +29,7 @@ import { NavPill } from "./nav-pill";
 import { MobileTools, NavToolsDropdown } from "./nav-tools";
 
 const triggerClass =
-	"h-auto! px-0! py-0! pb-0.5! bg-transparent! shadow-none! rounded-none! lowercase! text-sm! font-medium! text-white/75! hover:text-white! hover:bg-transparent! focus:bg-transparent! data-[state=open]:text-white! data-[state=open]:bg-transparent! border-b-2! border-transparent! hover:border-white/60! data-[state=open]:border-white! focus-visible:ring-0! [&>svg:last-child]:size-3! [&>svg:last-child]:opacity-60! [&>svg:last-child]:ml-0.5! transition-colors!";
+	"h-auto! px-0! py-0! pb-0.5! bg-transparent! shadow-none! rounded-none! lowercase! text-sm! font-medium! text-white/75! hover:text-white! hover:bg-transparent! focus:bg-transparent! data-[state=open]:text-white! data-[state=open]:bg-transparent! relative! data-[state=open]:border-b-2! data-[state=open]:border-white! focus-visible:ring-0! [&>svg:last-child]:size-3! [&>svg:last-child]:opacity-60! [&>svg:last-child]:ml-0.5! transition-colors! after:absolute! after:bottom-0! after:left-0! after:h-0.5! after:w-full! after:bg-white! after:scale-x-0! hover:after:scale-x-100! data-[state=open]:after:scale-x-100! after:origin-left! after:transition-transform! after:duration-300!";
 
 const triggerActiveClass = "text-white! border-white!";
 
@@ -80,7 +80,7 @@ export function NavMenu() {
 							<NavigationMenuTrigger className={triggerClass}>
 								Ferramentas
 							</NavigationMenuTrigger>
-							<NavigationMenuContent>
+							<NavigationMenuContent className="group-data-[viewport=false]/navigation-menu:right-0 group-data-[viewport=false]/navigation-menu:left-auto">
 								<NavToolsDropdown onOpenCalculator={openCalculator} />
 							</NavigationMenuContent>
 						</NavigationMenuItem>

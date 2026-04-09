@@ -1,7 +1,7 @@
 "use client";
 import {
 	RiArrowLeftRightLine,
-	RiDeleteBin5Line,
+	RiCloseLine,
 	RiFileList2Line,
 	RiInformationLine,
 	RiPencilLine,
@@ -52,30 +52,36 @@ export function AccountCard({
 			label: "editar",
 			icon: <RiPencilLine className="size-4" aria-hidden />,
 			onClick: onEdit,
-			variant: "default" as const,
+			className:
+				"bg-amber-600 hover:bg-amber-700 text-white rounded px-3 py-1.5",
 		},
 		{
 			label: "extrato",
 			icon: <RiFileList2Line className="size-4" aria-hidden />,
 			onClick: onViewStatement,
-			variant: "default" as const,
+			className: "bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1.5",
 		},
 		{
 			label: "transferir",
 			icon: <RiArrowLeftRightLine className="size-4" aria-hidden />,
 			onClick: onTransfer,
-			variant: "default" as const,
-		},
-		{
-			label: "remover",
-			icon: <RiDeleteBin5Line className="size-4" aria-hidden />,
-			onClick: onRemove,
-			variant: "destructive" as const,
+			className:
+				"bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1.5",
 		},
 	].filter((action) => typeof action.onClick === "function");
 
 	return (
-		<Card className={cn("h-full w-full gap-0", className)}>
+		<Card className={cn("h-full w-full gap-0 relative", className)}>
+			{onRemove && (
+				<button
+					type="button"
+					onClick={onRemove}
+					className="absolute top-1 right-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition-colors"
+					aria-label="Remover conta"
+				>
+					<RiCloseLine className="size-5" aria-hidden />
+				</button>
+			)}
 			<CardContent className="flex flex-1 flex-col gap-4">
 				<div className="flex items-center gap-2">
 					{icon ? (
@@ -129,15 +135,15 @@ export function AccountCard({
 			</CardContent>
 
 			{actions.length > 0 ? (
-				<CardFooter className="flex flex-wrap gap-3 px-6 pt-6 text-sm">
-					{actions.map(({ label, icon, onClick, variant }) => (
+				<CardFooter className="flex flex-wrap gap-3 px-6 pt-6 text-sm justify-between">
+					{actions.map(({ label, icon, onClick, className }) => (
 						<button
 							key={label}
 							type="button"
 							onClick={onClick}
 							className={cn(
-								"flex items-center gap-1 font-medium transition-opacity hover:opacity-80",
-								variant === "destructive" ? "text-destructive" : "text-primary",
+								"flex items-center gap-1.5 font-medium transition-colors capitalize",
+								className,
 							)}
 							aria-label={`${label} conta`}
 						>

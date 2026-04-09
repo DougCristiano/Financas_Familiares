@@ -25,18 +25,18 @@ export function NavDropdown({ items }: NavDropdownProps) {
 							href={item.href}
 							preservePeriod={item.preservePeriod}
 							className={cn(
-								"group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all",
+								"group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:scale-[1.01] border-l-2 border-transparent hover:border-primary",
 								isActive
-									? "bg-primary/8 text-foreground"
-									: "text-foreground hover:bg-accent",
+									? "bg-primary/8 text-foreground border-l-primary"
+									: "text-foreground hover:bg-primary/15",
 							)}
 						>
 							<span
 								className={cn(
 									"size-9 rounded-lg flex items-center justify-center shrink-0 transition-all",
 									isActive
-										? "bg-primary text-primary-foreground shadow-sm"
-										: "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-sm",
+										? "bg-primary text-white shadow-sm"
+										: "bg-primary/15 text-white/70 group-hover:bg-primary group-hover:text-white group-hover:shadow-sm",
 								)}
 							>
 								{item.icon}

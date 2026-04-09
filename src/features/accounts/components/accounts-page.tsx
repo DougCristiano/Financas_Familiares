@@ -115,7 +115,7 @@ export function AccountsPage({
 					<EmptyState
 						media={<RiBankLine className="size-6 text-primary" />}
 						title={
-							isArchived ? "Nenhuma conta archived" : "Nenhuma conta cadastrada"
+							isArchived ? "Nenhuma conta arquivada!" : "Nenhuma conta cadastrada!"
 						}
 						description={
 							isArchived
@@ -175,7 +175,7 @@ export function AccountsPage({
 						mode="create"
 						logoOptions={logoOptions}
 						trigger={
-							<Button className="w-full sm:w-auto">
+							<Button className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700">
 								<RiAddFill className="size-4" />
 								Nova conta
 							</Button>

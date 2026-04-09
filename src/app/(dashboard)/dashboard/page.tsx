@@ -28,8 +28,12 @@ export default async function Page({ searchParams }: PageProps) {
 
 	return (
 		<main className="flex flex-col gap-4">
-			<DashboardWelcome name={user.name} />
-			<MonthNavigation />
+			<div className="flex items-start justify-between gap-4">
+				<DashboardWelcome name={user.name} />
+				<div className="flex-shrink-0">
+					<MonthNavigation />
+				</div>
+			</div>
 			<QuickActionButtons
 				period={selectedPeriod}
 				quickActionOptions={quickActionOptions}

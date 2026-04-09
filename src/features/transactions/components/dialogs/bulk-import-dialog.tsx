@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { createTransactionAction } from "@/features/transactions/actions";
 import { groupAndSortCategories } from "@/features/transactions/category-helpers";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
@@ -23,6 +24,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/shared/components/ui/select";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import {
 	AccountCardSelectContent,
 	CategorySelectContent,
@@ -60,16 +62,40 @@ export function BulkImportDialog({
 	const [isPending, startTransition] = useTransition();
 	type CreateTransactionInput = Parameters<typeof createTransactionAction>[0];
 
-	// Reset form when dialog opens/closes
-	const handleOpenChange = (newOpen: boolean) => {
-		if (!newOpen) {
-			setPagadorId(defaultPayerId ?? undefined);
-			setCategoriaId(undefined);
-			setContaId(undefined);
-			setCartaoId(undefined);
-		}
-		onOpenChange(newOpen);
-	};
+	const resetSelection = useCallback(() => {
+		setPagadorId(defaultPayerId ?? undefined);
+		setCategoriaId(undefined);
+		setContaId(undefined);
+		setCartaoId(undefined);
+	}, [defaultPayerId]);
+
+	const setDialogOpen = useCallback(
+		(newOpen: boolean) => {
+			if (!newOpen) {
+				resetSelection();
+			}
+			onOpenChange(newOpen);
+		},
+		[onOpenChange, resetSelection],
+	);
+
+	const hasUnsavedChanges =
+		payerId !== (defaultPayerId ?? undefined) ||
+		categoryId !== undefined ||
+		accountId !== undefined ||
+		cardId !== undefined;
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending,
+		setDialogOpen,
+	});
 
 	const categoryGroups = useMemo(() => {
 		// Get unique transaction types from items
@@ -164,13 +190,12 @@ export function BulkImportDialog({
 
 			if (errorCount === 0) {
 				toast.success(
-					`${successCount} ${
-						successCount === 1
-							? "lançamento importado"
-							: "lançamentos importados"
+					`${successCount} ${successCount === 1
+						? "lançamento importado"
+						: "lançamentos importados"
 					} com sucesso!`,
 				);
-				handleOpenChange(false);
+				closeWithoutConfirmation();
 			} else if (successCount > 0) {
 				toast.warning(
 					`${successCount} importados, ${errorCount} falharam. Verifique o console para detalhes.`,
@@ -190,178 +215,196 @@ export function BulkImportDialog({
 	);
 
 	return (
-		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>Importar Lançamentos</DialogTitle>
-					<DialogDescription>
-						Importando {itemCount}{" "}
-						{itemCount === 1 ? "lançamento" : "lançamentos"}. Selecione o
-						pagador, categoria e forma de pagamento para aplicar a todos.
-					</DialogDescription>
-				</DialogHeader>
+		<>
+			<Dialog open={open} onOpenChange={handleDialogOpenChange}>
+				<DialogContent
+					className="sm:max-w-md"
+					onEscapeKeyDown={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+				>
+					<DialogHeader>
+						<DialogTitle>Importar Lançamentos</DialogTitle>
+						<DialogDescription>
+							Importando {itemCount}{" "}
+							{itemCount === 1 ? "lançamento" : "lançamentos"}. Selecione o
+							pagador, categoria e forma de pagamento para aplicar a todos.
+						</DialogDescription>
+					</DialogHeader>
 
-				<form className="space-y-4" onSubmit={handleSubmit}>
-					<div className="space-y-2">
-						<Label htmlFor="pagador">Pagador *</Label>
-						<Select value={payerId} onValueChange={setPagadorId}>
-							<SelectTrigger id="pagador" className="w-full">
-								<SelectValue placeholder="Selecione o pagador">
-									{payerId &&
-										(() => {
-											const selectedOption = payerOptions.find(
-												(opt) => opt.value === payerId,
-											);
-											return selectedOption ? (
-												<PayerSelectContent
-													label={selectedOption.label}
-													avatarUrl={selectedOption.avatarUrl}
-												/>
-											) : null;
-										})()}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								{payerOptions.map((option) => (
-									<SelectItem key={option.value} value={option.value}>
-										<PayerSelectContent
-											label={option.label}
-											avatarUrl={option.avatarUrl}
-										/>
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+					<form className="space-y-4" onSubmit={handleSubmit}>
+						<div className="space-y-2">
+							<Label htmlFor="pagador">Pagador *</Label>
+							<Select value={payerId} onValueChange={setPagadorId}>
+								<SelectTrigger id="pagador" className="w-full">
+									<SelectValue placeholder="Selecione o pagador">
+										{payerId &&
+											(() => {
+												const selectedOption = payerOptions.find(
+													(opt) => opt.value === payerId,
+												);
+												return selectedOption ? (
+													<PayerSelectContent
+														label={selectedOption.label}
+														avatarUrl={selectedOption.avatarUrl}
+													/>
+												) : null;
+											})()}
+									</SelectValue>
+								</SelectTrigger>
+								<SelectContent>
+									{payerOptions.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											<PayerSelectContent
+												label={option.label}
+												avatarUrl={option.avatarUrl}
+											/>
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="categoria">Categoria *</Label>
-						<Select value={categoryId} onValueChange={setCategoriaId}>
-							<SelectTrigger id="categoria" className="w-full">
-								<SelectValue placeholder="Selecione a categoria">
-									{categoryId &&
-										(() => {
-											const selectedOption = categoryOptions.find(
-												(opt) => opt.value === categoryId,
-											);
-											return selectedOption ? (
-												<CategorySelectContent
-													label={selectedOption.label}
-													icon={selectedOption.icon}
-												/>
-											) : null;
-										})()}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								{categoryGroups.map((group) => (
-									<SelectGroup key={group.label}>
-										<SelectLabel>{group.label}</SelectLabel>
-										{group.options.map((option) => (
+						<div className="space-y-2">
+							<Label htmlFor="categoria">Categoria *</Label>
+							<Select value={categoryId} onValueChange={setCategoriaId}>
+								<SelectTrigger id="categoria" className="w-full">
+									<SelectValue placeholder="Selecione a categoria">
+										{categoryId &&
+											(() => {
+												const selectedOption = categoryOptions.find(
+													(opt) => opt.value === categoryId,
+												);
+												return selectedOption ? (
+													<CategorySelectContent
+														label={selectedOption.label}
+														icon={selectedOption.icon}
+													/>
+												) : null;
+											})()}
+									</SelectValue>
+								</SelectTrigger>
+								<SelectContent>
+									{categoryGroups.map((group) => (
+										<SelectGroup key={group.label}>
+											<SelectLabel>{group.label}</SelectLabel>
+											{group.options.map((option) => (
+												<SelectItem key={option.value} value={option.value}>
+													<CategorySelectContent
+														label={option.label}
+														icon={option.icon}
+													/>
+												</SelectItem>
+											))}
+										</SelectGroup>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						{hasNonCredit && (
+							<div className="space-y-2">
+								<Label htmlFor="conta">
+									Conta {hasCredit ? "(para não cartão)" : "*"}
+								</Label>
+								<Select value={accountId} onValueChange={setContaId}>
+									<SelectTrigger id="conta" className="w-full">
+										<SelectValue placeholder="Selecione a conta">
+											{accountId &&
+												(() => {
+													const selectedOption = accountOptions.find(
+														(opt) => opt.value === accountId,
+													);
+													return selectedOption ? (
+														<AccountCardSelectContent
+															label={selectedOption.label}
+															logo={selectedOption.logo}
+															isCartao={false}
+														/>
+													) : null;
+												})()}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										{accountOptions.map((option) => (
 											<SelectItem key={option.value} value={option.value}>
-												<CategorySelectContent
+												<AccountCardSelectContent
 													label={option.label}
-													icon={option.icon}
+													logo={option.logo}
+													isCartao={false}
 												/>
 											</SelectItem>
 										))}
-									</SelectGroup>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+									</SelectContent>
+								</Select>
+							</div>
+						)}
 
-					{hasNonCredit && (
-						<div className="space-y-2">
-							<Label htmlFor="conta">
-								Conta {hasCredit ? "(para não cartão)" : "*"}
-							</Label>
-							<Select value={accountId} onValueChange={setContaId}>
-								<SelectTrigger id="conta" className="w-full">
-									<SelectValue placeholder="Selecione a conta">
-										{accountId &&
-											(() => {
-												const selectedOption = accountOptions.find(
-													(opt) => opt.value === accountId,
-												);
-												return selectedOption ? (
-													<AccountCardSelectContent
-														label={selectedOption.label}
-														logo={selectedOption.logo}
-														isCartao={false}
-													/>
-												) : null;
-											})()}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									{accountOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											<AccountCardSelectContent
-												label={option.label}
-												logo={option.logo}
-												isCartao={false}
-											/>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-					)}
+						{hasCredit && (
+							<div className="space-y-2">
+								<Label htmlFor="cartao">
+									Cartão {hasNonCredit ? "(para cartão de crédito)" : "*"}
+								</Label>
+								<Select value={cardId} onValueChange={setCartaoId}>
+									<SelectTrigger id="cartao" className="w-full">
+										<SelectValue placeholder="Selecione o cartão">
+											{cardId &&
+												(() => {
+													const selectedOption = cardOptions.find(
+														(opt) => opt.value === cardId,
+													);
+													return selectedOption ? (
+														<AccountCardSelectContent
+															label={selectedOption.label}
+															logo={selectedOption.logo}
+															isCartao={true}
+														/>
+													) : null;
+												})()}
+										</SelectValue>
+									</SelectTrigger>
+									<SelectContent>
+										{cardOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												<AccountCardSelectContent
+													label={option.label}
+													logo={option.logo}
+													isCartao={true}
+												/>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						)}
 
-					{hasCredit && (
-						<div className="space-y-2">
-							<Label htmlFor="cartao">
-								Cartão {hasNonCredit ? "(para cartão de crédito)" : "*"}
-							</Label>
-							<Select value={cardId} onValueChange={setCartaoId}>
-								<SelectTrigger id="cartao" className="w-full">
-									<SelectValue placeholder="Selecione o cartão">
-										{cardId &&
-											(() => {
-												const selectedOption = cardOptions.find(
-													(opt) => opt.value === cardId,
-												);
-												return selectedOption ? (
-													<AccountCardSelectContent
-														label={selectedOption.label}
-														logo={selectedOption.logo}
-														isCartao={true}
-													/>
-												) : null;
-											})()}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									{cardOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											<AccountCardSelectContent
-												label={option.label}
-												logo={option.logo}
-												isCartao={true}
-											/>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-					)}
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={requestClose}
+								disabled={isPending}
+							>
+								Cancelar
+							</Button>
+							<Button type="submit" disabled={isPending}>
+								{isPending ? "Importando..." : "Importar"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => handleOpenChange(false)}
-							disabled={isPending}
-						>
-							Cancelar
-						</Button>
-						<Button type="submit" disabled={isPending}>
-							{isPending ? "Importando..." : "Importar"}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
+		</>
 	);
 }

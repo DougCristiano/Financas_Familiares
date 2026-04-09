@@ -8,6 +8,7 @@ import {
 } from "@/features/budgets/actions";
 import { CategoryIcon } from "@/features/categories/components/category-icon";
 import { PeriodPicker } from "@/shared/components/period-picker";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
@@ -28,6 +29,7 @@ import {
 } from "@/shared/components/ui/select";
 import { Slider } from "@/shared/components/ui/slider";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { useFormState } from "@/shared/hooks/use-form-state";
 import { formatCurrency } from "@/shared/utils/currency";
 
@@ -87,6 +89,23 @@ export function BudgetDialog({
 	const { formState, resetForm, updateField } =
 		useFormState<BudgetFormValues>(initialState);
 
+	const hasUnsavedChanges = useMemo(
+		() => JSON.stringify(formState) !== JSON.stringify(initialState),
+		[formState, initialState],
+	);
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending,
+		setDialogOpen,
+	});
+
 	// Reset form when dialog opens
 	useEffect(() => {
 		if (dialogOpen) {
@@ -145,13 +164,13 @@ export function BudgetDialog({
 				mode === "create"
 					? await createBudgetAction(payload)
 					: await updateBudgetAction({
-							id: budget?.id ?? "",
-							...payload,
-						});
+						id: budget?.id ?? "",
+						...payload,
+					});
 
 			if (result.success) {
 				toast.success(result.message);
-				setDialogOpen(false);
+				closeWithoutConfirmation();
 				resetForm(initialState);
 				return;
 			}
@@ -180,116 +199,135 @@ export function BudgetDialog({
 	);
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-			{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>{title}</DialogTitle>
-					<DialogDescription>{description}</DialogDescription>
-				</DialogHeader>
+		<>
+			<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+				{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+				<DialogContent
+					onEscapeKeyDown={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+				>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription>{description}</DialogDescription>
+					</DialogHeader>
 
-				{disabled ? (
-					<div className="space-y-4">
-						<div className="rounded-lg border border-dashed bg-muted/10 p-4 text-sm text-muted-foreground">
-							Cadastre pelo menos uma categoria de despesa para criar um
-							orçamento.
-						</div>
-						<DialogFooter>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => setDialogOpen(false)}
-							>
-								Fechar
-							</Button>
-						</DialogFooter>
-					</div>
-				) : (
-					<form className="space-y-4" onSubmit={handleSubmit}>
-						<div className="space-y-2">
-							<Label htmlFor="budget-category">Categoria</Label>
-							<Select
-								value={formState.categoryId}
-								onValueChange={(value) => updateField("categoryId", value)}
-							>
-								<SelectTrigger id="budget-category" className="w-full">
-									<SelectValue placeholder="Selecione uma categoria" />
-								</SelectTrigger>
-								<SelectContent>
-									{categories.map((category) => (
-										<SelectItem key={category.id} value={category.id}>
-											<CategoryIcon
-												name={category.icon ?? undefined}
-												className="size-4"
-											/>
-											<span>{category.name}</span>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-
+					{disabled ? (
 						<div className="space-y-4">
+							<div className="rounded-lg border border-dashed bg-muted/10 p-4 text-sm text-muted-foreground">
+								Cadastre pelo menos uma categoria de despesa para criar um
+								orçamento.
+							</div>
+							<DialogFooter>
+								<Button type="button" variant="outline" onClick={requestClose}>
+									Fechar
+								</Button>
+							</DialogFooter>
+						</div>
+					) : (
+						<form className="space-y-4" onSubmit={handleSubmit}>
 							<div className="space-y-2">
-								<Label htmlFor="budget-period">Período</Label>
-								<PeriodPicker
-									value={formState.period}
-									onChange={(value) => updateField("period", value)}
-									className="w-full"
-								/>
+								<Label htmlFor="budget-category">Categoria</Label>
+								<Select
+									value={formState.categoryId}
+									onValueChange={(value) => updateField("categoryId", value)}
+								>
+									<SelectTrigger id="budget-category" className="w-full">
+										<SelectValue placeholder="Selecione uma categoria" />
+									</SelectTrigger>
+									<SelectContent>
+										{categories.map((category) => (
+											<SelectItem key={category.id} value={category.id}>
+												<CategoryIcon
+													name={category.icon ?? undefined}
+													className="size-4"
+												/>
+												<span>{category.name}</span>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="budget-amount">Valor limite</Label>
-								<div className="space-y-3 rounded-md border p-3">
-									<div className="flex items-center justify-between text-sm">
-										<span className="text-muted-foreground">Limite atual</span>
-										<span className="font-medium text-foreground">
-											{formatCurrency(sliderValue)}
-										</span>
-									</div>
-
-									<Slider
-										id="budget-amount"
-										value={[sliderValue]}
-										min={0}
-										max={sliderMax}
-										step={10}
-										onValueChange={(value) =>
-											updateField("amount", value[0]?.toFixed(2) ?? "0.00")
-										}
+							<div className="space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor="budget-period">Período</Label>
+									<PeriodPicker
+										value={formState.period}
+										onChange={(value) => updateField("period", value)}
+										className="w-full"
 									/>
+								</div>
 
-									<div className="flex items-center justify-between text-xs text-muted-foreground">
-										<span>{formatCurrency(0)}</span>
-										<span>{formatCurrency(sliderMax)}</span>
+								<div className="space-y-2">
+									<Label htmlFor="budget-amount">Valor limite</Label>
+									<div className="space-y-3 rounded-md border p-3">
+										<div className="flex items-center justify-between text-sm">
+											<span className="text-muted-foreground">
+												Limite atual
+											</span>
+											<span className="font-medium text-foreground">
+												{formatCurrency(sliderValue)}
+											</span>
+										</div>
+
+										<Slider
+											id="budget-amount"
+											value={[sliderValue]}
+											min={0}
+											max={sliderMax}
+											step={10}
+											onValueChange={(value) =>
+												updateField("amount", value[0]?.toFixed(2) ?? "0.00")
+											}
+										/>
+
+										<div className="flex items-center justify-between text-xs text-muted-foreground">
+											<span>{formatCurrency(0)}</span>
+											<span>{formatCurrency(sliderMax)}</span>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
 
-						{errorMessage ? (
-							<p className="text-sm font-medium text-destructive">
-								{errorMessage}
-							</p>
-						) : null}
+							{errorMessage ? (
+								<p className="text-sm font-medium text-destructive">
+									{errorMessage}
+								</p>
+							) : null}
 
-						<DialogFooter>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => setDialogOpen(false)}
-								disabled={isPending}
-							>
-								Cancelar
-							</Button>
-							<Button type="submit" disabled={isPending}>
-								{isPending ? "Salvando..." : submitLabel}
-							</Button>
-						</DialogFooter>
-					</form>
-				)}
-			</DialogContent>
-		</Dialog>
+							<DialogFooter>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={requestClose}
+									disabled={isPending}
+								>
+									Cancelar
+								</Button>
+								<Button
+									type="submit"
+									disabled={isPending}
+									className="text-white"
+								>
+									{isPending ? "Salvando..." : submitLabel}
+								</Button>
+							</DialogFooter>
+						</form>
+					)}
+				</DialogContent>
+			</Dialog>
+
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
+		</>
 	);
 }

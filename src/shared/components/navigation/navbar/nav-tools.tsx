@@ -17,10 +17,10 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 			<li>
 				<button
 					type="button"
-					className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-foreground hover:bg-accent"
+					className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-foreground hover:bg-primary/15 hover:scale-[1.01] border-l-2 border-transparent hover:border-primary"
 					onClick={onOpenCalculator}
 				>
-					<span className="size-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-sm transition-all">
+					<span className="size-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/15 text-white/70 group-hover:bg-primary group-hover:text-white group-hover:shadow-sm transition-all">
 						<RiCalculatorLine className="size-4" />
 					</span>
 					<span className="flex flex-col flex-1 text-left">
@@ -37,14 +37,14 @@ export function NavToolsDropdown({ onOpenCalculator }: NavToolsDropdownProps) {
 				<button
 					type="button"
 					onClick={toggle}
-					className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-foreground hover:bg-accent"
+					className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-all text-foreground hover:bg-primary/15 hover:scale-[1.01] border-l-2 border-transparent hover:border-primary"
 				>
 					<span
 						className={cn(
 							"size-9 rounded-lg flex items-center justify-center shrink-0 transition-all group-hover:shadow-sm",
 							privacyMode
-								? "bg-primary text-primary-foreground"
-								: "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground",
+								? "bg-primary text-white"
+								: "bg-primary/15 text-white/70 group-hover:bg-primary group-hover:text-white",
 						)}
 					>
 						{privacyMode ? (
@@ -91,7 +91,7 @@ export function MobileTools({ onClose, onOpenCalculator }: MobileToolsProps) {
 					onClose();
 					onOpenCalculator();
 				}}
-				className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+				className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-primary/15 hover:scale-[1.01] border-l-2 border-transparent hover:border-primary"
 			>
 				<span className="text-muted-foreground shrink-0">
 					<RiCalculatorLine className="size-4" />
@@ -104,7 +104,7 @@ export function MobileTools({ onClose, onOpenCalculator }: MobileToolsProps) {
 					toggle();
 					onClose();
 				}}
-				className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+				className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors text-muted-foreground hover:text-foreground hover:bg-primary/15 hover:scale-[1.01] border-l-2 border-transparent hover:border-primary"
 			>
 				<span className="text-muted-foreground shrink-0">
 					{privacyMode ? (

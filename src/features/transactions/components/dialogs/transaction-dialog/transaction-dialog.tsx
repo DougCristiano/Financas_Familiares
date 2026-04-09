@@ -20,6 +20,7 @@ import {
 	buildTransactionInitialState,
 	deriveCreditCardPeriod,
 } from "@/features/transactions/form-helpers";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Collapsible,
@@ -37,6 +38,7 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { AttachmentFilePicker } from "../../attachments/attachment-file-picker";
 import { AttachmentSection } from "../../attachments/attachment-section";
 import { BasicFieldsSection } from "./basic-fields-section";
@@ -101,6 +103,9 @@ export function TransactionDialog({
 	const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 	const [pendingDetachIds, setPendingDetachIds] = useState<string[]>([]);
 	const [pendingUploadFiles, setPendingUploadFiles] = useState<File[]>([]);
+	const [initialSnapshot, setInitialSnapshot] = useState<FormState | null>(
+		null,
+	);
 
 	useEffect(() => {
 		if (dialogOpen) {
@@ -137,6 +142,7 @@ export function TransactionDialog({
 			}
 
 			setFormState(initial);
+			setInitialSnapshot(initial);
 			setErrorMessage(null);
 			setPendingFiles([]);
 			setPendingDetachIds([]);
@@ -172,6 +178,26 @@ export function TransactionDialog({
 		);
 		return groupAndSortCategories(filtered);
 	}, [categoryOptions, formState.transactionType]);
+
+	const hasUnsavedChanges =
+		(initialSnapshot
+			? JSON.stringify(formState) !== JSON.stringify(initialSnapshot)
+			: false) ||
+		pendingFiles.length > 0 ||
+		pendingDetachIds.length > 0 ||
+		pendingUploadFiles.length > 0;
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending,
+		setDialogOpen,
+	});
 
 	type CreateTransactionInput = Parameters<typeof createTransactionAction>[0];
 	type UpdateTransactionInput = Parameters<typeof updateTransactionAction>[0];
@@ -318,8 +344,8 @@ export function TransactionDialog({
 					: undefined,
 			boletoPaymentDate:
 				mode === "update" &&
-				formState.paymentMethod === "Boleto" &&
-				formState.boletoPaymentDate
+					formState.paymentMethod === "Boleto" &&
+					formState.boletoPaymentDate
 					? formState.boletoPaymentDate
 					: undefined,
 		};
@@ -356,7 +382,7 @@ export function TransactionDialog({
 					}
 					toast.success(result.message);
 					onSuccess?.();
-					setDialogOpen(false);
+					closeWithoutConfirmation();
 					return;
 				}
 
@@ -435,7 +461,7 @@ export function TransactionDialog({
 				}
 				toast.success(result.message);
 				onSuccess?.();
-				setDialogOpen(false);
+				closeWithoutConfirmation();
 				return;
 			}
 
@@ -483,165 +509,187 @@ export function TransactionDialog({
 	const disableCardSelect = Boolean(lockCardSelection && mode === "create");
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-			{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-			<DialogContent className="min-w-0 overflow-x-hidden">
-				<DialogHeader>
-					<DialogTitle>{title}</DialogTitle>
-					<DialogDescription>{description}</DialogDescription>
-				</DialogHeader>
-
-				<form
-					className="flex min-w-0 flex-col gap-0"
-					onSubmit={handleSubmit}
-					noValidate
+		<>
+			<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+				{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+				<DialogContent
+					className="min-w-0 overflow-x-hidden"
+					onEscapeKeyDown={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
 				>
-					<div className="min-w-0 -mx-6 max-h-[90vh] overflow-x-hidden overflow-y-auto px-6 pb-1">
-						{/* Detalhes */}
-						<div className="space-y-3">
-							<BasicFieldsSection
-								formState={formState}
-								onFieldChange={handleFieldChange}
-								estabelecimentos={estabelecimentos}
-							/>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription>{description}</DialogDescription>
+					</DialogHeader>
 
-							<CategorySection
-								formState={formState}
-								onFieldChange={handleFieldChange}
-								categoryOptions={categoryOptions}
-								categoryGroups={categoryGroups}
-								isUpdateMode={isUpdateMode}
-								hideTransactionType={
-									Boolean(isNewWithType) && !forceShowTransactionType
-								}
-							/>
-						</div>
-
-						<div className="border-t border-border/40 my-3" />
-
-						{/* Pagador */}
-						<PayerSection
-							formState={formState}
-							onFieldChange={handleFieldChange}
-							payerOptions={payerOptions}
-							secondaryPayerOptions={secondaryPayerOptions}
-							totalAmount={totalAmount}
-						/>
-
-						<div className="border-t border-border/40 my-3" />
-
-						{/* Pagamento */}
-						<div className="space-y-3">
-							<PaymentMethodSection
-								formState={formState}
-								onFieldChange={handleFieldChange}
-								accountOptions={accountOptions}
-								cardOptions={cardOptions}
-								isUpdateMode={isUpdateMode}
-								disablePaymentMethod={disablePaymentMethod}
-								disableCardSelect={disableCardSelect}
-								showSettledToggle={showSettledToggle}
-							/>
-
-							{showDueDate ? (
-								<BoletoFieldsSection
+					<form
+						className="flex min-w-0 flex-col gap-0"
+						onSubmit={handleSubmit}
+						noValidate
+					>
+						<div className="min-w-0 -mx-6 max-h-[90vh] overflow-x-hidden overflow-y-auto px-6 pb-1">
+							{/* Detalhes */}
+							<div className="space-y-3">
+								<BasicFieldsSection
 									formState={formState}
 									onFieldChange={handleFieldChange}
-									showPaymentDate={showPaymentDate}
+									estabelecimentos={estabelecimentos}
 								/>
-							) : null}
-						</div>
 
-						{/* Extras */}
-						{isUpdateMode ? (
-							<>
-								<div className="border-t border-border/40 my-3" />
-								<div className="space-y-3">
-									<NoteSection
+								<CategorySection
+									formState={formState}
+									onFieldChange={handleFieldChange}
+									categoryOptions={categoryOptions}
+									categoryGroups={categoryGroups}
+									isUpdateMode={isUpdateMode}
+									hideTransactionType={
+										Boolean(isNewWithType) && !forceShowTransactionType
+									}
+								/>
+							</div>
+
+							<div className="border-t border-border/40 my-3" />
+
+							{/* Pagador */}
+							<PayerSection
+								formState={formState}
+								onFieldChange={handleFieldChange}
+								payerOptions={payerOptions}
+								secondaryPayerOptions={secondaryPayerOptions}
+								totalAmount={totalAmount}
+							/>
+
+							<div className="border-t border-border/40 my-3" />
+
+							{/* Pagamento */}
+							<div className="space-y-3">
+								<PaymentMethodSection
+									formState={formState}
+									onFieldChange={handleFieldChange}
+									accountOptions={accountOptions}
+									cardOptions={cardOptions}
+									isUpdateMode={isUpdateMode}
+									disablePaymentMethod={disablePaymentMethod}
+									disableCardSelect={disableCardSelect}
+									showSettledToggle={showSettledToggle}
+								/>
+
+								{showDueDate ? (
+									<BoletoFieldsSection
 										formState={formState}
 										onFieldChange={handleFieldChange}
+										showPaymentDate={showPaymentDate}
 									/>
-									<div className="space-y-2">
-										<Label className="text-xs font-medium leading-none">
-											Anexos
-										</Label>
-										<AttachmentSection
-											transactionId={transaction?.id ?? ""}
-											maxSizeMb={maxSizeMb}
-											pendingDetachIds={pendingDetachIds}
-											onPendingDetach={(id) =>
-												setPendingDetachIds((prev) => [...prev, id])
+								) : null}
+							</div>
+
+							{/* Extras */}
+							{isUpdateMode ? (
+								<>
+									<div className="border-t border-border/40 my-3" />
+									<div className="space-y-3">
+										<NoteSection
+											formState={formState}
+											onFieldChange={handleFieldChange}
+										/>
+										<div className="space-y-2">
+											<Label className="text-xs font-medium leading-none">
+												Anexos
+											</Label>
+											<AttachmentSection
+												transactionId={transaction?.id ?? ""}
+												maxSizeMb={maxSizeMb}
+												pendingDetachIds={pendingDetachIds}
+												onPendingDetach={(id) =>
+													setPendingDetachIds((prev) => [...prev, id])
+												}
+												onUndoPendingDetach={(id) =>
+													setPendingDetachIds((prev) =>
+														prev.filter((x) => x !== id),
+													)
+												}
+												pendingUploadFiles={pendingUploadFiles}
+												onPendingUpload={(file) =>
+													setPendingUploadFiles((prev) => [...prev, file])
+												}
+												onCancelPendingUpload={(file) =>
+													setPendingUploadFiles((prev) =>
+														prev.filter((f) => f !== file),
+													)
+												}
+											/>
+										</div>
+									</div>
+								</>
+							) : (
+								<Collapsible
+									defaultOpen={formState.condition !== "À vista"}
+									className="min-w-0"
+								>
+									<CollapsibleTrigger className="flex w-full items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer [&[data-state=open]>svg]:rotate-180 mt-4">
+										<RiArrowDropDownLine className="text-primary size-4 transition-transform duration-200" />
+										Condições, anotações e anexos
+									</CollapsibleTrigger>
+									<CollapsibleContent className="min-w-0 overflow-hidden space-y-3 pt-3">
+										<ConditionSection
+											formState={formState}
+											onFieldChange={handleFieldChange}
+											showInstallments={showInstallments}
+											showRecurrence={showRecurrence}
+										/>
+										<NoteSection
+											formState={formState}
+											onFieldChange={handleFieldChange}
+										/>
+										<AttachmentFilePicker
+											files={pendingFiles}
+											onAdd={(file) =>
+												setPendingFiles((prev) => [...prev, file])
 											}
-											onUndoPendingDetach={(id) =>
-												setPendingDetachIds((prev) =>
-													prev.filter((x) => x !== id),
-												)
-											}
-											pendingUploadFiles={pendingUploadFiles}
-											onPendingUpload={(file) =>
-												setPendingUploadFiles((prev) => [...prev, file])
-											}
-											onCancelPendingUpload={(file) =>
-												setPendingUploadFiles((prev) =>
+											onRemove={(file) =>
+												setPendingFiles((prev) =>
 													prev.filter((f) => f !== file),
 												)
 											}
+											maxSizeMb={maxSizeMb}
 										/>
-									</div>
-								</div>
-							</>
-						) : (
-							<Collapsible
-								defaultOpen={formState.condition !== "À vista"}
-								className="min-w-0"
+									</CollapsibleContent>
+								</Collapsible>
+							)}
+						</div>
+
+						{errorMessage ? (
+							<p className="mt-3 text-sm text-destructive">{errorMessage}</p>
+						) : null}
+
+						<DialogFooter className="mt-4">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={requestClose}
+								disabled={isPending}
 							>
-								<CollapsibleTrigger className="flex w-full items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer [&[data-state=open]>svg]:rotate-180 mt-4">
-									<RiArrowDropDownLine className="text-primary size-4 transition-transform duration-200" />
-									Condições, anotações e anexos
-								</CollapsibleTrigger>
-								<CollapsibleContent className="min-w-0 overflow-hidden space-y-3 pt-3">
-									<ConditionSection
-										formState={formState}
-										onFieldChange={handleFieldChange}
-										showInstallments={showInstallments}
-										showRecurrence={showRecurrence}
-									/>
-									<NoteSection
-										formState={formState}
-										onFieldChange={handleFieldChange}
-									/>
-									<AttachmentFilePicker
-										files={pendingFiles}
-										onAdd={(file) => setPendingFiles((prev) => [...prev, file])}
-										onRemove={(file) =>
-											setPendingFiles((prev) => prev.filter((f) => f !== file))
-										}
-										maxSizeMb={maxSizeMb}
-									/>
-								</CollapsibleContent>
-							</Collapsible>
-						)}
-					</div>
+								Cancelar
+							</Button>
+							<Button type="submit" disabled={isPending}>
+								{isPending ? "Salvando..." : submitLabel}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 
-					{errorMessage ? (
-						<p className="mt-3 text-sm text-destructive">{errorMessage}</p>
-					) : null}
-
-					<DialogFooter className="mt-4">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => setDialogOpen(false)}
-							disabled={isPending}
-						>
-							Cancelar
-						</Button>
-						<Button type="submit" disabled={isPending}>
-							{isPending ? "Salvando..." : submitLabel}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
+		</>
 	);
 }

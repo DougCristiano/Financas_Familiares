@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { transferBetweenAccountsAction } from "@/features/accounts/actions";
 import type { AccountData } from "@/features/accounts/queries";
 import { AccountCardSelectContent } from "@/features/transactions/components/select-items";
 import { PeriodPicker } from "@/shared/components/period-picker";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import { DatePicker } from "@/shared/components/ui/date-picker";
@@ -27,6 +28,7 @@ import {
 	SelectValue,
 } from "@/shared/components/ui/select";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { getTodayDateString } from "@/shared/utils/date";
 
 interface TransferDialogProps {
@@ -54,12 +56,31 @@ export function TransferDialog({
 
 	const [isPending, startTransition] = useTransition();
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const initialDate = useMemo(() => getTodayDateString(), []);
 
 	// Form state
 	const [toAccountId, setToAccountId] = useState("");
 	const [amount, setAmount] = useState("");
-	const [date, setDate] = useState(getTodayDateString());
+	const [date, setDate] = useState(initialDate);
 	const [period, setPeriod] = useState(currentPeriod);
+
+	const hasUnsavedChanges =
+		toAccountId !== "" ||
+		amount !== "" ||
+		date !== initialDate ||
+		period !== currentPeriod;
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending,
+		setDialogOpen,
+	});
 
 	// Available destination accounts (exclude source account)
 	const availableAccounts = accounts.filter(
@@ -99,11 +120,11 @@ export function TransferDialog({
 
 			if (result.success) {
 				toast.success(result.message);
-				setDialogOpen(false);
+				closeWithoutConfirmation();
 				// Reset form
 				setToAccountId("");
 				setAmount("");
-				setDate(getTodayDateString());
+				setDate(initialDate);
 				setPeriod(currentPeriod);
 				return;
 			}
@@ -114,140 +135,158 @@ export function TransferDialog({
 	};
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-			{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-			<DialogContent className="sm:max-w-xl">
-				<DialogHeader>
-					<DialogTitle>Transferir entre contas</DialogTitle>
-					<DialogDescription>
-						Registre uma transferência de valores entre suas contas.
-					</DialogDescription>
-				</DialogHeader>
+		<>
+			<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+				{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+				<DialogContent
+					className="sm:max-w-xl"
+					onEscapeKeyDown={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+				>
+					<DialogHeader>
+						<DialogTitle>Transferir entre contas</DialogTitle>
+						<DialogDescription>
+							Registre uma transferência de valores entre suas contas.
+						</DialogDescription>
+					</DialogHeader>
 
-				<form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="transfer-date">Data da transferência</Label>
-							<DatePicker
-								id="transfer-date"
-								value={date}
-								onChange={setDate}
-								required
-							/>
-						</div>
+					<form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="transfer-date">Data da transferência</Label>
+								<DatePicker
+									id="transfer-date"
+									value={date}
+									onChange={setDate}
+									required
+								/>
+							</div>
 
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="transfer-period">Período</Label>
-							<PeriodPicker
-								value={period}
-								onChange={setPeriod}
-								className="w-full"
-							/>
-						</div>
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="transfer-period">Período</Label>
+								<PeriodPicker
+									value={period}
+									onChange={setPeriod}
+									className="w-full"
+								/>
+							</div>
 
-						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor="transfer-amount">Valor</Label>
-							<CurrencyInput
-								id="transfer-amount"
-								value={amount}
-								onValueChange={setAmount}
-								placeholder="R$ 0,00"
-								required
-							/>
-						</div>
+							<div className="flex flex-col gap-2 sm:col-span-2">
+								<Label htmlFor="transfer-amount">Valor</Label>
+								<CurrencyInput
+									id="transfer-amount"
+									value={amount}
+									onValueChange={setAmount}
+									placeholder="R$ 0,00"
+									required
+								/>
+							</div>
 
-						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor="from-account">Conta de origem</Label>
-							<Select value={fromAccountId} disabled>
-								<SelectTrigger id="from-account" className="w-full">
-									<SelectValue>
-										{fromAccount && (
-											<AccountCardSelectContent
-												label={fromAccount.name}
-												logo={fromAccount.logo}
-												isCartao={false}
-											/>
-										)}
-									</SelectValue>
-								</SelectTrigger>
-								<SelectContent>
-									{fromAccount && (
-										<SelectItem value={fromAccount.id}>
-											<AccountCardSelectContent
-												label={fromAccount.name}
-												logo={fromAccount.logo}
-												isCartao={false}
-											/>
-										</SelectItem>
-									)}
-								</SelectContent>
-							</Select>
-						</div>
-
-						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor="to-account">Conta de destino</Label>
-							{availableAccounts.length === 0 ? (
-								<div className="rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground">
-									É necessário ter mais de uma conta cadastrada para realizar
-									transferências.
-								</div>
-							) : (
-								<Select value={toAccountId} onValueChange={setToAccountId}>
-									<SelectTrigger id="to-account" className="w-full">
-										<SelectValue placeholder="Selecione a conta de destino">
-											{toAccountId &&
-												(() => {
-													const selectedAccount = availableAccounts.find(
-														(acc) => acc.id === toAccountId,
-													);
-													return selectedAccount ? (
-														<AccountCardSelectContent
-															label={selectedAccount.name}
-															logo={selectedAccount.logo}
-															isCartao={false}
-														/>
-													) : null;
-												})()}
+							<div className="flex flex-col gap-2 sm:col-span-2">
+								<Label htmlFor="from-account">Conta de origem</Label>
+								<Select value={fromAccountId} disabled>
+									<SelectTrigger id="from-account" className="w-full">
+										<SelectValue>
+											{fromAccount && (
+												<AccountCardSelectContent
+													label={fromAccount.name}
+													logo={fromAccount.logo}
+													isCartao={false}
+												/>
+											)}
 										</SelectValue>
 									</SelectTrigger>
-									<SelectContent className="w-full">
-										{availableAccounts.map((account) => (
-											<SelectItem key={account.id} value={account.id}>
+									<SelectContent>
+										{fromAccount && (
+											<SelectItem value={fromAccount.id}>
 												<AccountCardSelectContent
-													label={account.name}
-													logo={account.logo}
+													label={fromAccount.name}
+													logo={fromAccount.logo}
 													isCartao={false}
 												/>
 											</SelectItem>
-										))}
+										)}
 									</SelectContent>
 								</Select>
-							)}
+							</div>
+
+							<div className="flex flex-col gap-2 sm:col-span-2">
+								<Label htmlFor="to-account">Conta de destino</Label>
+								{availableAccounts.length === 0 ? (
+									<div className="rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground">
+										É necessário ter mais de uma conta cadastrada para realizar
+										transferências.
+									</div>
+								) : (
+									<Select value={toAccountId} onValueChange={setToAccountId}>
+										<SelectTrigger id="to-account" className="w-full">
+											<SelectValue placeholder="Selecione a conta de destino">
+												{toAccountId &&
+													(() => {
+														const selectedAccount = availableAccounts.find(
+															(acc) => acc.id === toAccountId,
+														);
+														return selectedAccount ? (
+															<AccountCardSelectContent
+																label={selectedAccount.name}
+																logo={selectedAccount.logo}
+																isCartao={false}
+															/>
+														) : null;
+													})()}
+											</SelectValue>
+										</SelectTrigger>
+										<SelectContent className="w-full">
+											{availableAccounts.map((account) => (
+												<SelectItem key={account.id} value={account.id}>
+													<AccountCardSelectContent
+														label={account.name}
+														logo={account.logo}
+														isCartao={false}
+													/>
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								)}
+							</div>
 						</div>
-					</div>
 
-					{errorMessage && (
-						<p className="text-sm text-destructive">{errorMessage}</p>
-					)}
+						{errorMessage && (
+							<p className="text-sm text-destructive">{errorMessage}</p>
+						)}
 
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => setDialogOpen(false)}
-							disabled={isPending}
-						>
-							Cancelar
-						</Button>
-						<Button
-							type="submit"
-							disabled={isPending || availableAccounts.length === 0}
-						>
-							{isPending ? "Processando..." : "Confirmar transferência"}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={requestClose}
+								disabled={isPending}
+							>
+								Cancelar
+							</Button>
+							<Button
+								type="submit"
+								disabled={isPending || availableAccounts.length === 0}
+							>
+								{isPending ? "Processando..." : "Confirmar transferência"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
+
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
+		</>
 	);
 }

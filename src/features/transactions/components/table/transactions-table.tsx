@@ -261,12 +261,13 @@ export function TransactionsTable({
 								<>
 									<Button
 										onClick={() => onCreate("Receita")}
-										className="w-full sm:w-auto"
+										className={cn("w-full sm:w-auto", "bg-success text-white hover:bg-success/80 hover:scale-[1.02] hover:shadow-md")}
 									>
 										<RiAddFill className="size-4" />
 										Nova Receita
 									</Button>
 									<Button
+										variant="destructive"
 										onClick={() => onCreate("Despesa")}
 										className="w-full sm:w-auto"
 									>

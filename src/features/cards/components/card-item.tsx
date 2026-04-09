@@ -2,7 +2,7 @@
 
 import {
 	RiChat3Line,
-	RiDeleteBin5Line,
+	RiCloseLine,
 	RiFileList2Line,
 	RiPencilLine,
 } from "@remixicon/react";
@@ -88,34 +88,39 @@ export function CardItem({
 		limitTotal === null || used === null || available === null
 			? null
 			: [
-					{ label: "Limite Total", value: limitTotal },
-					{ label: "Em uso", value: used },
-					{ label: "Disponível", value: available },
-				];
+				{ label: "Limite Total", value: limitTotal },
+				{ label: "Em uso", value: used },
+				{ label: "Disponível", value: available },
+			];
 
 	const actions = [
 		{
 			label: "editar",
 			icon: <RiPencilLine className="size-4" aria-hidden />,
 			onClick: onEdit,
-			className: "text-primary",
+			className:
+				"bg-amber-600 hover:bg-amber-700 text-white rounded px-3 py-1.5",
 		},
 		{
 			label: "ver fatura",
 			icon: <RiFileList2Line className="size-4" aria-hidden />,
 			onClick: onInvoice,
-			className: "text-primary",
-		},
-		{
-			label: "remover",
-			icon: <RiDeleteBin5Line className="size-4" aria-hidden />,
-			onClick: onRemove,
-			className: "text-destructive",
+			className: "bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1.5",
 		},
 	];
 
 	return (
-		<Card className="flex flex-col p-6 w-full">
+		<Card className="flex flex-col p-6 w-full relative">
+			{onRemove && (
+				<button
+					type="button"
+					onClick={onRemove}
+					className="absolute top-1 right-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition-colors"
+					aria-label="Remover cartão"
+				>
+					<RiCloseLine className="size-5" aria-hidden />
+				</button>
+			)}
 			<CardHeader className="space-y-2 px-0 pb-0">
 				<div className="flex items-start justify-between gap-2">
 					<div className="flex flex-1 items-center gap-2">
@@ -243,14 +248,14 @@ export function CardItem({
 				)}
 			</CardContent>
 
-			<CardFooter className="mt-auto flex flex-wrap gap-4 px-0 text-sm">
+			<CardFooter className="mt-auto flex flex-wrap gap-4 px-0 text-sm justify-between">
 				{actions.map(({ label, icon, onClick, className }) => (
 					<button
 						key={label}
 						type="button"
 						onClick={onClick}
 						className={cn(
-							"flex items-center gap-1 font-medium transition-opacity hover:opacity-80",
+							"flex items-center gap-1.5 font-medium transition-colors capitalize",
 							className,
 						)}
 					>

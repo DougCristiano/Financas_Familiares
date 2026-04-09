@@ -92,9 +92,8 @@ export function BudgetsPage({
 	};
 
 	const removeTitle = budgetToRemove
-		? `Remover orçamento de "${
-				budgetToRemove.category?.name ?? "categoria removida"
-			}"?`
+		? `Remover orçamento de "${budgetToRemove.category?.name ?? "categoria removida"
+		}"?`
 		: "Remover orçamento?";
 
 	const emptyDescription =
@@ -113,7 +112,7 @@ export function BudgetsPage({
 						trigger={
 							<Button
 								disabled={categories.length === 0}
-								className="w-full sm:w-auto"
+								className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
 							>
 								<RiAddFill className="size-4" />
 								Novo orçamento

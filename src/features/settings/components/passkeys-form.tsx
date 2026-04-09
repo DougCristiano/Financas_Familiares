@@ -22,6 +22,7 @@ import {
 	AlertDialogTitle,
 } from "@/shared/components/ui/alert-dialog";
 import { Button } from "@/shared/components/ui/button";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import {
 	Dialog,
 	DialogContent,
@@ -31,6 +32,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { authClient } from "@/shared/lib/auth/client";
@@ -182,6 +184,30 @@ export function PasskeysForm() {
 		setEditName("");
 	};
 
+	const resetAddDialogState = () => {
+		setAddName("");
+		setError(null);
+	};
+
+	const setAddDialogOpen = (open: boolean) => {
+		if (!open) {
+			resetAddDialogState();
+		}
+		setIsAddOpen(open);
+	};
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges: Boolean(addName.trim()),
+		isCloseBlocked: isAdding,
+		setDialogOpen: setAddDialogOpen,
+	});
+
 	const deviceTypeLabel = (type: string) => {
 		switch (type) {
 			case "singleDevice":
@@ -202,23 +228,23 @@ export function PasskeysForm() {
 						Gerencie suas passkeys para login sem senha.
 					</p>
 				</div>
-				<Dialog
-					open={isAddOpen}
-					onOpenChange={(open) => {
-						if (!open) {
-							setAddName("");
-							setError(null);
-						}
-						setIsAddOpen(open);
-					}}
-				>
+				<Dialog open={isAddOpen} onOpenChange={handleDialogOpenChange}>
 					<DialogTrigger asChild>
 						<Button size="sm" disabled={isMutating || !passkeySupported}>
 							<RiAddFill className="h-4 w-4 mr-1" />
 							Nova Passkey
 						</Button>
 					</DialogTrigger>
-					<DialogContent>
+					<DialogContent
+						onEscapeKeyDown={(e) => {
+							e.preventDefault();
+							requestClose();
+						}}
+						onInteractOutside={(e) => {
+							e.preventDefault();
+							requestClose();
+						}}
+					>
 						<DialogHeader>
 							<DialogTitle>Registrar Passkey</DialogTitle>
 							<DialogDescription>
@@ -253,7 +279,7 @@ export function PasskeysForm() {
 						<DialogFooter>
 							<Button
 								variant="outline"
-								onClick={() => setIsAddOpen(false)}
+								onClick={requestClose}
 								disabled={isAdding}
 							>
 								Cancelar
@@ -271,6 +297,12 @@ export function PasskeysForm() {
 						</DialogFooter>
 					</DialogContent>
 				</Dialog>
+
+				<UnsavedChangesDialog
+					open={confirmOpen}
+					onOpenChange={setConfirmOpen}
+					onConfirm={closeWithoutConfirmation}
+				/>
 			</div>
 
 			{error && !isAddOpen && (
@@ -365,9 +397,9 @@ export function PasskeysForm() {
 												{deviceTypeLabel(pk.deviceType)}
 												{pk.createdAt
 													? ` · Criada ${formatDistanceToNow(pk.createdAt, {
-															addSuffix: true,
-															locale: ptBR,
-														})}`
+														addSuffix: true,
+														locale: ptBR,
+													})}`
 													: " · Data de criação indisponível"}
 											</p>
 										</>

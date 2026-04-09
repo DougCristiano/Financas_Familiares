@@ -6,6 +6,7 @@ import {
 	deleteAccountAction,
 	resetAccountAction,
 } from "@/features/settings/actions";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
@@ -15,6 +16,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { authClient } from "@/shared/lib/auth/client";
@@ -39,11 +41,11 @@ export function DeleteAccountForm() {
 			const result =
 				currentAction === "reset"
 					? await resetAccountAction({
-							confirmation: confirmation as typeof RESET_CONFIRMATION,
-						})
+						confirmation: confirmation as typeof RESET_CONFIRMATION,
+					})
 					: await deleteAccountAction({
-							confirmation: confirmation as typeof DELETE_CONFIRMATION,
-						});
+						confirmation: confirmation as typeof DELETE_CONFIRMATION,
+					});
 
 			if (result.success) {
 				toast.success(result.message);
@@ -54,8 +56,7 @@ export function DeleteAccountForm() {
 					return;
 				}
 
-				setConfirmation("");
-				setDangerAction(null);
+				closeWithoutConfirmation();
 				router.refresh();
 			} else {
 				toast.error(result.error);
@@ -77,6 +78,23 @@ export function DeleteAccountForm() {
 	const confirmationWord =
 		dangerAction === "reset" ? RESET_CONFIRMATION : DELETE_CONFIRMATION;
 	const isResetAction = dangerAction === "reset";
+	const hasUnsavedChanges = confirmation.trim().length > 0;
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending,
+		setDialogOpen: (isOpen) => {
+			if (!isOpen) {
+				handleCloseModal();
+			}
+		},
+	});
 
 	return (
 		<>
@@ -152,19 +170,17 @@ export function DeleteAccountForm() {
 
 			<Dialog
 				open={dangerAction !== null}
-				onOpenChange={(isOpen) => {
-					if (!isOpen) {
-						handleCloseModal();
-					}
-				}}
+				onOpenChange={handleDialogOpenChange}
 			>
 				<DialogContent
 					className="max-w-md"
 					onEscapeKeyDown={(e) => {
-						if (isPending) e.preventDefault();
+						e.preventDefault();
+						requestClose();
 					}}
-					onPointerDownOutside={(e) => {
-						if (isPending) e.preventDefault();
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
 					}}
 				>
 					<DialogHeader>
@@ -199,7 +215,7 @@ export function DeleteAccountForm() {
 						<Button
 							type="button"
 							variant="outline"
-							onClick={handleCloseModal}
+							onClick={requestClose}
 							disabled={isPending}
 						>
 							Cancelar
@@ -226,6 +242,12 @@ export function DeleteAccountForm() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
 		</>
 	);
 }

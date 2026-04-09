@@ -5,6 +5,7 @@ import { NoteDialog } from "@/features/notes/components/note-dialog";
 import { TransactionDialog } from "@/features/transactions/components/dialogs/transaction-dialog/transaction-dialog";
 import type { SelectOption } from "@/features/transactions/components/types";
 import { Button } from "@/shared/components/ui/button";
+import { cn } from "@/shared/utils/ui";
 
 type QuickActionButtonsProps = {
 	period: string;
@@ -44,7 +45,7 @@ export function QuickActionButtons({
 					<Button
 						size="sm"
 						variant="outline"
-						className={quickActionButtonClass}
+						className={cn(quickActionButtonClass, "hover:bg-success/15 hover:border-success/60 hover:text-success hover:scale-[1.02]")}
 						aria-label="Nova receita"
 						title="Nova receita"
 					>
@@ -69,7 +70,7 @@ export function QuickActionButtons({
 					<Button
 						size="sm"
 						variant="outline"
-						className={quickActionButtonClass}
+						className={cn(quickActionButtonClass, "hover:bg-destructive/15 hover:border-destructive/60 hover:text-destructive hover:scale-[1.02]")}
 						aria-label="Nova despesa"
 						title="Nova despesa"
 					>
@@ -85,7 +86,7 @@ export function QuickActionButtons({
 					<Button
 						size="sm"
 						variant="outline"
-						className={quickActionButtonClass}
+						className={cn(quickActionButtonClass, "hover:bg-info/15 hover:border-info/60 hover:text-info hover:scale-[1.02]")}
 						aria-label="Nova anotação"
 						title="Nova anotação"
 					>

@@ -36,7 +36,7 @@ import type { UpdateCheckResult } from "@/shared/lib/version/check-update";
 import { cn } from "@/shared/utils/ui";
 
 const itemClass =
-	"flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-accent";
+	"flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-all hover:bg-primary/15 hover:scale-[1.01] border-l-2 border-transparent hover:border-primary";
 
 type NavbarUserProps = {
 	user: {

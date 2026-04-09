@@ -43,6 +43,8 @@ export function RefreshPageButton({
 						"transition-all duration-200",
 						variant === "ghost" &&
 							"text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/40",
+						variant === "navbar" &&
+							"text-white/80 hover:text-white",
 						className,
 					)}
 					{...props}

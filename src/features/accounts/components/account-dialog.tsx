@@ -11,6 +11,7 @@ import {
 	LogoPickerTrigger,
 } from "@/shared/components/logo-picker";
 import { useLogoSelection } from "@/shared/components/logo-picker/use-logo-selection";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
@@ -22,6 +23,7 @@ import {
 	DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { useFormState } from "@/shared/hooks/use-form-state";
 import { deriveNameFromLogo, normalizeLogo } from "@/shared/lib/logo";
 import {
@@ -129,6 +131,23 @@ export function AccountDialog({
 	const { formState, resetForm, updateField, updateFields } =
 		useFormState<AccountFormValues>(initialState);
 
+	const hasUnsavedChanges = useMemo(
+		() => JSON.stringify(formState) !== JSON.stringify(initialState),
+		[formState, initialState],
+	);
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending || logoDialogOpen,
+		setDialogOpen,
+	});
+
 	// Reset form when dialog opens
 	useEffect(() => {
 		if (dialogOpen) {
@@ -196,7 +215,7 @@ export function AccountDialog({
 
 				if (result.success) {
 					toast.success(result.message);
-					setDialogOpen(false);
+					closeWithoutConfirmation();
 					resetForm(initialState);
 					return;
 				}
@@ -217,7 +236,7 @@ export function AccountDialog({
 
 			if (result.success) {
 				toast.success(result.message);
-				setDialogOpen(false);
+				closeWithoutConfirmation();
 				resetForm(initialState);
 				return;
 			}
@@ -234,24 +253,32 @@ export function AccountDialog({
 			: "Atualize as informações da conta selecionada.";
 	const submitLabel = mode === "create" ? "Salvar conta" : "Atualizar conta";
 
-	const handleMainDialogOpenChange = (open: boolean) => {
-		if (!open && logoDialogOpen) {
-			return;
-		}
-		setDialogOpen(open);
-	};
-
 	return (
 		<>
-			<Dialog open={dialogOpen} onOpenChange={handleMainDialogOpenChange}>
+			<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
 				{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
 				<DialogContent
 					className="sm:max-w-xl"
+					onEscapeKeyDown={(e) => {
+						if (logoDialogOpen) {
+							e.preventDefault();
+							return;
+						}
+
+						e.preventDefault();
+						requestClose();
+					}}
 					onPointerDownOutside={(e) => {
 						if (logoDialogOpen) e.preventDefault();
 					}}
 					onInteractOutside={(e) => {
-						if (logoDialogOpen) e.preventDefault();
+						if (logoDialogOpen) {
+							e.preventDefault();
+							return;
+						}
+
+						e.preventDefault();
+						requestClose();
 					}}
 				>
 					<DialogHeader>
@@ -288,7 +315,7 @@ export function AccountDialog({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => setDialogOpen(false)}
+								onClick={requestClose}
 								disabled={isPending}
 							>
 								Cancelar
@@ -300,6 +327,12 @@ export function AccountDialog({
 					</form>
 				</DialogContent>
 			</Dialog>
+
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
 
 			<LogoPickerDialog
 				open={logoDialogOpen}

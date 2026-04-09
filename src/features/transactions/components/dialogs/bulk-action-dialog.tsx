@@ -2,6 +2,7 @@
 
 import { RiErrorWarningLine } from "@remixicon/react";
 import { useState } from "react";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
@@ -11,6 +12,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { Label } from "@/shared/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 
@@ -36,10 +38,27 @@ export function BulkActionDialog({
 	onConfirm,
 }: BulkActionDialogProps) {
 	const [scope, setScope] = useState<BulkActionScope>("current");
+	const hasUnsavedChanges = scope !== "current";
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		setDialogOpen: (isOpen) => {
+			if (!isOpen) {
+				setScope("current");
+			}
+			onOpenChange(isOpen);
+		},
+	});
 
 	const handleConfirm = () => {
 		onConfirm(scope);
-		onOpenChange(false);
+		closeWithoutConfirmation();
 	};
 
 	const seriesLabel =
@@ -63,125 +82,141 @@ export function BulkActionDialog({
 	const getFutureLabel = () => {
 		if (seriesType === "installment" && currentNumber && totalCount) {
 			const remaining = totalCount - currentNumber + 1;
-			return `Esta e as próximas parcelas (${remaining} ${
-				remaining === 1 ? "parcela" : "parcelas"
-			})`;
+			return `Esta e as próximas parcelas (${remaining} ${remaining === 1 ? "parcela" : "parcelas"
+				})`;
 		}
 		return "Este e os próximos lançamentos";
 	};
 
 	const getAllLabel = () => {
 		if (seriesType === "installment" && totalCount) {
-			return `Todas as parcelas (${totalCount} ${
-				totalCount === 1 ? "parcela" : "parcelas"
-			})`;
+			return `Todas as parcelas (${totalCount} ${totalCount === 1 ? "parcela" : "parcelas"
+				})`;
 		}
 		return `Todos os lançamentos da ${seriesLabel}`;
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle className="capitalize">
-						{actionLabel} {seriesLabel}
-					</DialogTitle>
-					<DialogDescription>{getDescription()}</DialogDescription>
-				</DialogHeader>
-
-				<RadioGroup
-					value={scope}
-					onValueChange={(v) => setScope(v as BulkActionScope)}
+		<>
+			<Dialog open={open} onOpenChange={handleDialogOpenChange}>
+				<DialogContent
+					className="sm:max-w-md"
+					onEscapeKeyDown={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
 				>
-					<div className="space-y-4">
-						<div className="flex items-start space-x-3">
-							<RadioGroupItem value="current" id="current" className="mt-0.5" />
-							<div className="flex-1">
-								<Label
-									htmlFor="current"
-									className="text-sm cursor-pointer font-medium"
-								>
-									{getCurrentLabel()}
-								</Label>
-								<p className="text-xs text-muted-foreground">
-									Aplica a alteração apenas neste lançamento
-								</p>
-							</div>
-						</div>
+					<DialogHeader>
+						<DialogTitle className="capitalize">
+							{actionLabel} {seriesLabel}
+						</DialogTitle>
+						<DialogDescription>{getDescription()}</DialogDescription>
+					</DialogHeader>
 
-						<div className="flex items-start space-x-3">
-							<RadioGroupItem value="period" id="period" className="mt-0.5" />
-							<div className="flex-1">
-								<Label
-									htmlFor="period"
-									className="text-sm cursor-pointer font-medium"
-								>
-									Todos os pagadores deste período
-								</Label>
-								<p className="text-xs text-muted-foreground">
-									Aplica a todos os lançamentos deste mesmo mês na série
-								</p>
-								{scope === "period" && actionType === "edit" && (
-									<div className="mt-1.5 flex items-start gap-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-										<RiErrorWarningLine className="mt-0.5 size-3.5 shrink-0" />
-										<p className="text-xs">
-											Atenção: os valores individuais de cada pagador serão
-											substituídos pelos valores deste lançamento.
-										</p>
-									</div>
-								)}
-							</div>
-						</div>
-
-						<div className="flex items-start space-x-3">
-							<RadioGroupItem value="future" id="future" className="mt-0.5" />
-							<div className="flex-1">
-								<Label
-									htmlFor="future"
-									className="text-sm cursor-pointer font-medium"
-								>
-									{getFutureLabel()}
-								</Label>
-								<p className="text-xs text-muted-foreground">
-									Aplica a alteração neste e nos próximos lançamentos da série
-								</p>
-							</div>
-						</div>
-
-						<div className="flex items-start space-x-3">
-							<RadioGroupItem value="all" id="all" className="mt-0.5" />
-							<div className="flex-1">
-								<Label
-									htmlFor="all"
-									className="text-sm cursor-pointer font-medium"
-								>
-									{getAllLabel()}
-								</Label>
-								<p className="text-xs text-muted-foreground">
-									Aplica a alteração em todos os lançamentos da série
-								</p>
-							</div>
-						</div>
-					</div>
-				</RadioGroup>
-
-				<DialogFooter>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => onOpenChange(false)}
+					<RadioGroup
+						value={scope}
+						onValueChange={(v) => setScope(v as BulkActionScope)}
 					>
-						Cancelar
-					</Button>
-					<Button
-						type="button"
-						onClick={handleConfirm}
-						variant={actionType === "delete" ? "destructive" : "default"}
-					>
-						Confirmar
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+						<div className="space-y-4">
+							<div className="flex items-start space-x-3">
+								<RadioGroupItem
+									value="current"
+									id="current"
+									className="mt-0.5"
+								/>
+								<div className="flex-1">
+									<Label
+										htmlFor="current"
+										className="text-sm cursor-pointer font-medium"
+									>
+										{getCurrentLabel()}
+									</Label>
+									<p className="text-xs text-muted-foreground">
+										Aplica a alteração apenas neste lançamento
+									</p>
+								</div>
+							</div>
+
+							<div className="flex items-start space-x-3">
+								<RadioGroupItem value="period" id="period" className="mt-0.5" />
+								<div className="flex-1">
+									<Label
+										htmlFor="period"
+										className="text-sm cursor-pointer font-medium"
+									>
+										Todos os pagadores deste período
+									</Label>
+									<p className="text-xs text-muted-foreground">
+										Aplica a todos os lançamentos deste mesmo mês na série
+									</p>
+									{scope === "period" && actionType === "edit" && (
+										<div className="mt-1.5 flex items-start gap-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+											<RiErrorWarningLine className="mt-0.5 size-3.5 shrink-0" />
+											<p className="text-xs">
+												Atenção: os valores individuais de cada pagador serão
+												substituídos pelos valores deste lançamento.
+											</p>
+										</div>
+									)}
+								</div>
+							</div>
+
+							<div className="flex items-start space-x-3">
+								<RadioGroupItem value="future" id="future" className="mt-0.5" />
+								<div className="flex-1">
+									<Label
+										htmlFor="future"
+										className="text-sm cursor-pointer font-medium"
+									>
+										{getFutureLabel()}
+									</Label>
+									<p className="text-xs text-muted-foreground">
+										Aplica a alteração neste e nos próximos lançamentos da série
+									</p>
+								</div>
+							</div>
+
+							<div className="flex items-start space-x-3">
+								<RadioGroupItem value="all" id="all" className="mt-0.5" />
+								<div className="flex-1">
+									<Label
+										htmlFor="all"
+										className="text-sm cursor-pointer font-medium"
+									>
+										{getAllLabel()}
+									</Label>
+									<p className="text-xs text-muted-foreground">
+										Aplica a alteração em todos os lançamentos da série
+									</p>
+								</div>
+							</div>
+						</div>
+					</RadioGroup>
+
+					<DialogFooter>
+						<Button type="button" variant="outline" onClick={requestClose}>
+							Cancelar
+						</Button>
+						<Button
+							type="button"
+							onClick={handleConfirm}
+							variant={actionType === "delete" ? "destructive" : "default"}
+						>
+							Confirmar
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
+		</>
 	);
 }

@@ -27,6 +27,7 @@ import {
 } from "@/shared/components/ui/alert-dialog";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import {
 	Dialog,
 	DialogContent,
@@ -36,6 +37,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { formatDateTime } from "@/shared/utils/date";
@@ -64,8 +66,35 @@ export function ApiTokensForm({ tokens }: ApiTokensFormProps) {
 	const [revokeId, setRevokeId] = useState<string | null>(null);
 	const [isRevoking, setIsRevoking] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const hasUnsavedCreateChanges =
+		Boolean(tokenName.trim()) || Boolean(newToken);
 
 	const activeTokens = tokens.filter((t) => !t.revokedAt);
+
+	const resetCreateState = () => {
+		setNewToken(null);
+		setTokenName("");
+		setError(null);
+	};
+
+	const setCreateDialogOpen = (open: boolean) => {
+		if (!open) {
+			resetCreateState();
+		}
+		setIsCreateOpen(open);
+	};
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges: hasUnsavedCreateChanges,
+		isCloseBlocked: isCreating,
+		setDialogOpen: setCreateDialogOpen,
+	});
 
 	const handleCreate = async () => {
 		if (!tokenName.trim()) return;
@@ -128,13 +157,6 @@ export function ApiTokensForm({ tokens }: ApiTokensFormProps) {
 		}
 	};
 
-	const handleCloseCreate = () => {
-		setIsCreateOpen(false);
-		setNewToken(null);
-		setTokenName("");
-		setError(null);
-	};
-
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
@@ -145,20 +167,23 @@ export function ApiTokensForm({ tokens }: ApiTokensFormProps) {
 						Dinheir{"{IN}"}.
 					</p>
 				</div>
-				<Dialog
-					open={isCreateOpen}
-					onOpenChange={(open) => {
-						if (!open) handleCloseCreate();
-						else setIsCreateOpen(true);
-					}}
-				>
+				<Dialog open={isCreateOpen} onOpenChange={handleDialogOpenChange}>
 					<DialogTrigger asChild>
 						<Button size="sm">
 							<RiAddFill className="h-4 w-4 mr-1" />
 							Novo Token
 						</Button>
 					</DialogTrigger>
-					<DialogContent>
+					<DialogContent
+						onEscapeKeyDown={(e) => {
+							e.preventDefault();
+							requestClose();
+						}}
+						onInteractOutside={(e) => {
+							e.preventDefault();
+							requestClose();
+						}}
+					>
 						{!newToken ? (
 							<>
 								<DialogHeader>
@@ -189,7 +214,7 @@ export function ApiTokensForm({ tokens }: ApiTokensFormProps) {
 									)}
 								</div>
 								<DialogFooter>
-									<Button variant="outline" onClick={handleCloseCreate}>
+									<Button variant="outline" onClick={requestClose}>
 										Cancelar
 									</Button>
 									<Button
@@ -244,12 +269,18 @@ export function ApiTokensForm({ tokens }: ApiTokensFormProps) {
 									</div>
 								</div>
 								<DialogFooter>
-									<Button onClick={handleCloseCreate}>Fechar</Button>
+									<Button onClick={requestClose}>Fechar</Button>
 								</DialogFooter>
 							</>
 						)}
 					</DialogContent>
 				</Dialog>
+
+				<UnsavedChangesDialog
+					open={confirmOpen}
+					onOpenChange={setConfirmOpen}
+					onConfirm={closeWithoutConfirmation}
+				/>
 			</div>
 
 			{activeTokens.length === 0 ? (

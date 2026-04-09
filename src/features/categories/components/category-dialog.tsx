@@ -6,6 +6,7 @@ import {
 	createCategoryAction,
 	updateCategoryAction,
 } from "@/features/categories/actions";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Dialog,
@@ -17,6 +18,7 @@ import {
 	DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
+import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { useFormState } from "@/shared/hooks/use-form-state";
 import { CATEGORY_TYPES } from "@/shared/lib/categories/constants";
 import { getDefaultIconForType } from "@/shared/lib/categories/icons";
@@ -83,6 +85,23 @@ export function CategoryDialog({
 	const { formState, resetForm, updateField } =
 		useFormState<CategoryFormValues>(initialState);
 
+	const hasUnsavedChanges = useMemo(
+		() => JSON.stringify(formState) !== JSON.stringify(initialState),
+		[formState, initialState],
+	);
+
+	const {
+		confirmOpen,
+		setConfirmOpen,
+		requestClose,
+		handleDialogOpenChange,
+		closeWithoutConfirmation,
+	} = useDialogUnsavedChangesGuard({
+		hasUnsavedChanges,
+		isCloseBlocked: isPending,
+		setDialogOpen,
+	});
+
 	// Reset form when dialog opens
 	useEffect(() => {
 		if (dialogOpen) {
@@ -120,13 +139,13 @@ export function CategoryDialog({
 				mode === "create"
 					? await createCategoryAction(payload)
 					: await updateCategoryAction({
-							id: category?.id ?? "",
-							...payload,
-						});
+						id: category?.id ?? "",
+						...payload,
+					});
 
 			if (result.success) {
 				toast.success(result.message);
-				setDialogOpen(false);
+				closeWithoutConfirmation();
 				resetForm(initialState);
 				return;
 			}
@@ -145,36 +164,53 @@ export function CategoryDialog({
 		mode === "create" ? "Salvar categoria" : "Atualizar categoria";
 
 	return (
-		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-			{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>{title}</DialogTitle>
-					<DialogDescription>{description}</DialogDescription>
-				</DialogHeader>
+		<>
+			<Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+				{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+				<DialogContent
+					onEscapeKeyDown={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+					onInteractOutside={(e) => {
+						e.preventDefault();
+						requestClose();
+					}}
+				>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription>{description}</DialogDescription>
+					</DialogHeader>
 
-				<form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-					<CategoryFormFields values={formState} onChange={updateField} />
+					<form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+						<CategoryFormFields values={formState} onChange={updateField} />
 
-					{errorMessage && (
-						<p className="text-sm text-destructive">{errorMessage}</p>
-					)}
+						{errorMessage && (
+							<p className="text-sm text-destructive">{errorMessage}</p>
+						)}
 
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => setDialogOpen(false)}
-							disabled={isPending}
-						>
-							Cancelar
-						</Button>
-						<Button type="submit" disabled={isPending}>
-							{isPending ? "Salvando..." : submitLabel}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={requestClose}
+								disabled={isPending}
+							>
+								Cancelar
+							</Button>
+							<Button type="submit" disabled={isPending}>
+								{isPending ? "Salvando..." : submitLabel}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
+
+			<UnsavedChangesDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={closeWithoutConfirmation}
+			/>
+		</>
 	);
 }
