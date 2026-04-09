@@ -8,8 +8,8 @@ import {
 } from "@/features/budgets/actions";
 import { CategoryIcon } from "@/features/categories/components/category-icon";
 import { PeriodPicker } from "@/shared/components/period-picker";
-import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
+import { CurrencyInput } from "@/shared/components/ui/currency-input";
 import {
 	Dialog,
 	DialogContent,
@@ -28,6 +28,7 @@ import {
 	SelectValue,
 } from "@/shared/components/ui/select";
 import { Slider } from "@/shared/components/ui/slider";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
 import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { useFormState } from "@/shared/hooks/use-form-state";
@@ -44,6 +45,28 @@ interface BudgetDialogProps {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 }
+
+const DEFAULT_SLIDER_MAX = 100000;
+const SLIDER_STEP = 10;
+
+type SliderLimitMode = "default" | "custom";
+
+const toNonNegativeNumber = (value: string | number | null | undefined) => {
+	const normalized =
+		typeof value === "number"
+			? value
+			: Number.parseFloat((value ?? "").toString().replace(",", "."));
+
+	return Number.isFinite(normalized) ? Math.max(0, normalized) : 0;
+};
+
+const roundUpToSliderStep = (value: number) =>
+	Math.ceil(value / SLIDER_STEP) * SLIDER_STEP;
+
+const buildSuggestedSliderMax = (values: number[]) => {
+	const highestValue = Math.max(DEFAULT_SLIDER_MAX, ...values);
+	return roundUpToSliderStep(highestValue);
+};
 
 const buildInitialValues = ({
 	budget,
@@ -88,6 +111,11 @@ export function BudgetDialog({
 	// Use form state hook for form management
 	const { formState, resetForm, updateField } =
 		useFormState<BudgetFormValues>(initialState);
+	const [sliderLimitMode, setSliderLimitMode] =
+		useState<SliderLimitMode>("default");
+	const [customSliderMaxValue, setCustomSliderMaxValue] = useState(
+		DEFAULT_SLIDER_MAX.toFixed(2),
+	);
 
 	const hasUnsavedChanges = useMemo(
 		() => JSON.stringify(formState) !== JSON.stringify(initialState),
@@ -111,8 +139,23 @@ export function BudgetDialog({
 		if (dialogOpen) {
 			resetForm(initialState);
 			setErrorMessage(null);
+
+			const initialAmount = toNonNegativeNumber(initialState.amount);
+			const initialSpent = toNonNegativeNumber(budget?.spent);
+			const shouldStartWithCustomLimit =
+				Math.max(initialAmount, initialSpent) > DEFAULT_SLIDER_MAX;
+
+			if (shouldStartWithCustomLimit) {
+				setSliderLimitMode("custom");
+				setCustomSliderMaxValue(
+					buildSuggestedSliderMax([initialAmount, initialSpent]).toFixed(2),
+				);
+			} else {
+				setSliderLimitMode("default");
+				setCustomSliderMaxValue(DEFAULT_SLIDER_MAX.toFixed(2));
+			}
 		}
-	}, [dialogOpen, initialState, resetForm]);
+	}, [budget?.spent, dialogOpen, initialState, resetForm]);
 
 	// Clear error when dialog closes
 	useEffect(() => {
@@ -153,6 +196,14 @@ export function BudgetDialog({
 			return;
 		}
 
+		const currentAmount = toNonNegativeNumber(formState.amount);
+		if (currentAmount > sliderMax) {
+			const message = `O valor do orçamento não pode ser maior que ${formatCurrency(sliderMax)}.`;
+			setErrorMessage(message);
+			toast.error(message);
+			return;
+		}
+
 		const payload = {
 			categoryId: formState.categoryId,
 			period: formState.period,
@@ -188,15 +239,52 @@ export function BudgetDialog({
 	const submitLabel =
 		mode === "create" ? "Salvar orçamento" : "Atualizar orçamento";
 	const disabled = categories.length === 0;
-	const parsedAmount = Number.parseFloat(formState.amount);
-	const sliderValue = Number.isFinite(parsedAmount)
-		? Math.max(0, parsedAmount)
-		: 0;
-	const baseForSlider = Math.max(budget?.spent ?? 0, sliderValue, 1000);
-	const sliderMax = Math.max(
-		1000,
-		Math.ceil((baseForSlider * 1.5) / 100) * 100,
-	);
+	const sliderValue = toNonNegativeNumber(formState.amount);
+	const spentValue = toNonNegativeNumber(budget?.spent);
+	const parsedCustomSliderMax = toNonNegativeNumber(customSliderMaxValue);
+	const customSliderMax =
+		parsedCustomSliderMax > 0
+			? Math.max(DEFAULT_SLIDER_MAX, roundUpToSliderStep(parsedCustomSliderMax))
+			: DEFAULT_SLIDER_MAX;
+	const sliderMax =
+		sliderLimitMode === "custom" ? customSliderMax : DEFAULT_SLIDER_MAX;
+	const sliderDisplayValue = Math.min(sliderValue, sliderMax);
+	const handleBudgetAmountChange = (value: string) => {
+		if (value.length === 0) {
+			updateField("amount", "");
+			return;
+		}
+
+		const nextAmount = toNonNegativeNumber(value);
+		const clampedAmount = Math.min(nextAmount, sliderMax);
+		updateField("amount", clampedAmount.toFixed(2));
+	};
+
+	useEffect(() => {
+		if (sliderValue > sliderMax) {
+			updateField("amount", sliderMax.toFixed(2));
+		}
+	}, [sliderMax, sliderValue, updateField]);
+
+	const handleSliderLimitModeChange = (value: string) => {
+		const nextMode: SliderLimitMode = value === "custom" ? "custom" : "default";
+
+		if (nextMode === "custom") {
+			if (customSliderMaxValue.length === 0) {
+				setCustomSliderMaxValue(
+					buildSuggestedSliderMax([sliderValue, spentValue]).toFixed(2),
+				);
+			}
+			setSliderLimitMode("custom");
+			return;
+		}
+
+		if (sliderValue > DEFAULT_SLIDER_MAX) {
+			updateField("amount", DEFAULT_SLIDER_MAX.toFixed(2));
+		}
+
+		setSliderLimitMode("default");
+	};
 
 	return (
 		<>
@@ -276,12 +364,61 @@ export function BudgetDialog({
 											</span>
 										</div>
 
+										<div className="space-y-2">
+											<Label htmlFor="budget-amount-input">
+												Valor do orçamento
+											</Label>
+											<CurrencyInput
+												id="budget-amount-input"
+												value={formState.amount}
+												onValueChange={handleBudgetAmountChange}
+												placeholder="R$ 0,00"
+											/>
+										</div>
+
+										<div className="space-y-2">
+											<Label htmlFor="budget-slider-limit-mode">
+												Teto de orçamento
+											</Label>
+											<Select
+												value={sliderLimitMode}
+												onValueChange={handleSliderLimitModeChange}
+											>
+												<SelectTrigger
+													id="budget-slider-limit-mode"
+													className="w-full"
+												>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="default">
+														Padrão ({formatCurrency(DEFAULT_SLIDER_MAX)})
+													</SelectItem>
+													<SelectItem value="custom">Personalizado</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+
+										{sliderLimitMode === "custom" ? (
+											<div className="space-y-2">
+												<Label htmlFor="budget-slider-max-input">
+													Teto máximo personalizado
+												</Label>
+												<CurrencyInput
+													id="budget-slider-max-input"
+													value={customSliderMaxValue}
+													onValueChange={setCustomSliderMaxValue}
+													placeholder="R$ 100.000,00"
+												/>
+											</div>
+										) : null}
+
 										<Slider
 											id="budget-amount"
-											value={[sliderValue]}
+											value={[sliderDisplayValue]}
 											min={0}
 											max={sliderMax}
-											step={10}
+											step={SLIDER_STEP}
 											onValueChange={(value) =>
 												updateField("amount", value[0]?.toFixed(2) ?? "0.00")
 											}
