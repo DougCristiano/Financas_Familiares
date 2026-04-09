@@ -125,7 +125,7 @@ export function PayersPage({ payers, avatarOptions }: PayersPageProps) {
 						mode="create"
 						avatarOptions={avatarOptions}
 						trigger={
-							<Button className="w-full sm:w-auto">
+							<Button className="w-full sm:w-auto bg-green-600 text-white hover:bg-green-700">
 								<RiAddFill className="size-4" />
 								Novo pagador
 							</Button>

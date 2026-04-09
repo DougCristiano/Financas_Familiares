@@ -85,7 +85,7 @@ export function PayerCard({ payer, onEdit, onRemove }: PayerCardProps) {
 					<button
 						type="button"
 						onClick={onEdit}
-						className={`text-primary flex items-center gap-1 font-medium transition-opacity hover:opacity-80`}
+						className="bg-amber-600 hover:bg-amber-700 text-white rounded px-3 py-1.5 flex items-center gap-1.5 font-medium transition-colors capitalize"
 					>
 						<RiPencilLine className="size-4" aria-hidden />
 						editar
@@ -94,7 +94,7 @@ export function PayerCard({ payer, onEdit, onRemove }: PayerCardProps) {
 
 				<Link
 					href={`/payers/${payer.id}`}
-					className={`text-primary flex items-center gap-1 font-medium transition-opacity hover:opacity-80`}
+					className="bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1.5 flex items-center gap-1.5 font-medium transition-colors capitalize"
 				>
 					<RiFileList2Line className="size-4" aria-hidden />
 					detalhes
@@ -104,7 +104,7 @@ export function PayerCard({ payer, onEdit, onRemove }: PayerCardProps) {
 					<button
 						type="button"
 						onClick={onRemove}
-						className={`text-destructive flex items-center gap-1 font-medium transition-opacity hover:opacity-80`}
+						className="text-destructive flex items-center gap-1 font-medium transition-opacity hover:opacity-80"
 					>
 						<RiDeleteBin5Line className="size-4" aria-hidden />
 						remover

@@ -13,6 +13,18 @@ export type Category = {
 	icon: string | null;
 };
 
+export type CategoriesPaginationState = {
+	page: number;
+	pageSize: number;
+	totalItems: number;
+	totalPages: number;
+};
+
+export type CategoriesPaginatedData = {
+	items: Category[];
+	pagination: CategoriesPaginationState;
+};
+
 export type CategoryFormValues = {
 	name: string;
 	type: CategoryType;
