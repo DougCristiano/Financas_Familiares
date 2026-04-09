@@ -80,7 +80,7 @@ export function TransactionDetailsDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="min-w-0 max-h-[60vh] overflow-x-hidden overflow-y-auto text-sm">
+				<div className="min-w-0 overflow-x-hidden text-sm">
 					<div className="min-w-0 space-y-4">
 						<section className="rounded-lg border bg-muted/20 p-3">
 							<div className="flex items-start justify-between gap-3">

@@ -11,7 +11,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { createNoteAction, updateNoteAction } from "@/features/notes/actions";
-import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
@@ -26,6 +25,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
 import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { useFormState } from "@/shared/hooks/use-form-state";
@@ -268,7 +268,7 @@ export function NoteDialog({
 
 					<form
 						id="note-form"
-						className="space-y-3 -mx-6 max-h-[80vh] overflow-y-auto px-6 pb-1"
+						className="space-y-3 -mx-6 px-6 pb-1"
 						onSubmit={handleSubmit}
 						onKeyDown={handleKeyDown}
 						noValidate
@@ -403,7 +403,7 @@ export function NoteDialog({
 								</div>
 
 								{sortedTasks.length > 0 && (
-									<div className="mt-4 max-h-[300px] space-y-1 overflow-y-auto rounded-md bg-card p-2 pr-1">
+									<div className="mt-4 space-y-1 rounded-md bg-card p-2 pr-1">
 										{sortedTasks.map((task) => (
 											<div
 												key={task.id}

@@ -59,29 +59,27 @@ export function NoteDetailsDialog({
 				</DialogHeader>
 
 				{isTask ? (
-					<div className="max-h-[320px] overflow-auto rounded-md border p-1">
+					<div className="rounded-md border p-1">
 						{sortedTasks.map((task) => (
 							<div
 								key={task.id}
 								className="flex items-center gap-3 rounded-md px-3 py-1.5"
 							>
 								<div
-									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${
-										task.completed
+									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${task.completed
 											? "bg-success border-success"
 											: "border-input"
-									}`}
+										}`}
 								>
 									{task.completed && (
 										<RiCheckLine className="h-4 w-4 text-primary-foreground" />
 									)}
 								</div>
 								<span
-									className={`text-sm ${
-										task.completed
+									className={`text-sm ${task.completed
 											? "text-muted-foreground line-through"
 											: "text-foreground"
-									}`}
+										}`}
 								>
 									{task.text}
 								</span>
@@ -89,7 +87,7 @@ export function NoteDetailsDialog({
 						))}
 					</div>
 				) : (
-					<div className="max-h-[320px] overflow-auto whitespace-pre-line wrap-break-word text-sm text-foreground">
+					<div className="whitespace-pre-line wrap-break-word text-sm text-foreground">
 						{note.description}
 					</div>
 				)}

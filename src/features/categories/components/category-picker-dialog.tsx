@@ -77,7 +77,7 @@ export function CategoryPickerDialog({
 						Nenhum ícone encontrado para &ldquo;{search}&rdquo;
 					</p>
 				) : (
-					<div className="flex max-h-96 flex-col gap-4 overflow-y-auto pr-1">
+					<div className="flex flex-col gap-4 pr-1">
 						{filteredGroups.map((group) => (
 							<div key={group.label}>
 								<p className="mb-2 text-xs text-muted-foreground">

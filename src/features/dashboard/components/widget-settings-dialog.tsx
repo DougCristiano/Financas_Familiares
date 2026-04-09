@@ -51,7 +51,7 @@ export function WidgetSettingsDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="max-h-[400px] overflow-y-auto py-4">
+				<div className="py-4">
 					<div className="space-y-3">
 						{widgetsConfig.map((widget) => {
 							const isVisible = !hiddenWidgets.includes(widget.id);

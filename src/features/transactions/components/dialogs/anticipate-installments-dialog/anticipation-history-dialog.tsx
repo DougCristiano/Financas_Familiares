@@ -70,7 +70,7 @@ export function AnticipationHistoryDialog({
 					<DialogDescription>{lancamentoName}</DialogDescription>
 				</DialogHeader>
 
-				<div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
+				<div className="space-y-4 pr-2">
 					{isLoading ? (
 						<div className="flex items-center justify-center rounded-lg border border-dashed p-12">
 							<RiLoader4Line className="size-6 animate-spin text-muted-foreground" />

@@ -20,7 +20,6 @@ import {
 	buildTransactionInitialState,
 	deriveCreditCardPeriod,
 } from "@/features/transactions/form-helpers";
-import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
 	Collapsible,
@@ -37,6 +36,7 @@ import {
 	DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
+import { UnsavedChangesDialog } from "@/shared/components/unsaved-changes-dialog";
 import { useControlledState } from "@/shared/hooks/use-controlled-state";
 import { useDialogUnsavedChangesGuard } from "@/shared/hooks/use-dialog-unsaved-changes-guard";
 import { AttachmentFilePicker } from "../../attachments/attachment-file-picker";
@@ -533,7 +533,7 @@ export function TransactionDialog({
 						onSubmit={handleSubmit}
 						noValidate
 					>
-						<div className="min-w-0 -mx-6 max-h-[90vh] overflow-x-hidden overflow-y-auto px-6 pb-1">
+						<div className="min-w-0 -mx-6 overflow-x-hidden px-6 pb-1">
 							{/* Detalhes */}
 							<div className="space-y-3">
 								<BasicFieldsSection

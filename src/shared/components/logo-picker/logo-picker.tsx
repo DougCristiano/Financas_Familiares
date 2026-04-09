@@ -142,7 +142,7 @@ export function LogoPickerDialog({
 						Nenhum logo encontrado para &ldquo;{search}&rdquo;
 					</p>
 				) : (
-					<div className="grid max-h-custom-height-card grid-cols-4 gap-2 overflow-y-auto p-1 md:grid-cols-5">
+					<div className="grid grid-cols-4 gap-2 p-1 md:grid-cols-5">
 						{filteredLogos.map((logo) => {
 							const isActive = value === logo;
 							const logoLabel = deriveNameFromLogo(logo);
@@ -158,7 +158,7 @@ export function LogoPickerDialog({
 									className={cn(
 										"flex flex-col items-center gap-1 rounded-md bg-card p-2 text-center text-xs transition-all hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 										isActive &&
-											"border-primary bg-primary/5 ring-2 ring-primary/40",
+										"border-primary bg-primary/5 ring-2 ring-primary/40",
 									)}
 								>
 									<span className="flex w-full items-center justify-center">

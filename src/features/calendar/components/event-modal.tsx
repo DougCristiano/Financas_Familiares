@@ -61,9 +61,8 @@ const renderLancamento = (
 			<div className="flex items-start justify-between gap-3">
 				<div className="flex flex-col gap-1">
 					<span
-						className={`text-sm font-medium leading-tight ${
-							isPagamentoFatura && "text-success"
-						}`}
+						className={`text-sm font-medium leading-tight ${isPagamentoFatura && "text-success"
+							}`}
 					>
 						{event.transaction.name}
 					</span>
@@ -181,7 +180,7 @@ export function EventModal({ open, day, onClose, onCreate }: EventModalProps) {
 					<DialogDescription>{description}</DialogDescription>
 				</DialogHeader>
 
-				<div className="max-h-[380px] space-y-2 overflow-y-auto pr-2">
+				<div className="space-y-2 pr-2">
 					{day?.events.length ? (
 						day.events.map((event) => (
 							<div key={event.id}>{renderEvent(event)}</div>
