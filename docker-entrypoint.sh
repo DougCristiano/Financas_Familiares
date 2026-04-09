@@ -2,7 +2,7 @@
 
 echo "Rodando migrations..."
 RETRIES=5
-until /app/migrate/node_modules/.bin/drizzle-kit push || [ "$RETRIES" -eq 0 ]; do
+until NODE_PATH=/app/migrate/node_modules /app/migrate/node_modules/.bin/drizzle-kit push || [ "$RETRIES" -eq 0 ]; do
   RETRIES=$((RETRIES - 1))
   echo "Migration falhou, aguardando banco... ($RETRIES tentativas restantes)"
   sleep 5

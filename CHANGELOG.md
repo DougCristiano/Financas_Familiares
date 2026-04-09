@@ -7,6 +7,12 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.3.6] - 2026-04-09
+
+### Corrigido
+
+- Docker: adicionado `NODE_PATH=/app/migrate/node_modules` no entrypoint para que o `drizzle-kit` consiga resolver `drizzle-orm` ao executar as migrations no container
+
 ## [2.3.5] - 2026-04-07
 
 ### Corrigido
