@@ -120,7 +120,7 @@ export const AnimatedThemeToggler = ({
 				</button>
 			</TooltipTrigger>
 			<TooltipContent side="bottom" sideOffset={8}>
-				{isDark ? "Tema claro" : "Tema escuro"}
+				{isDark ? "Ir para o tema claro" : "Ir para o tema escuro"}
 			</TooltipContent>
 		</Tooltip>
 	);
