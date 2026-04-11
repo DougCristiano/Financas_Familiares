@@ -31,6 +31,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Docker: corrigido crash loop no container com mensagem `exec /app/docker-entrypoint.sh: no such file or directory` causado por CRLF no `docker-entrypoint.sh` em ambientes Windows/WSL2 — adicionado `sed -i 's/\r$//'` no Dockerfile e `.gitattributes` com `eol=lf` para scripts shell
 - S3: corrigido `Error: Region is missing` ao usar o app sem S3 configurado — `S3_REGION` vazio (string vazia) não era tratado pelo operador `??`; substituído por `||` em todo o `s3-client.ts`
 - i18n: corrigidas mensagens de erro que exibiam "Payer" em inglês em vez de "Pagador"
+- Logos: corrigido modal seletor de logos de cartões e contas para renderizar miniaturas sem avisos de proporção
 
 ## [2.3.6] - 2026-04-09
 
