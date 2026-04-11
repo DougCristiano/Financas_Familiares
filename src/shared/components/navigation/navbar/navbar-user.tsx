@@ -1,6 +1,8 @@
 "use client";
 
 import {
+	RiCheckLine,
+	RiFileCopyLine,
 	RiHistoryLine,
 	RiLogoutCircleLine,
 	RiMegaphoneLine,
@@ -15,6 +17,11 @@ import { version } from "@/package.json";
 import { FeedbackDialogBody } from "@/shared/components/navigation/navbar/feedback-dialog";
 import { Badge } from "@/shared/components/ui/badge";
 import { Dialog, DialogTrigger } from "@/shared/components/ui/dialog";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -50,6 +57,13 @@ export function NavbarUser({
 	const router = useRouter();
 	const [logoutLoading, setLogoutLoading] = useState(false);
 	const [feedbackOpen, setFeedbackOpen] = useState(false);
+	const [copied, setCopied] = useState(false);
+
+	function handleCopyId() {
+		navigator.clipboard.writeText(user.id);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	}
 
 	const avatarSrc = pagadorAvatarUrl
 		? getAvatarSrc(pagadorAvatarUrl)
@@ -106,9 +120,30 @@ export function NavbarUser({
 						</div>
 						<div className="flex flex-col min-w-0">
 							<span className="text-sm font-medium truncate">{user.name}</span>
-							<span className="text-xs text-muted-foreground truncate">
-								{user.email}
-							</span>
+							<div className="flex items-center gap-1 min-w-0">
+								<span className="text-xs text-muted-foreground truncate">
+									{user.email}
+								</span>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<button
+											type="button"
+											onClick={handleCopyId}
+											className="shrink-0 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+											aria-label="Copiar ID do usuário"
+										>
+											{copied ? (
+												<RiCheckLine className="size-3 text-success" />
+											) : (
+												<RiFileCopyLine className="size-3" />
+											)}
+										</button>
+									</TooltipTrigger>
+									<TooltipContent side="bottom">
+										{copied ? "Copiado!" : "Copiar ID do usuário"}
+									</TooltipContent>
+								</Tooltip>
+							</div>
 						</div>
 					</DropdownMenuLabel>
 
