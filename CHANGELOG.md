@@ -7,6 +7,31 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.3.7] - 2026-04-11
+
+### Adicionado
+
+- Dashboard: novos widgets configuráveis — Anexos (resumo de arquivos do período), Inbox (snapshot de pré-lançamentos pendentes) e Tendências de Categoria
+- Lançamentos: filtro por status de pagamento (somente pagos / somente não pagos) e filtro por presença de anexo
+- Lançamentos: indicador visual no status de liquidação para lançamentos de cartão de crédito com fatura paga — exibe ícone verde com tooltip explicativo
+- Scripts: `scripts/install-deps.sh` — script de preparação para servidores Ubuntu 24.04 limpos (instala Docker, Node.js 22, pnpm via Homebrew)
+
+### Alterado
+
+- Fonte: substituída fonte local `America` por `Inter` (Google Fonts, self-hosted pelo Next.js) — elimina arquivos `.woff2` do repositório
+- Tipografia: peso tipográfico padronizado de `font-medium` para `font-semibold` em títulos, rótulos e valores monetários em toda a interface
+- Parcelas: redesenho do card de grupo de parcelas — expandindo para dialog de detalhes com parcelas pagas/pendentes separadas
+- Inbox: redesenho do card de pré-lançamento — logo maior, hierarquia tipográfica melhorada
+- Lançamentos: filtros de tipo, condição e forma de pagamento agora usam slugs em URL (ex: `receita` em vez do valor literal com acentos)
+- Estabelecimento: popover de autocomplete agora respeita a largura do input ao abrir
+- CSP: adicionado `frame-src` para permitir preview de anexos PDF via S3
+
+### Corrigido
+
+- Docker: corrigido crash loop no container com mensagem `exec /app/docker-entrypoint.sh: no such file or directory` causado por CRLF no `docker-entrypoint.sh` em ambientes Windows/WSL2 — adicionado `sed -i 's/\r$//'` no Dockerfile e `.gitattributes` com `eol=lf` para scripts shell
+- S3: corrigido `Error: Region is missing` ao usar o app sem S3 configurado — `S3_REGION` vazio (string vazia) não era tratado pelo operador `??`; substituído por `||` em todo o `s3-client.ts`
+- i18n: corrigidas mensagens de erro que exibiam "Payer" em inglês em vez de "Pagador"
+
 ## [2.3.6] - 2026-04-09
 
 ### Corrigido

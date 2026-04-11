@@ -87,7 +87,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/src/db ./src/db
 
 # Copiar entrypoint de migrations
 COPY docker-entrypoint.sh ./
-RUN chmod +x /app/docker-entrypoint.sh && chown nextjs:nodejs /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && \
+    chmod +x /app/docker-entrypoint.sh && \
+    chown nextjs:nodejs /app/docker-entrypoint.sh
 
 # Definir variáveis de ambiente de produção
 ENV NODE_ENV=production \
