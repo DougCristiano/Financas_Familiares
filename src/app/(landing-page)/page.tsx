@@ -207,7 +207,9 @@ export default async function Page() {
 									className="flex flex-col items-center text-center gap-1.5"
 								>
 									<Icon className="size-5" style={{ color: colorVar }} />
-									<span className="text-2xl md:text-3xl ">{value}</span>
+									<span className="text-2xl md:text-3xl font-semibold">
+										{value}
+									</span>
 									<span className="text-xs md:text-sm text-muted-foreground">
 										{label}
 									</span>
@@ -227,7 +229,7 @@ export default async function Page() {
 								<Badge variant="outline" className="mb-4">
 									Conheça as telas
 								</Badge>
-								<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+								<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 									Veja o que você pode fazer
 								</h2>
 								<p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
@@ -252,7 +254,7 @@ export default async function Page() {
 								<Badge variant="outline" className="mb-4">
 									O que tem aqui
 								</Badge>
-								<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+								<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 									Funcionalidades que importam
 								</h2>
 								<p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
@@ -344,7 +346,7 @@ export default async function Page() {
 									<RiSmartphoneLine className="size-3.5 mr-1" />
 									Mobile
 								</Badge>
-								<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+								<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 									Use o OpenMonetis no celular sem perder o fluxo
 								</h2>
 								<p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
@@ -382,7 +384,7 @@ export default async function Page() {
 										<RiSmartphoneLine className="size-3.5 mr-1" />
 										PWA instalável
 									</Badge>
-									<h3 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">
+									<h3 className="text-2xl md:text-3xl font-medium tracking-tight mb-3">
 										Leve o OpenMonetis para a tela inicial
 									</h3>
 									<p className="text-muted-foreground mb-6 leading-relaxed">
@@ -428,7 +430,7 @@ export default async function Page() {
 											Companion Android
 										</Badge>
 									</div>
-									<h3 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">
+									<h3 className="text-2xl md:text-3xl font-medium tracking-tight mb-3">
 										Capture, envie e revise no mesmo fluxo
 									</h3>
 									<p className="text-muted-foreground mb-6 leading-relaxed">
@@ -527,7 +529,7 @@ export default async function Page() {
 								<Badge variant="outline" className="mb-4">
 									Stack técnica
 								</Badge>
-								<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+								<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 									O que roda por baixo
 								</h2>
 								<p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
@@ -580,7 +582,7 @@ export default async function Page() {
 								<Badge variant="outline" className="mb-4">
 									Como usar
 								</Badge>
-								<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+								<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 									Rode no seu computador
 								</h2>
 								<p className="text-base md:text-lg text-muted-foreground px-4 sm:px-0">
@@ -615,7 +617,7 @@ export default async function Page() {
 								<Badge variant="outline" className="mb-4">
 									Para quem é?
 								</Badge>
-								<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+								<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 									Feito para quem gosta de controle
 								</h2>
 								<p className="text-base md:text-lg text-muted-foreground px-4 sm:px-0">
@@ -662,7 +664,7 @@ export default async function Page() {
 				<div className="max-w-8xl mx-auto px-4">
 					<AnimateOnScroll>
 						<div className="mx-auto max-w-4xl rounded-2xl border bg-card px-8 py-12 md:py-16 text-center">
-							<h2 className="text-2xl sm:text-3xl md:text-4xl  mb-3 md:mb-4">
+							<h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 md:mb-4 font-semibold">
 								Pronto para testar?
 							</h2>
 							<p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
