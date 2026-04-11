@@ -24,7 +24,7 @@ export function CategoryTrendsWidget({
 			(a, b) =>
 				Math.abs(b.percentageChange ?? 0) - Math.abs(a.percentageChange ?? 0),
 		)
-		.slice(0, 6);
+		.slice(0, 10);
 
 	if (trending.length === 0) {
 		return (

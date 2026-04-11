@@ -157,7 +157,7 @@ export function InboxWidget({
 	}
 
 	return (
-		<div className="space-y-1">
+		<div className="flex flex-col">
 			{snapshot.recentItems.map((item) => {
 				const displayName = item.parsedName ?? item.originalText.slice(0, 40);
 				const parsedAmount =
@@ -174,58 +174,59 @@ export function InboxWidget({
 				const displayLogo = logoSrc ?? DEFAULT_INBOX_APP_LOGO;
 
 				return (
-					<div key={item.id} className="-mx-2 rounded-md p-2">
-						<div className="flex items-center gap-2">
+					<div
+						key={item.id}
+						className="flex items-center justify-between py-1.5"
+					>
+						<div className="flex min-w-0 flex-1 items-center gap-2 py-1">
 							<Image
 								src={displayLogo}
 								alt={item.sourceAppName ?? ""}
-								width={36}
-								height={36}
-								className="size-9 shrink-0 rounded-full object-contain"
+								width={38}
+								height={38}
+								className="size-9.5 shrink-0 rounded-full object-contain"
 								unoptimized
 							/>
 
-							<div className="min-w-0 flex-1">
+							<div className="min-w-0">
 								<p className="truncate text-sm font-medium text-foreground">
 									{displayName}
 								</p>
-								<div className="flex items-center gap-2">
-									{item.sourceAppName && (
-										<span className="text-xs text-muted-foreground">
-											{item.sourceAppName}
-										</span>
-									)}
-									<span className="text-xs text-muted-foreground/60">
+								<div className="flex items-center gap-2 text-xs text-muted-foreground">
+									{item.sourceAppName && <span>{item.sourceAppName}</span>}
+									<span className="text-muted-foreground/60">
 										{relativeTime(item.createdAt)}
 									</span>
-									<div className="flex items-center">
-										<Button
-											size="icon-sm"
-											variant="ghost"
-											className="size-6 text-muted-foreground hover:text-foreground"
-											onClick={() => handleProcessRequest(item)}
-											aria-label="Processar notificação"
-											title="Processar"
-										>
-											<RiCheckLine className="size-3.5" />
-										</Button>
-										<Button
-											size="icon-sm"
-											variant="ghost"
-											className="size-6 text-muted-foreground hover:text-destructive"
-											onClick={() => handleDiscardRequest(item)}
-											aria-label="Descartar notificação"
-											title="Descartar"
-										>
-											<RiDeleteBinLine className="size-3.5" />
-										</Button>
-									</div>
 								</div>
 							</div>
+						</div>
 
+						<div className="flex shrink-0 flex-col items-end">
 							{amount !== null && (
 								<MoneyValues className="font-medium" amount={amount} />
 							)}
+							<div className="flex items-center">
+								<Button
+									size="icon-sm"
+									variant="ghost"
+									className="size-6 text-muted-foreground hover:text-foreground"
+									onClick={() => handleProcessRequest(item)}
+									aria-label="Processar notificação"
+									title="Processar"
+								>
+									<RiCheckLine className="size-3.5" />
+								</Button>
+								<Button
+									size="icon-sm"
+									variant="ghost"
+									className="size-6 text-muted-foreground hover:text-destructive"
+									onClick={() => handleDiscardRequest(item)}
+									aria-label="Descartar notificação"
+									title="Descartar"
+								>
+									<RiDeleteBinLine className="size-3.5" />
+								</Button>
+							</div>
 						</div>
 					</div>
 				);

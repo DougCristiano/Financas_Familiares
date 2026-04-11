@@ -163,7 +163,7 @@ export const widgetsConfig: WidgetConfig[] = [
 	{
 		id: "category-trends",
 		title: "Tendências de Categorias",
-		subtitle: "Top 6 maiores variações vs. mês anterior",
+		subtitle: "Top 10 maiores variações vs. mês anterior",
 		icon: <RiLineChartLine className="size-4" />,
 		component: ({ data }) => (
 			<CategoryTrendsWidget
