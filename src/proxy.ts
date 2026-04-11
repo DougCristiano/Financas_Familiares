@@ -49,6 +49,7 @@ function buildCsp(): string {
 		`img-src 'self' ${imgExtras} data: blob:`,
 		"font-src 'self'",
 		`connect-src 'self' ${connectExtras}`,
+		`frame-src 'self'${s3Origin ? ` ${s3Origin}` : ""}`,
 		"frame-ancestors 'none'",
 	].join("; ");
 }
