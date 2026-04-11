@@ -29,12 +29,16 @@ export default function RootLayout({
 		>
 			<head>
 				<meta name="apple-mobile-web-app-title" content="OpenMonetis" />
-				<script
-					defer
-					src="https://umami.felipecoutinho.com/script.js"
-					data-website-id="ea438854-a014-42ea-b416-0a8321471f0f"
-					data-domains="openmonetis.com"
-				/>
+				{process.env.UMAMI_URL && process.env.UMAMI_WEBSITE_ID && (
+					<script
+						defer
+						src={`${process.env.UMAMI_URL}/script.js`}
+						data-website-id={process.env.UMAMI_WEBSITE_ID}
+						{...(process.env.UMAMI_DOMAINS
+							? { "data-domains": process.env.UMAMI_DOMAINS }
+							: {})}
+					/>
+				)}
 			</head>
 			<body className="subpixel-antialiased" suppressHydrationWarning>
 				<ThemeProvider attribute="class" defaultTheme="light">
