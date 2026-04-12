@@ -1,6 +1,6 @@
 {
 	"name": "openmonetis",
-	"version": "2.3.7",
+	"version": "2.3.8",
 	"private": true,
 	"packageManager": "pnpm@10.33.0",
 	"scripts": {
@@ -21,38 +21,20 @@
 
 		"// --- Docker ---": "---",
 
-		"docker:up:local": "docker compose --profile local up",
-		"//docker:up:local": "Sobe app + banco PostgreSQL local juntos (imagem do Docker Hub)",
+		"docker:up": "docker compose up -d",
+		"//docker:up": "Sobe app (Docker Hub) + banco PostgreSQL em background",
 
-		"docker:up": "docker compose up --build",
-		"//docker:up": "Sobe apenas o app com build local (banco deve estar rodando separado)",
-
-		"docker:up:d": "docker compose up --build -d",
-		"//docker:up:d": "Sobe apenas o app com build local em background (detached)",
-
-		"docker:up:db": "docker compose up -d db",
-		"//docker:up:db": "Sobe apenas o banco PostgreSQL em background",
+		"docker:db": "docker compose up -d db",
+		"//docker:db": "Sobe apenas o banco em background (para usar com pnpm dev)",
 
 		"docker:down": "docker compose down",
 		"//docker:down": "Para e remove os containers",
 
-		"docker:down:volumes": "docker compose down -v",
-		"//docker:down:volumes": "Para containers e remove volumes (APAGA os dados!)",
-
 		"docker:logs": "docker compose logs -f",
 		"//docker:logs": "Acompanha logs de todos os containers em tempo real",
 
-		"docker:logs:app": "docker compose logs -f app",
-		"//docker:logs:app": "Acompanha logs do container da aplicação",
-
-		"docker:logs:db": "docker compose logs -f db",
-		"//docker:logs:db": "Acompanha logs do container do banco",
-
-		"docker:restart": "docker compose restart",
-		"//docker:restart": "Reinicia todos os containers",
-
-		"docker:rebuild": "docker compose up --build --force-recreate",
-		"//docker:rebuild": "Rebuild completo forçando recriação dos containers",
+		"docker:update": "docker compose pull && docker compose up -d",
+		"//docker:update": "Atualiza para a imagem mais recente do Docker Hub e reinicia",
 
 		"backup": "bash scripts/backup.sh"
 	},
