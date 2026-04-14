@@ -38,7 +38,11 @@ function buildCsp(): string {
 
 	const connectExtras = [umamiOrigin, s3Origin].filter(Boolean).join(" ");
 
-	const imgExtras = ["https://lh3.googleusercontent.com", s3Origin]
+	const imgExtras = [
+		"https://lh3.googleusercontent.com",
+		"https://img.logo.dev",
+		s3Origin,
+	]
 		.filter(Boolean)
 		.join(" ");
 

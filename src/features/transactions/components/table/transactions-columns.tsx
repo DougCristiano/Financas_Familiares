@@ -199,7 +199,7 @@ function buildColumns({
 
 				return (
 					<span className="flex items-center gap-2">
-						<EstablishmentLogo name={name} size={28} />
+						<EstablishmentLogo name={name} size={32} />
 						<span className="flex flex-col py-0.5">
 							<span className="text-xs text-muted-foreground flex items-center gap-2">
 								{formatDate(purchaseDate)}
