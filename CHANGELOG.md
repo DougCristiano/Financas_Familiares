@@ -7,6 +7,25 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-04-13
+
+### Adicionado
+
+- Estabelecimentos: integração com Logo.dev — logos automáticos de marcas exibidos na coluna de estabelecimentos nos lançamentos
+- Estabelecimentos: picker de logo por estabelecimento — clique no avatar para buscar e fixar um domínio Logo.dev específico (salvo por usuário no banco)
+- API: rotas `/api/logo/search` e `/api/logo/mapping` — proxy seguro para Logo.dev Brand Search API (secret key server-side) e consulta de mapeamentos salvos
+- Schema: tabela `establishment_logos` com PK composta `(user_id, name_key)` para persistir preferências de logo por usuário
+
+### Corrigido
+
+- Dev: `.env.example` usava host `db` no `DATABASE_URL`, causando erro `EAI_AGAIN` ao rodar `pnpm dev` localmente — corrigido para `localhost`
+
+### Documentação
+
+- README: tabela comparativa entre Perfil 1 (Usar) e Perfil 2 (Desenvolver) com diferenças de setup, `DATABASE_URL` e instruções de atualização
+- README: seção "Variáveis de Ambiente" esclarecida — distingue contexto Docker (Perfil 1) de desenvolvimento local (Perfil 2)
+- Logo.dev: crie uma conta em logo.dev para obter as chaves `NEXT_PUBLIC_LOGO_DEV_TOKEN` e `LOGO_DEV_SECRET_KEY` — plano gratuito inclui 500.000 requisições/mês
+
 ## [2.3.8] - 2026-04-12
 
 ### Alterado

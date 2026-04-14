@@ -8,7 +8,7 @@
 
 > **⚠️ Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
 
-[![Version](https://img.shields.io/badge/version-2.3.8-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.4.0-blue?style=flat-square)](CHANGELOG.md)
 [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -107,6 +107,20 @@ A ideia é simples: ter um lugar onde consigo ver todas as minhas contas, cartõ
 
 Escolha o perfil que corresponde ao seu objetivo:
 
+| | Perfil 1 — Usar | Perfil 2 — Desenvolver |
+|---|---|---|
+| **Objetivo** | Rodar o app pronto | Modificar o código |
+| **Clonar repositório** | Não | Sim |
+| **Node.js / pnpm** | Não | Sim (Node 22+) |
+| **Docker** | Sim | Sim |
+| **Como iniciar** | `docker compose up -d` | `pnpm docker:db` + `pnpm dev` |
+| **App roda em** | Container Docker | Host local (hot-reload) |
+| **Banco roda em** | Container Docker | Container Docker |
+| **`DATABASE_URL` (host)** | `db` (automático pelo compose) | `localhost` |
+| **Banco remoto (Supabase, Neon...)** | Sim (`docker compose up -d app`) | Sim (ajustar `DATABASE_URL`) |
+| **Como atualizar** | `pnpm docker:update` | `git pull` + `pnpm install` + `pnpm db:push` |
+| **Indicado para** | Self-hosting, VPS, servidor | Contribuidores, customizações |
+
 ---
 
 ### Perfil 1 — Usar (self-hosting)
@@ -148,6 +162,16 @@ sudo sh install-deps.sh
 
 > Ao final, faça **logout e login** para as permissões do grupo `docker` terem efeito.
 
+#### Atualizando (Perfil 1)
+
+```bash
+pnpm docker:update
+# ou equivalente:
+docker compose pull && docker compose up -d
+```
+
+O schema do banco é aplicado automaticamente no startup — nenhum passo extra necessário.
+
 ---
 
 ### Perfil 2 — Desenvolver
@@ -166,7 +190,8 @@ pnpm install
 
 # 3. Configure o ambiente
 cp .env.example .env
-# Edite o .env com suas configurações
+# O DATABASE_URL já vem com host "localhost" (correto para dev local).
+# Edite o .env com suas configurações (BETTER_AUTH_SECRET, etc.)
 
 # 4. Suba o banco
 pnpm docker:db
@@ -184,6 +209,16 @@ pnpm dev
 Acesse em: `http://localhost:3000`
 
 Toda vez que salvar um arquivo, o app atualiza automaticamente sem precisar reiniciar.
+
+#### Atualizando (Perfil 2)
+
+```bash
+git pull
+pnpm install        # instala dependências novas, se houver
+pnpm db:push        # aplica mudanças de schema, se houver
+```
+
+O `pnpm dev` já em execução detecta as mudanças de código automaticamente — não precisa reiniciar.
 
 ---
 
@@ -357,11 +392,15 @@ S3_BUCKET=
 
 ## 🔐 Variáveis de Ambiente
 
-Copie `.env.example` para `.env` e configure:
+**Perfil 2 (dev):** copie `.env.example` para `.env` — o `DATABASE_URL` já vem com `localhost`, pronto para uso com `pnpm dev`.
+
+**Perfil 1 (Docker):** não precisa definir `DATABASE_URL` — o compose já configura automaticamente com host `db`. Só defina se usar banco remoto (Supabase, Neon, etc.).
 
 ### Obrigatórias
 
 ```env
+# Perfil 2 (dev): host "localhost" — o banco roda em container, o app no host
+# Perfil 1 (Docker): não precisa definir — o compose usa "db" automaticamente
 DATABASE_URL=postgresql://openmonetis:openmonetis_dev_password@localhost:5432/openmonetis_db
 BETTER_AUTH_SECRET=seu-secret-aqui    # openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
