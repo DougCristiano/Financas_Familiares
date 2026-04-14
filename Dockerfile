@@ -40,6 +40,10 @@ COPY --from=deps /app/public/pdf.worker.min.mjs ./public/pdf.worker.min.mjs
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production
 
+# Token público do Logo.dev — injetado em build time (NEXT_PUBLIC_* é inlined pelo Next.js)
+ARG NEXT_PUBLIC_LOGO_DEV_TOKEN
+ENV NEXT_PUBLIC_LOGO_DEV_TOKEN=$NEXT_PUBLIC_LOGO_DEV_TOKEN
+
 # Build da aplicação Next.js
 RUN pnpm build
 
