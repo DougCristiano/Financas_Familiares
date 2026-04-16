@@ -8,7 +8,7 @@
 
 > **⚠️ Não há versão online hospedada.** Você precisa clonar o repositório e rodar localmente ou no seu próprio servidor.
 
-[![Version](https://img.shields.io/badge/version-2.4.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.4.1-blue?style=flat-square)](CHANGELOG.md)
 [![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
@@ -390,6 +390,38 @@ S3_BUCKET=
 
 ---
 
+## 🏷️ Logos de Estabelecimentos (Logo.dev)
+
+O app exibe logos automáticos de marcas na coluna de estabelecimentos nos lançamentos. A integração usa a [Logo.dev](https://www.logo.dev) e é opcional — sem ela, o app exibe as iniciais coloridas normalmente.
+
+### Variáveis
+
+```env
+NEXT_PUBLIC_LOGO_DEV_TOKEN=pk_...   # token público (obrigatório para exibir logos)
+LOGO_DEV_SECRET_KEY=sk_...          # chave secreta (obrigatório para o picker de busca)
+```
+
+### Como configurar
+
+**Self-hosted via Docker Hub (Coolify, Railway, etc.):**
+
+O `NEXT_PUBLIC_LOGO_DEV_TOKEN` é inlinado pelo Next.js **em build time** — ele não pode ser injetado como variável de ambiente em runtime. Por isso o processo é diferente do usual:
+
+1. Cadastre o secret `NEXT_PUBLIC_LOGO_DEV_TOKEN` no repositório GitHub Fork (Settings → Secrets → Actions)
+2. O workflow de CI já está configurado para passar o valor como `--build-arg` no `docker build`
+3. Faça um novo build (push ou Run workflow manual) — a imagem gerada já terá o token embutido
+4. No Coolify (ou outro host), adicione apenas `LOGO_DEV_SECRET_KEY` como variável de ambiente runtime
+
+**Desenvolvimento local:**
+
+Adicione as duas variáveis no `.env` normalmente — o Next.js as lê em `pnpm dev` sem nenhuma etapa extra.
+
+### Como usar
+
+Após configurado, passe o mouse sobre o avatar de qualquer estabelecimento nos lançamentos — um ícone de lápis aparece. Clique para abrir o picker, busque pelo nome da marca e selecione o logo desejado. O mapeamento fica salvo por usuário no banco.
+
+---
+
 ## 🔐 Variáveis de Ambiente
 
 **Perfil 2 (dev):** copie `.env.example` para `.env` — o `DATABASE_URL` já vem com `localhost`, pronto para uso com `pnpm dev`.
@@ -437,6 +469,11 @@ ANTHROPIC_API_KEY=
 OPENAI_API_KEY=
 GOOGLE_GENERATIVE_AI_API_KEY=
 OPENROUTER_API_KEY=
+
+# Logo.dev (opcional, necessário para logos automáticos de estabelecimentos)
+# NEXT_PUBLIC_LOGO_DEV_TOKEN deve ser passado como build arg no CI — veja seção Logo.dev
+NEXT_PUBLIC_LOGO_DEV_TOKEN=
+LOGO_DEV_SECRET_KEY=
 ```
 
 ---

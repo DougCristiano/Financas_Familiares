@@ -7,6 +7,26 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-04-16
+
+### Adicionado
+
+- UI/Auth: layout animado nas páginas de login e signup com efeito blob (3 círculos coloridos em movimento) e card com glassmorphism; layout compartilhado extraído para `app/(auth)/layout.tsx` eliminando duplicação (PR #42)
+- DB: 17 índices em foreign keys — evita sequential scans em deletes nas tabelas pai. Impacto maior nas FKs de `lancamentos` (conta_id, categoria_id, antecipacao_id), onde deletes em `categorias` antes provocavam full scan na tabela de lançamentos
+
+### Alterado
+
+- UI/Navbar: labels capitalizados (Lançamentos, Categorias, Contas) em vez de caixa baixa — melhora legibilidade (PR #42)
+
+### Removido
+
+- DB: 7 índices sem uso — `tokens_api_user_id_idx`, `cartoes_user_id_status_idx`, `contas_user_id_status_idx`, `pagadores_user_id_status_idx`, `pagadores_user_id_role_idx`, `dashboard_notification_states_user_id_archived_idx`, `antecipacoes_parcelas_series_id_idx` (0 scans em 187 dias de estatísticas)
+- UI/Settings: tab de Integrações órfã removida (não tinha `TabsContent` correspondente)
+
+### Corrigido
+
+- Docker: container do PostgreSQL falhava ao iniciar em instalações existentes após atualização da imagem `postgres:18-alpine` — entrypoint passou a recusar dados no caminho legado `/var/lib/postgresql/data`. Adicionada variável `PGDATA` no `docker-compose.yml` para fixar o caminho e preservar dados de quem já tinha o volume populado (resolve #41)
+
 ## [2.4.0] - 2026-04-13
 
 ### Adicionado
