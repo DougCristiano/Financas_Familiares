@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { formatPeriodLabel } from "@/features/reports/utils";
+import {
+	formatPeriodLabel,
+	REPORT_CATEGORY_NAME_MAX_LENGTH,
+} from "@/features/reports/utils";
 import { CategoryIconBadge } from "@/shared/components/entity-avatar";
 import {
 	Card,
@@ -16,6 +19,7 @@ import type {
 } from "@/shared/lib/types/reports";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatPeriodForUrl } from "@/shared/utils/period";
+import { truncateWithEllipsis } from "@/shared/utils/string";
 import { CategoryCell } from "./category-cell";
 
 interface CategoryReportCardsProps {
@@ -31,6 +35,10 @@ interface CategoryCardProps {
 function CategoryCard({ category, periods, periodCount }: CategoryCardProps) {
 	const periodParam = formatPeriodForUrl(periods[periods.length - 1]);
 	const averageMonthlyTotal = category.total / periodCount;
+	const displayName = truncateWithEllipsis(
+		category.name,
+		REPORT_CATEGORY_NAME_MAX_LENGTH,
+	);
 
 	return (
 		<Card>
@@ -39,9 +47,10 @@ function CategoryCard({ category, periods, periodCount }: CategoryCardProps) {
 					<CategoryIconBadge icon={category.icon} name={category.name} />
 					<Link
 						href={`/categories/${category.categoryId}?periodo=${periodParam}`}
+						title={category.name}
 						className="flex-1 truncate hover:underline underline-offset-2"
 					>
-						{category.name}
+						{displayName}
 					</Link>
 				</CardTitle>
 			</CardHeader>

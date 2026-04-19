@@ -15,6 +15,7 @@ interface CategoryCellProps {
 	previousValue: number;
 	categoryType: "despesa" | "receita";
 	isFirstMonth: boolean;
+	className?: string;
 }
 
 export function CategoryCell({
@@ -22,6 +23,7 @@ export function CategoryCell({
 	previousValue,
 	categoryType,
 	isFirstMonth,
+	className,
 }: CategoryCellProps) {
 	const percentageChange =
 		!isFirstMonth && previousValue !== 0
@@ -41,7 +43,12 @@ export function CategoryCell({
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
-				<div className="flex flex-col items-end gap-0.5 min-h-9 justify-center cursor-default px-4 py-2">
+				<div
+					className={cn(
+						"flex flex-col items-end gap-0.5 min-h-9 justify-center cursor-default px-4 py-2",
+						className,
+					)}
+				>
 					<span className="font-medium">{formatCurrency(value)}</span>
 					{!isFirstMonth && percentageChange !== null && (
 						<div

@@ -10,6 +10,8 @@ import {
 // Re-export for convenience
 export { calculatePercentageChange };
 
+export const REPORT_CATEGORY_NAME_MAX_LENGTH = 36;
+
 /**
  * Formats period string from "YYYY-MM" to "MMM/YYYY" format
  * Example: "2025-01" -> "Jan/2025"

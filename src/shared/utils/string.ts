@@ -51,3 +51,21 @@ export function normalizeIconInput(icon?: string | null): string | null {
 	const trimmed = icon?.trim() ?? "";
 	return trimmed.length > 0 ? trimmed : null;
 }
+
+/**
+ * Truncates long text and appends ellipsis when needed
+ * @param value - Original text
+ * @param maxLength - Maximum number of characters to display
+ * @returns Truncated text with ellipsis when it exceeds the max length
+ */
+export function truncateWithEllipsis(value: string, maxLength: number): string {
+	if (maxLength <= 3) {
+		return value.slice(0, Math.max(maxLength, 0));
+	}
+
+	if (value.length <= maxLength) {
+		return value;
+	}
+
+	return `${value.slice(0, maxLength - 3).trimEnd()}...`;
+}
