@@ -43,6 +43,7 @@ export default async function Page({ searchParams }: PageProps) {
 				data={dashboardData}
 				period={selectedPeriod}
 				initialPreferences={dashboardWidgets}
+				quickActionOptions={quickActionOptions}
 			/>
 		</main>
 	);

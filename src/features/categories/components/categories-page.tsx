@@ -33,7 +33,7 @@ import {
 } from "@/shared/lib/categories/constants";
 import { CategoryDialog } from "./category-dialog";
 import { CategoryIconBadge } from "./category-icon-badge";
-import type { Category, CategoryType } from "./types";
+import type { CategoriesPaginatedData, Category, CategoryType } from "./types";
 
 const CATEGORIAS_PROTEGIDAS = [
 	"Transferência interna",
@@ -42,11 +42,17 @@ const CATEGORIAS_PROTEGIDAS = [
 ];
 
 interface CategoriesPageProps {
-	categories: Category[];
+	activeType: CategoryType;
+	searchQuery: string;
+	categoriesData: CategoriesPaginatedData;
 }
 
-export function CategoriesPage({ categories }: CategoriesPageProps) {
-	const [activeType, setActiveType] = useState<CategoryType>(CATEGORY_TYPES[0]);
+export function CategoriesPage({
+	activeType: initialActiveType,
+	searchQuery,
+	categoriesData,
+}: CategoriesPageProps) {
+	const [activeType, setActiveType] = useState<CategoryType>(initialActiveType);
 	const [editOpen, setEditOpen] = useState(false);
 	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
 		null,
@@ -61,7 +67,7 @@ export function CategoriesPage({ categories }: CategoriesPageProps) {
 			CATEGORY_TYPES.map((type) => [type, [] as Category[]]),
 		) as Record<CategoryType, Category[]>;
 
-		categories.forEach((category) => {
+		categoriesData.items.forEach((category) => {
 			base[category.type]?.push(category);
 		});
 
@@ -72,7 +78,7 @@ export function CategoriesPage({ categories }: CategoriesPageProps) {
 		});
 
 		return base;
-	}, [categories]);
+	}, [categoriesData.items]);
 
 	const handleEdit = (category: Category) => {
 		setSelectedCategory(category);
@@ -117,6 +123,7 @@ export function CategoriesPage({ categories }: CategoriesPageProps) {
 	const removeTitle = categoryToRemove
 		? `Remover categoria "${categoryToRemove.name}"?`
 		: "Remover categoria?";
+	const hasSearch = searchQuery.trim().length > 0;
 
 	return (
 		<>
@@ -151,8 +158,9 @@ export function CategoriesPage({ categories }: CategoriesPageProps) {
 						<TabsContent key={type} value={type} className="mt-4">
 							{categoriesByType[type].length === 0 ? (
 								<div className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed bg-muted/10 p-10 text-center text-sm text-muted-foreground">
-									Ainda não há categorias de{" "}
-									{CATEGORY_TYPE_LABEL[type].toLowerCase()}.
+									{hasSearch
+										? `Nenhuma categoria de ${CATEGORY_TYPE_LABEL[type].toLowerCase()} encontrada para \"${searchQuery}\".`
+										: `Ainda não há categorias de ${CATEGORY_TYPE_LABEL[type].toLowerCase()}.`}
 								</div>
 							) : (
 								<Card className="py-2">
