@@ -7,6 +7,10 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+### Adicionado
+
+- Deploy: `docker-compose.prod.yml` com stack completa para VPS (PostgreSQL + Minio + Caddy); `Caddyfile` para SSL automático via Let's Encrypt
+
 ## [2.4.1] - 2026-04-16
 
 ### Adicionado
